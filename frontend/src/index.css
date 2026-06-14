@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: dark; }
+  html, body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body {
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(212,175,55,0.10), transparent 60%),
+      #000;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .glass-strong {
+    background: rgba(10, 10, 18, 0.7);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #F6EBBF 0%, #D4AF37 50%, #B89327 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-gradient-lilac {
+    background: linear-gradient(135deg, #BE93FF 0%, #A974FF 50%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-cta-grad {
+    background: linear-gradient(135deg, #D4AF37 0%, #B89327 100%);
+  }
+  .bg-gold-grad {
+    background: linear-gradient(90deg, #F6EBBF 0%, #D4AF37 50%, #B89327 100%);
+  }
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+  }
+  .shadow-gold {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+  }
+  .border-gradient {
+    position: relative;
+  }
+  .border-gradient::before {
+    content: '';
+    position: absolute; inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(169,116,255,0.6), rgba(212,175,55,0.4), rgba(255,255,255,0.05));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: 'Syne', 'Inter', sans-serif; letter-spacing: -0.02em; }
+  .scrollbar-hidden::-webkit-scrollbar { display: none; }
+}
+
+/* canvas crisp */
+canvas { display: block; outline: none; touch-action: none; }
