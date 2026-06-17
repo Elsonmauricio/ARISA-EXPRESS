@@ -2,7 +2,8 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { db, admin } from '../config/firebase';
+import { db } from '../config/firebase';
+import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
 
@@ -25,7 +26,7 @@ export const AuthController = {
         phone,
         company,
         role: 'CLIENT',
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: FieldValue.serverTimestamp()
       });
       
       const userId = userRef.id;
@@ -82,7 +83,7 @@ export const AuthController = {
         userId: user.id,
         action: 'LOGIN',
         details: { ip: req.ip },
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
+        timestamp: FieldValue.serverTimestamp()
       });
       
       res.json({

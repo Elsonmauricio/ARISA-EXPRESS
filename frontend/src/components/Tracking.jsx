@@ -8,25 +8,40 @@ import Timeline from './Timeline';
 
 export default function Tracking() {
   const [code, setCode] = useState('');
-  const [submitted, setSubmitted] = useState(null); // {code} ou null
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const value = code.trim();
-    if (value.length < 5) {
-      setError('Insira um código válido com pelo menos 5 caracteres.');
-      setSubmitted(null);
+    if (!value) {
+      setError('Insira um código de rastreio.');
       return;
     }
+
+    setLoading(true);
     setError('');
-    // Re-mount Timeline para reanimar (key={submitted.code})
-    setSubmitted({ code: value.toUpperCase() });
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/tracking/${value.toUpperCase()}`);
+      const json = await response.json();
+
+      if (json.success) {
+        setResult(json.data);
+      } else {
+        setError(json.error || 'Encomenda não encontrada.');
+      }
+    } catch (err) {
+      setError('Erro ao conectar com o servidor.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <section id="rastrear" className="relative py-28">
-      <div className="container max-w-5xl">
+    <section id="rastrear" className="relative py-28 min-h-screen flex flex-col justify-center">
+      <div className="container mx-auto max-w-5xl px-4">
         <SectionHeading
           align="center"
           eyebrow="Rastreamento"
@@ -57,8 +72,8 @@ export default function Tracking() {
               placeholder="Insira o código (ex. AE-2025-09832)"
               className="flex-1 bg-transparent outline-none px-2 py-2 text-sm placeholder:text-white/30 text-white"
             />
-            <GoldButton type="submit" className="px-5 py-2.5 text-sm">
-              Rastrear
+            <GoldButton type="submit" className="px-5 py-2.5 text-sm" disabled={loading}>
+              {loading ? '...' : 'Rastrear'}
             </GoldButton>
           </div>
 
@@ -79,9 +94,9 @@ export default function Tracking() {
 
         {/* Resultado + Timeline */}
         <AnimatePresence mode="wait">
-          {submitted && (
+          {result && (
             <motion.div
-              key={submitted.code}
+              key={result.trackingCode}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
@@ -95,18 +110,23 @@ export default function Tracking() {
                     Código de Rastreio
                   </div>
                   <div className="font-display text-2xl md:text-3xl text-white">
-                    {submitted.code}
+                    {result.trackingCode}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-[10px] tracking-[0.3em] uppercase text-white/40 mb-1">
                     Estado atual
                   </div>
-                  <div className="text-gold font-semibold">Chegado a Luanda</div>
+                  <div className="text-gold font-semibold">
+                    {result.status.replace('_', ' ')}
+                  </div>
                 </div>
               </div>
 
-              <Timeline currentStep={2} />
+              {/* Mapeamos o progresso vindo do backend para o índice do Timeline */}
+              <Timeline 
+                currentStep={result.progress >= 100 ? 3 : result.progress >= 70 ? 2 : result.progress >= 40 ? 1 : 0} 
+              />
             </motion.div>
           )}
         </AnimatePresence>

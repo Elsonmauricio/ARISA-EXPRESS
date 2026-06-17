@@ -1,40 +1,34 @@
 'use client';
-
-/**
- * Services — 3 cartões premium horizontais.
- * Hover (Framer Motion):
- *  - O cartão levanta ligeiramente (translateY: -8) com scale subtil
- *  - O brilho da borda gradiente lilás/dourado intensifica
- *  - O ícone ganha cor dourada mais vibrante
- *  - Glow radial do fundo fica mais forte
- */
-
 import { motion } from 'framer-motion';
-import { Plane, Building2, PackageCheck, ArrowUpRight } from 'lucide-react';
-import SectionHeading from './SectionHeading.jsx';
+import { Search, ArrowUpRight } from 'lucide-react';
+import { Canvas } from '@react-three/fiber';
+import { Float, OrbitControls, Environment } from '@react-three/drei';
+import Plane3D from './three/Plane.jsx';
+import Forklift3D from './three/Forklift3D.jsx';
+import Mailbox3D from './three/Mailbox3D.jsx';
 
 const SERVICES = [
   {
-    n: '01',
-    icon: Plane,
+    n: '1',
+    component: <Plane3D scale={15} rotation={[0, Math.PI / 1.5, 0]} />,
     title: 'Transporte Aéreo',
-    desc: 'Cargas urgentes entre Lisboa e Luanda com tempo de trânsito otimizado, manuseamento prioritário e seguro incluído.',
+    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do enusmod.',
     accent: 'from-lilac-500/40 to-lilac-700/5',
     iconBg: 'bg-lilac-500/10',
   },
   {
-    n: '02',
-    icon: Building2,
+    n: '2',
+    component: <Forklift3D />,
     title: 'Logística Empresarial',
-    desc: 'Soluções B2B com gestão de stocks, armazenagem alfandegária e distribuição porta-a-porta em ambos os países.',
+    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do nonumy nibh.',
     accent: 'from-gold/40 to-gold/0',
     iconBg: 'bg-gold/10',
   },
   {
-    n: '03',
-    icon: PackageCheck,
+    n: '3',
+    component: <Mailbox3D />,
     title: 'Encomendas Particulares',
-    desc: 'Envios pessoais com recolha em casa, embalagem segura e rastreio em tempo real desde a origem até ao destinatário.',
+    desc: 'Lorem ipsum dolor sit amet, consestetur adipiscing elit, sed do nonuiny nibh.',
     accent: 'from-lilac-400/40 to-gold/10',
     iconBg: 'bg-lilac-400/10',
   },
@@ -43,43 +37,44 @@ const SERVICES = [
 function ServiceCard({ s, i }) {
   return (
     <motion.article
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 40, rotateX: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.6, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -10, scale: 1.015 }}
+      whileHover={{ y: -10, scale: 1.015, transition: { duration: 0.3 } }}
       className="group relative rounded-3xl overflow-hidden cursor-pointer h-full"
     >
       {/* Camada de borda gradiente (animação de brilho no hover) */}
-      <div className="absolute inset-0 rounded-3xl p-[1px] bg-gradient-to-br from-lilac-500/40 via-white/5 to-gold/40 opacity-60 group-hover:opacity-100 transition-opacity duration-500">
+      <div className="absolute inset-0 rounded-3xl p-[1px] bg-gradient-to-br from-lilac-500/20 via-white/5 to-gold/20 opacity-60 group-hover:opacity-100 transition-opacity duration-500">
         <div className="w-full h-full rounded-3xl bg-dark-700/80 backdrop-blur-xl" />
       </div>
 
-      {/* Glow radial atrás do cartão */}
-      <div
-        className={`pointer-events-none absolute -top-32 -right-24 w-72 h-72 rounded-full bg-gradient-to-br ${s.accent} blur-3xl opacity-60 group-hover:opacity-100 transition-opacity duration-500`}
-      />
-
       {/* Conteúdo */}
-      <div className="relative z-10 p-8 md:p-10 flex flex-col h-full min-h-[340px]">
-        <div className="flex items-start justify-between mb-12">
-          <span className="font-display text-lg text-white/30 tracking-wider">{s.n}</span>
-          <motion.div
-            className={`w-14 h-14 rounded-2xl ${s.iconBg} border border-white/10 flex items-center justify-center backdrop-blur-md group-hover:border-gold/60 transition-colors duration-500`}
-            whileHover={{ rotate: 6 }}
-          >
-            <s.icon className="w-7 h-7 text-gold group-hover:text-lilac-200 transition-colors duration-500" />
-          </motion.div>
+      <div className="relative z-10 p-8 flex flex-col h-full min-h-[420px]">
+        {/* Número Dourado Top-Left */}
+        <span className="absolute top-6 left-8 font-display text-4xl font-bold text-gold opacity-80">{s.n}</span>
+
+        {/* Figura 3D Canvas */}
+        <div className="w-full h-48 mt-4">
+          <Canvas camera={{ position: [0, 0, 4], fov: 40 }}>
+            <ambientLight intensity={0.8} />
+            <pointLight position={[10, 10, 10]} intensity={1} />
+            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+              {s.component}
+            </Float>
+            <Environment preset="city" />
+            <OrbitControls enableZoom={false} enablePan={false} />
+          </Canvas>
         </div>
 
-        <h3 className="font-display text-2xl font-semibold leading-tight text-white">
+        <h3 className="font-display text-2xl font-semibold leading-tight text-white mt-6">
           {s.title}
         </h3>
-        <p className="mt-3 text-sm text-white/60 leading-relaxed flex-1">
+        <p className="mt-3 text-sm text-white/50 leading-relaxed flex-1">
           {s.desc}
         </p>
 
-        <div className="mt-8 inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-gold group-hover:gap-3 transition-all duration-300">
+        <div className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-gold/80 group-hover:text-gold transition-all duration-300">
           Saber mais
           <ArrowUpRight className="w-4 h-4 group-hover:rotate-12 transition-transform" />
         </div>
@@ -94,19 +89,27 @@ function ServiceCard({ s, i }) {
 export default function Services() {
   return (
     <section id="servicos" className="relative py-28">
-      <div className="container">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
-          <SectionHeading
-            eyebrow="O que fazemos"
-            title={
-              <>
-                Serviços{' '}
-                <span className="text-gradient-gold">premium</span>{' '}
-                de ponta-a-ponta.
-              </>
-            }
-            subtitle="Três pilares para mover o que importa entre Angola e Portugal. Cada solução foi desenhada para um perfil específico — escolha o que se adapta a si."
-          />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-lilac-900/10 via-black to-black opacity-60" />
+      
+      <div className="container mx-auto">
+        {/* Cabeçalho da Seção */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
+          <h2 className="font-display text-5xl md:text-6xl font-bold text-white">
+            Serviços
+          </h2>
+          
+          {/* Barra de Pesquisa */}
+          <div className="relative w-full max-w-sm group">
+            <div className="absolute inset-0 bg-gradient-to-r from-lilac-500/20 to-gold/20 rounded-full blur group-focus-within:opacity-100 opacity-0 transition-opacity" />
+            <div className="relative flex items-center bg-dark-800/80 border border-white/10 rounded-full px-5 py-3 transition-all focus-within:border-gold/50">
+              <Search className="w-4 h-4 text-white/30 mr-3" />
+              <input 
+                type="text" 
+                placeholder="Insira o código"
+                className="bg-transparent outline-none text-sm text-white placeholder:text-white/30 w-full"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">

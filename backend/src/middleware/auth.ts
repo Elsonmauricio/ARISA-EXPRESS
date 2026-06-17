@@ -1,7 +1,7 @@
 // backend/src/middleware/auth.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { db, admin } from '../config/firebase';
+import { db } from '../config/firebase';
 
 declare global {
   namespace Express {

@@ -1,6 +1,7 @@
 // backend/src/controllers/shipmentController.ts
 import { Request, Response } from 'express';
-import { db, admin } from '../config/firebase';
+import { db } from '../config/firebase';
+import { FieldValue } from 'firebase-admin/firestore';
 import { generateTrackingCode } from '../utils/trackingCode';
 import { sendEmail } from '../services/emailService';
 import { io } from '../server';
@@ -32,7 +33,7 @@ export const ShipmentController = {
         price,
         userId: user.id,
         status: 'PENDING',
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
         history: [{
           status: 'PENDING',
           location: origin,
@@ -47,7 +48,7 @@ export const ShipmentController = {
         status: 'PENDING',
         location: origin,
         description: 'Encomenda registada aguardando recolha',
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
+        timestamp: FieldValue.serverTimestamp()
       });
       
       await sendEmail({

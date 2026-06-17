@@ -1,5 +1,5 @@
 // backend/src/index.ts
-import { db, admin } from '../config/firebase';
+import { db } from './config/firebase';
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {

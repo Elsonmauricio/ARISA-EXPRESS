@@ -1,6 +1,6 @@
 // backend/src/controllers/trackingController.ts
 import { Request, Response } from 'express';
-import { db, admin } from '../config/firebase';
+import { db } from '../config/firebase';
 
 export const TrackingController = {
   getTrackingInfo: async (req: Request, res: Response) => {

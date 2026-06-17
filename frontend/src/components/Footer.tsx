@@ -1,4 +1,4 @@
-// Removido qualquer referência a Instagram daqui para evitar conflito com lucide-react
+
 import {
   Plane,
   Mail,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { SiInstagram } from 'react-icons/si';
+import ARISAEXPRESStLogo from '../assets/logo-Arisa-express.png';
 
 const QUICK_LINKS = [
   { label: 'Sobre Nós', href: '#sobre' },
@@ -28,17 +29,14 @@ export default function Footer() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[40%] h-40 bg-lilac-500/10 blur-3xl rounded-full pointer-events-none" />
 
-      <div className="container">
+      <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-10 pb-14">
           {/* 1. Brand */}
           <div>
             <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-lilac-500 to-lilac-700 flex items-center justify-center shadow-glow">
-                <Plane className="w-5 h-5 text-white rotate-45" />
-              </div>
-              <div className="leading-none">
-                <div className="font-display text-lg font-bold">ARISA</div>
-                <div className="text-[10px] tracking-[0.35em] text-gold">EXPRESS</div>
+              <div className="flex items-center gap-2.5 mb-5">
+                {/* <Plane className="w-5 h-5 text-white rotate-45" /> */}
+                <img src={ARISAEXPRESStLogo} alt="ARISA EXPRESS Logo" className="h-16 md:h-12 w-auto object-contain transition-transform duration-300 hover:scale-105" />
               </div>
             </div>
             <p className="text-sm text-white/55 leading-relaxed max-w-xs">
@@ -76,12 +74,12 @@ export default function Footer() {
               </li>
               <li>
                 <a href="tel:+244900000000" className="flex items-center gap-2 hover:text-gold transition-colors">
-                  <Phone className="w-4 h-4 text-gold" /> +244 900 000 000
+                  <Phone className="w-4 h-4 text-gold" /> +351 934 292 082
                 </a>
               </li>
               <li>
-                <a href="mailto:ola@arisaexpress.com" className="flex items-center gap-2 hover:text-gold transition-colors">
-                  <Mail className="w-4 h-4 text-gold" /> ola@arisaexpress.com
+                <a href="mailto:arisaexpress7@gmail.com" className="flex items-center gap-2 hover:text-gold transition-colors">
+                  <Mail className="w-4 h-4 text-gold" />arisaexpress7@gmail.com
                 </a>
               </li>
             </ul>

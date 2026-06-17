@@ -1,6 +1,7 @@
 // backend/src/controllers/adminController.ts
 import { Request, Response } from 'express';
-import { db, admin } from '../config/firebase';
+import { db } from '../config/firebase';
+import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
 import { io } from '../server';
 
@@ -53,7 +54,7 @@ export const AdminController = {
       const updateData: any = {
         status,
         currentLocation: location,
-        history: admin.firestore.FieldValue.arrayUnion({
+        history: FieldValue.arrayUnion({
           status,
           location,
           description,
@@ -62,7 +63,7 @@ export const AdminController = {
       };
 
       if (status === 'DELIVERED') {
-        updateData.actualDelivery = admin.firestore.FieldValue.serverTimestamp();
+        updateData.actualDelivery = FieldValue.serverTimestamp();
       }
 
       await db.collection('shipments').doc(id).update(updateData);
@@ -71,7 +72,7 @@ export const AdminController = {
         status,
         location,
         description,
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
+        timestamp: FieldValue.serverTimestamp()
       });
       
       if (io) {

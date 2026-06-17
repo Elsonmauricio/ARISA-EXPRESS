@@ -2,9 +2,9 @@
 import { motion } from 'framer-motion';
 
 export default function SectionHeading({ eyebrow, title, subtitle, align = 'left' }) {
-  const alignCls = align === 'center' ? 'text-center mx-auto' : 'text-left';
+  const alignCls = align === 'center' ? 'text-center mx-auto' : 'text-left mr-auto';
   return (
-    <div className={`max-w-2xl ${alignCls}`}>
+    <div className={`max-w-3xl ${alignCls}`}>
       {eyebrow && (
         <motion.span
           initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}

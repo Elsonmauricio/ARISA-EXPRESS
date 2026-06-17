@@ -12,8 +12,10 @@ import shipmentRoutes from './routes/shipments';
 import quotationRoutes from './routes/quotations';
 import adminRoutes from './routes/admin';
 import trackingRoutes from './routes/tracking';
+import contactRoutes from './routes/contact';
 
 import { errorHandler } from './middleware/errorHandler';
+import { db } from './config/firebase';
 import { rateLimiter } from './middleware/rateLimit';
 import { logger } from './utils/logger';
 
@@ -27,7 +29,7 @@ const httpServer = createServer(app);
 // Socket.IO
 io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true
   }
 });
@@ -35,7 +37,7 @@ io = new Server(httpServer, {
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
 app.use(express.json());
@@ -48,6 +50,7 @@ app.use('/api/shipments', shipmentRoutes);
 app.use('/api/quotations', quotationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/tracking', trackingRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -73,4 +76,11 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
   logger.info(`🚀 Server running on port ${PORT}`);
+  
+  // Verificação básica de conectividade com o Firestore
+  db.collection('health_check').doc('status').get()
+    .then(() => logger.info('✅ Conectado ao Cloud Firestore com sucesso'))
+    .catch((err: any) => {
+      logger.error('❌ Falha ao conectar ao Cloud Firestore:', err.message);
+    });
 });

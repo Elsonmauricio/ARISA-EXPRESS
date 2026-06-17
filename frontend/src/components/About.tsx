@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Target, Eye, LucideIcon } from 'lucide-react';
-import SectionHeading from './SectionHeading';
+import SectionHeading from './SectionHeading.jsx';
 
 // Definição de tipos para os pilares
 interface Pillar {
@@ -17,7 +17,7 @@ const PILLARS: Pillar[] = [
 
 // Componente 3D com tipagem
 // Alterado de next/dynamic para React.lazy para compatibilidade com Vite
-const LogisticFlow3D = lazy(() => import('./three/LogisticFlow3D'));
+const LogisticFlow3D = lazy(() => import('./three/LogisticFlow3D.jsx'));
 
 const Loader = () => (
   <div className="w-full h-full flex items-center justify-center">
@@ -31,9 +31,14 @@ const About: React.FC = () => {
     <section id="sobre" className="relative py-28">
       <div className="absolute inset-0 -z-10 bg-radial-glow opacity-40" />
 
-      <div className="container grid lg:grid-cols-2 gap-14 items-center">
+      <div className="container mx-auto grid lg:grid-cols-2 gap-14 items-center">
         {/* Coluna 1 — Texto */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, x: 100 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
           <SectionHeading
             eyebrow="Sobre Nós"
             title={<>Logística pensada para <span className="text-gradient-gold">conectar dois continentes</span>.</>}
@@ -57,7 +62,7 @@ const About: React.FC = () => {
               </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Coluna 2 — Canvas 3D do fluxo logístico */}
         <motion.div

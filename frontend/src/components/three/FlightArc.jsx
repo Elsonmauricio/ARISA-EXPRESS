@@ -1,15 +1,10 @@
 'use client';
-
-/**
- * FlightArc — Arco luminoso Lisboa ↔ Luanda + avião low-poly a percorrer a curva.
- */
-
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
-import { latLonToVec3 } from './Globe';
-import Plane3D from './Plane';
+import { latLonToVec3 } from './Globe.jsx';
+import Plane3D from './Plane.jsx';
 
 function buildArc(start, end, height = 0.6, segments = 80) {
   const mid = start.clone().add(end).multiplyScalar(0.5);
@@ -19,8 +14,8 @@ function buildArc(start, end, height = 0.6, segments = 80) {
 }
 
 export default function FlightArc({
-  from = { lat: 38.72, lon: -9.14, label: 'Lisboa' },
-  to   = { lat: -8.84, lon: 13.23, label: 'Luanda' },
+  from = { lat: 38.72, lon: -9.14, label: 'Lisbon' },
+  to   = { lat: -8.84, lon: 13.23, label: 'Luands' },
   radius = 1.62,
 }) {
   const planeRef = useRef();
@@ -51,11 +46,11 @@ export default function FlightArc({
     <group>
       {/* Linha dourada principal */}
       <line geometry={geometry}>
-        <lineBasicMaterial color="#D4AF37" transparent opacity={0.9} />
+        <lineBasicMaterial color="#FFD700" transparent opacity={0.8} />
       </line>
       {/* Linha lilás sobreposta para criar glow */}
       <line geometry={geometry} scale={1.002}>
-        <lineBasicMaterial color="#A974FF" transparent opacity={0.5} />
+        <lineBasicMaterial color="#FF00FF" transparent opacity={0.5} />
       </line>
 
       {/* Marker Lisboa */}

@@ -1,6 +1,6 @@
 // backend/src/controllers/userController.ts
 import { Request, Response } from 'express';
-import { db, admin } from '../config/firebase';
+import { db } from '../config/firebase';
 import bcrypt from 'bcryptjs';
 
 export const UserController = {
@@ -18,7 +18,8 @@ export const UserController = {
         db.collection('quotations').where('userId', '==', userId).count().get()
       ]);
 
-      const { password, ...userData } = userDoc.data() as any;
+      const data = userDoc.data();
+      const { password, ...userData } = data || {};
 
       res.json({
         success: true,

@@ -1,6 +1,7 @@
 // backend/src/controllers/quotationController.ts
 import { Request, Response } from 'express';
-import { db, admin } from '../config/firebase';
+import { db } from '../config/firebase';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export const QuotationController = {
   createQuotation: async (req: Request, res: Response) => {
@@ -18,7 +19,7 @@ export const QuotationController = {
         serviceType,
         price,
         status: 'PENDING',
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: FieldValue.serverTimestamp()
       };
 
       const docRef = await db.collection('quotations').add(quotationData);

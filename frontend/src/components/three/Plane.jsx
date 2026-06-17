@@ -14,25 +14,25 @@ const Plane3D = forwardRef(function Plane3D(props, ref) {
       {/* Fuselagem principal */}
       <mesh rotation={[0, 0, Math.PI / 2]}>
         <capsuleGeometry args={[0.035, 0.16, 8, 16]} />
-        <meshStandardMaterial color="#F6EBBF" emissive="#D4AF37" emissiveIntensity={0.2} metalness={0.6} roughness={0.3} />
+        <meshStandardMaterial color="#C0C0C0" metalness={0.8} roughness={0.2} />
       </mesh>
 
       {/* Bico */}
       <mesh position={[0.11, 0, 0]} rotation={[0, 0, -Math.PI / 2]}>
         <coneGeometry args={[0.035, 0.06, 16]} />
-        <meshStandardMaterial color="#D4AF37" emissive="#D4AF37" emissiveIntensity={0.35} metalness={0.7} roughness={0.25} />
+        <meshStandardMaterial color="#C0C0C0" metalness={0.9} roughness={0.1} />
       </mesh>
 
       {/* Asas (par) */}
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[0.07, 0.012, 0.26]} />
-        <meshStandardMaterial color="#A974FF" emissive="#7C3AED" emissiveIntensity={0.3} metalness={0.4} roughness={0.4} />
+        <meshStandardMaterial color="#7C3AED" emissive="#7C3AED" emissiveIntensity={0.2} />
       </mesh>
 
       {/* Estabilizador horizontal (cauda) */}
       <mesh position={[-0.085, 0.005, 0]}>
         <boxGeometry args={[0.04, 0.008, 0.11]} />
-        <meshStandardMaterial color="#A974FF" emissive="#7C3AED" emissiveIntensity={0.3} metalness={0.4} roughness={0.4} />
+        <meshStandardMaterial color="#7C3AED" />
       </mesh>
 
       {/* Leme vertical */}

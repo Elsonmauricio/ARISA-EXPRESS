@@ -1,132 +1,130 @@
 'use client';
-import { Suspense, useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Float, Html, useProgress } from '@react-three/drei';
-import * as THREE from 'three';
-import Plane3D from './Plane';
+import React, { Suspense, useLayoutEffect, useRef } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import { OrbitControls, Float, ContactShadows, Environment, Stars } from '@react-three/drei';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Plane3D from './Plane.jsx';
+import Globe from './Globe.jsx';
+import FlightArc from './FlightArc.jsx';
 
-function Loader() {
-  const { progress } = useProgress();
-  return (
-    <Html center>
-      <div className="text-[10px] tracking-[0.3em] uppercase text-white/60">
-        {progress.toFixed(0)}%
-      </div>
-    </Html>
-  );
-}
+gsap.registerPlugin(ScrollTrigger);
 
-function FlowingBox({ offset = 0, color = '#A974FF', emissive = '#7C3AED' }) {
-  const ref = useRef();
-  const curve = useMemo(
-    () =>
-      new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-2.2, -0.4, 0),
-        new THREE.Vector3(-0.8, 0.2, 0.6),
-        new THREE.Vector3(0.8, 0.2, -0.6),
-        new THREE.Vector3(2.2, -0.4, 0),
-      ]),
-    []
-  );
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
-    const t = ((clock.getElapsedTime() * 0.18) + offset) % 1;
-    const pos = curve.getPointAt(t);
-    ref.current.position.copy(pos);
-    ref.current.rotation.y = clock.getElapsedTime() * 0.3 + offset * 6;
-    ref.current.rotation.x = clock.getElapsedTime() * 0.2;
-  });
-  return (
-    <mesh ref={ref}>
-      <boxGeometry args={[0.28, 0.28, 0.28]} />
-      <meshStandardMaterial color={color} emissive={emissive} emissiveIntensity={0.35} metalness={0.3} roughness={0.5} />
-    </mesh>
-  );
-}
+function SceneContent() {
+  const { camera } = useThree();
+  const sceneRef = useRef();
 
-function FlowPath() {
-  const curve = useMemo(
-    () =>
-      new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-2.2, -0.4, 0),
-        new THREE.Vector3(-0.8, 0.2, 0.6),
-        new THREE.Vector3(0.8, 0.2, -0.6),
-        new THREE.Vector3(2.2, -0.4, 0),
-      ]),
-    []
-  );
-  const geom = useMemo(() => {
-    const pts = curve.getPoints(120);
-    return new THREE.BufferGeometry().setFromPoints(pts);
-  }, [curve]);
+  useLayoutEffect(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: "#main-wrapper", // Selector do contentor pai que engloba as secções
+        id: "main-trigger",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 1.5,
+      }
+    });
+
+    // Passo 2: Mover câmara para "Sobre Nós"
+    tl.to(camera.position, { x: -3, y: 1.5, z: 7, ease: "power2.inOut" }, "about")
+      .to(camera.rotation, { y: 0.5, ease: "power2.inOut" }, "about");
+
+    // Passo 3: "Serviços" - Globo afunda e aceleração
+    tl.to(sceneRef.current.position, { y: -10, opacity: 0, ease: "power2.in" }, "services");
+
+    // Passo 4: "Rastreamento" - Zoom na encomenda (ou centro)
+    tl.to(camera.position, { x: 0, y: 0, z: 3, ease: "expo.inOut" }, "tracking");
+
+    return () => {
+      if (ScrollTrigger.getById("main-trigger")) ScrollTrigger.getById("main-trigger").kill();
+    };
+  }, [camera]);
+
   return (
-    <group>
-      <line geometry={geom}>
-        <lineBasicMaterial color="#D4AF37" transparent opacity={0.7} />
-      </line>
-      <line geometry={geom} scale={1.005}>
-        <lineBasicMaterial color="#A974FF" transparent opacity={0.35} />
-      </line>
+    <group ref={sceneRef}>
+      {/* Globo e Arcos */}
+      <group position={[-3.2, -0.4, 0]}>
+        <Globe />
+        <FlightArc />
+      </group>
+
+      {/* Estrada Low-Poly Cinza */}
+      <group position={[2, -1.5, 0]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[20, 2.5]} />
+          <meshStandardMaterial color="#222" roughness={1} flatShading />
+        </mesh>
+        
+        {/* Camião Roxo (Camião 1) */}
+        <group position={[-4, 0.25, 0.4]}>
+          <mesh><boxGeometry args={[1.2, 0.4, 0.4]} /><meshStandardMaterial color="#7C3AED" /></mesh>
+          <mesh position={[0.7, -0.1, 0]}><boxGeometry args={[0.3, 0.3, 0.35]} /><meshStandardMaterial color="#333" /></mesh>
+        </group>
+
+        {/* Camião Amarelo (Camião 2) */}
+        <group position={[-2, 0.25, -0.3]}>
+          <mesh><boxGeometry args={[1.2, 0.4, 0.4]} /><meshStandardMaterial color="#D4AF37" /></mesh>
+          <mesh position={[0.7, -0.1, 0]}><boxGeometry args={[0.3, 0.3, 0.35]} /><meshStandardMaterial color="#333" /></mesh>
+        </group>
+
+        {/* Carrinha Roxa (Carrinha 1) */}
+        <group position={[0.5, 0.15, 0.2]}>
+          <mesh><boxGeometry args={[0.5, 0.3, 0.25]} /><meshStandardMaterial color="#7C3AED" /></mesh>
+        </group>
+
+        {/* Paletes com Caixas */}
+        <group position={[2.5, 0.1, -0.1]}>
+          <mesh><boxGeometry args={[0.4, 0.05, 0.4]} /><meshStandardMaterial color="#8B4513" /></mesh>
+          <mesh position={[0, 0.15, 0]}><boxGeometry args={[0.3, 0.3, 0.3]} /><meshStandardMaterial color="#CD853F" /></mesh>
+        </group>
+
+        {/* Carrinhas Adicionais */}
+        <group position={[4.5, 0.15, 0.4]}><mesh><boxGeometry args={[0.5, 0.3, 0.25]} /><meshStandardMaterial color="#7C3AED" /></mesh></group>
+        <group position={[7, 0.15, -0.2]}><mesh><boxGeometry args={[0.5, 0.3, 0.25]} /><meshStandardMaterial color="#5B21B6" /></mesh></group>
+      </group>
+
+      <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+        <group position={[1.5, 1, 1]}>
+          <Plane3D scale={4} rotation={[0, Math.PI / 1.5, 0]} />
+        </group>
+      </Float>
     </group>
   );
 }
 
-function FlyingPlane() {
-  const ref = useRef();
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
-    const t = clock.getElapsedTime();
-    ref.current.position.set(Math.cos(t * 0.4) * 2.2, 1.0 + Math.sin(t * 0.6) * 0.15, Math.sin(t * 0.4) * 2.2);
-    ref.current.lookAt(0, 0.3, 0);
-    ref.current.rotateY(-Math.PI / 2);
-    ref.current.scale.setScalar(1.4);
-  });
-  return <Plane3D ref={ref} />;
-}
-
 export default function LogisticFlow3D() {
   return (
-    <Canvas
-      dpr={[1, 1.8]}
-      gl={{ antialias: true, alpha: true }}
-      camera={{ position: [0, 1.3, 4.2], fov: 45 }}
-      style={{ width: '100%', height: '100%' }}
-    >
-      <Suspense fallback={<Loader />}>
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[3, 4, 3]} intensity={1.1} color="#FFF6E0" />
-        <pointLight position={[-3, 1, -2]} intensity={0.6} color="#A974FF" />
-        <pointLight position={[3, -1, 2]} intensity={0.5} color="#D4AF37" />
-
-        <FlowPath />
-
-        {/* Caixas em fluxo (cores alternadas lilás/dourado) */}
-        <FlowingBox offset={0.0}  color="#A974FF" emissive="#7C3AED" />
-        <FlowingBox offset={0.2}  color="#D4AF37" emissive="#B89327" />
-        <FlowingBox offset={0.4}  color="#BE93FF" emissive="#A974FF" />
-        <FlowingBox offset={0.6}  color="#F6EBBF" emissive="#D4AF37" />
-        <FlowingBox offset={0.8}  color="#A974FF" emissive="#7C3AED" />
-
-        {/* Pad central (“hub”) */}
-        <Float speed={2} rotationIntensity={0.4} floatIntensity={0.6}>
-          <mesh position={[0, 0.15, 0]}>
-            <torusGeometry args={[0.35, 0.05, 16, 64]} />
-            <meshStandardMaterial color="#D4AF37" emissive="#D4AF37" emissiveIntensity={0.6} metalness={0.7} roughness={0.2} />
-          </mesh>
-        </Float>
-
-        {/* Avião a sobrevoar */}
-        <FlyingPlane />
-
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          autoRotate
-          autoRotateSpeed={0.6}
-          minPolarAngle={Math.PI / 2.8}
-          maxPolarAngle={Math.PI / 1.8}
+    <Canvas shadows camera={{ position: [0, 0, 5], fov: 45 }}>
+      <color attach="background" args={['#000000']} />
+      
+      {/* Iluminação de Estúdio Premium */}
+      <ambientLight intensity={0.2} />
+      <spotLight 
+        position={[10, 10, 10]} 
+        angle={0.15} 
+        penumbra={1} 
+        intensity={1.5} 
+        castShadow 
+        color="#F6EBBF"
+      />
+      <pointLight position={[-10, -10, -10]} color="#7C3AED" intensity={1} />
+      
+      <Suspense fallback={null}>
+        <SceneContent />
+        <ContactShadows 
+          position={[0, -1.6, 0]} 
+          opacity={0.4} 
+          scale={10} 
+          blur={2.5} 
+          far={4} 
+          color="#7C3AED"
         />
+
+        <Environment preset="city" />
+        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
       </Suspense>
+
+      <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
     </Canvas>
   );
 }

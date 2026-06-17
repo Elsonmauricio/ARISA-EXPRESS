@@ -8,13 +8,15 @@ interface ButtonProps {
   className?: string;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
 }
 
-export function GoldButton({ children, className, onClick, type = 'button' }: ButtonProps) {
+export function GoldButton({ children, className, onClick, type = 'button', disabled }: ButtonProps) {
   return (
     <motion.button
       type={type}
       onClick={onClick}
+      disabled={disabled}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.98 }}
       className={cn(
@@ -22,12 +24,12 @@ export function GoldButton({ children, className, onClick, type = 'button' }: Bu
         'text-white font-medium tracking-wide',
         'bg-cta-grad shadow-glow hover:shadow-gold transition-shadow',
         'overflow-hidden group',
+        disabled && 'opacity-50 cursor-not-allowed grayscale',
         className
       )}
     >
       <span className="relative z-10">{children}</span>
       <span className="absolute inset-0 bg-gold-grad opacity-0 group-hover:opacity-80 transition-opacity duration-500" />
-      <span className="relative z-10" />
     </motion.button>
   );
 }

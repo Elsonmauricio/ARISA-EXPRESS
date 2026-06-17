@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Plane } from 'lucide-react';
 import { GoldButton } from './Button';
+import ARISAEXPRESStLogo from '../assets/logo-Arisa-express.png';
 
 const LINKS = [
   { href: '#sobre', label: 'Sobre Nós' },
@@ -30,11 +31,9 @@ export default function Navbar() {
         scrolled ? 'glass-strong' : 'bg-transparent'
       }`}>
         <a href="/" className="flex items-center gap-2.5 group">
-          <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-lilac-500 to-lilac-700 flex items-center justify-center shadow-glow">
-            <Plane className="w-5 h-5 text-white rotate-45" />
-          </div>
+          <img src={ARISAEXPRESStLogo} alt="ARISA EXPRESS Logo" className="h-14"/>
           <div className="flex flex-col leading-none">
-            <span className="font-display text-lg font-bold tracking-tight text-white">ARISA</span>
+            <span className="font-display text-lg font-bold tracking-tight text-lilac-300">ARISA</span>
             <span className="text-[10px] tracking-[0.35em] text-gold">EXPRESS</span>
           </div>
         </a>
