@@ -92,25 +92,10 @@ export default function Services() {
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-lilac-900/10 via-black to-black opacity-60" />
       
       <div className="container mx-auto">
-        {/* Cabeçalho da Seção */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
-          <h2 className="font-display text-5xl md:text-6xl font-bold text-white">
-            Serviços
-          </h2>
-          
-          {/* Barra de Pesquisa */}
-          <div className="relative w-full max-w-sm group">
-            <div className="absolute inset-0 bg-gradient-to-r from-lilac-500/20 to-gold/20 rounded-full blur group-focus-within:opacity-100 opacity-0 transition-opacity" />
-            <div className="relative flex items-center bg-dark-800/80 border border-white/10 rounded-full px-5 py-3 transition-all focus-within:border-gold/50">
-              <Search className="w-4 h-4 text-white/30 mr-3" />
-              <input 
-                type="text" 
-                placeholder="Insira o código"
-                className="bg-transparent outline-none text-sm text-white placeholder:text-white/30 w-full"
-              />
-            </div>
-          </div>
-        </div>
+        {/* Apenas o título, sem a barra de pesquisa */}
+        <h2 className="font-display text-5xl md:text-6xl font-bold text-white mb-16">
+          Serviços
+        </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
           {SERVICES.map((s, i) => (

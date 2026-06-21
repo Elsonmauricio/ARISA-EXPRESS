@@ -1,10 +1,9 @@
-'use client';
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import { latLonToVec3 } from './Globe.jsx';
-import Plane3D from './Plane.jsx';
+import RealisticPlane from './RealisticPlane.jsx';
 
 function buildArc(start, end, height = 0.6, segments = 80) {
   const mid = start.clone().add(end).multiplyScalar(0.5);
@@ -15,8 +14,8 @@ function buildArc(start, end, height = 0.6, segments = 80) {
 
 export default function FlightArc({
   from = { lat: 38.72, lon: -9.14, label: 'Lisbon' },
-  to   = { lat: -8.84, lon: 13.23, label: 'Luands' },
-  radius = 1.62,
+  to = { lat: -8.84, lon: 13.23, label: 'Luands' },
+  radius = 1.5,
 }) {
   const planeRef = useRef();
 
@@ -37,46 +36,45 @@ export default function FlightArc({
       planeRef.current.position.copy(pos);
       planeRef.current.lookAt(next);
       planeRef.current.rotateY(-Math.PI / 2);
-      // Escala pequena conforme distância
-      planeRef.current.scale.setScalar(0.75);
+      // NÃO definir escala aqui – usamos a prop do componente
     }
   });
 
   return (
     <group>
-      {/* Linha dourada principal */}
+      {/* Linha dourada */}
       <line geometry={geometry}>
-        <lineBasicMaterial color="#FFD700" transparent opacity={0.8} />
+        <lineBasicMaterial color="#D4AF37" transparent opacity={0.4} />
       </line>
-      {/* Linha lilás sobreposta para criar glow */}
+      {/* Linha lilás (glow) */}
       <line geometry={geometry} scale={1.002}>
-        <lineBasicMaterial color="#FF00FF" transparent opacity={0.5} />
+        <lineBasicMaterial color="#A974FF" transparent opacity={0.9} />
       </line>
 
-      {/* Marker Lisboa */}
+      {/* Marcador Lisboa */}
       <group position={startVec}>
         <mesh><sphereGeometry args={[0.025, 16, 16]} /><meshBasicMaterial color="#D4AF37" /></mesh>
         <mesh><sphereGeometry args={[0.05, 16, 16]} /><meshBasicMaterial color="#D4AF37" transparent opacity={0.25} /></mesh>
         <Html distanceFactor={6} center position={[0, 0.09, 0]}>
-          <div className="text-[10px] tracking-widest uppercase text-white whitespace-nowrap px-2 py-0.5 rounded bg-black/70 border border-gold/40">
+          <div className="text-[10px] tracking-widest uppercase text-white px-2 py-0.5 rounded bg-lilac-500/40 border border-lilac-300/60">
             {from.label}
           </div>
         </Html>
       </group>
 
-      {/* Marker Luanda */}
+      {/* Marcador Luanda */}
       <group position={endVec}>
         <mesh><sphereGeometry args={[0.025, 16, 16]} /><meshBasicMaterial color="#A974FF" /></mesh>
         <mesh><sphereGeometry args={[0.05, 16, 16]} /><meshBasicMaterial color="#A974FF" transparent opacity={0.3} /></mesh>
         <Html distanceFactor={6} center position={[0, 0.09, 0]}>
-          <div className="text-[10px] tracking-widest uppercase text-white whitespace-nowrap px-2 py-0.5 rounded bg-black/70 border border-lilac-400/40">
+          <div className="text-[10px] tracking-widest uppercase text-white px-2 py-0.5 rounded bg-lilac-500/40 border border-lilac-300/60s">
             {to.label}
           </div>
         </Html>
       </group>
 
-      {/* Avião low-poly a seguir a curva */}
-      <Plane3D ref={planeRef} />
+      {/* ✈️ AVIÃO – escala ajustada para 0.02 (muito pequeno) */}
+      <RealisticPlane ref={planeRef} scale={0.02} />
     </group>
   );
 }

@@ -1,26 +1,13 @@
 // backend/src/services/websocketService.ts
-import { Server as SocketServer } from 'socket.io';
-import { prisma } from '../server';
+import { Server } from 'socket.io';
+import { io } from '../server';
 
 export class WebSocketService {
-  private io: SocketServer;
-  
-  constructor(io: SocketServer) {
-    this.io = io;
+  static sendTrackingUpdate(trackingCode: string, data: any) {
+    io.to(`shipment:${trackingCode}`).emit('tracking-update', data);
   }
   
-  async sendTrackingUpdate(trackingCode: string, data: any) {
-    this.io.to(`shipment:${trackingCode}`).emit('tracking-update', data);
-    
-    // Store in Redis for persistence (optional)
-    // await redisClient.setex(`tracking:${trackingCode}`, 3600, JSON.stringify(data));
-  }
-  
-  async notifyAdmin(adminId: string, event: string, data: any) {
-    this.io.to(`admin:${adminId}`).emit(event, data);
-  }
-  
-  async broadcastDashboardUpdate(stats: any) {
-    this.io.emit('dashboard-update', stats);
+  static notifyAdmin(adminId: string, event: string, data: any) {
+    io.to(`admin:${adminId}`).emit(event, data);
   }
 }

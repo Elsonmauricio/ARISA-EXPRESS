@@ -22,7 +22,7 @@ export function GoldButton({ children, className, onClick, type = 'button', disa
       className={cn(
         'relative inline-flex items-center justify-center px-7 py-3.5 rounded-full',
         'text-white font-medium tracking-wide',
-        'bg-cta-grad shadow-glow hover:shadow-gold transition-shadow',
+        'bg-gradient-to-r from-lilac-500 to-gold hover:from-lilac-600 hover:to-gold',
         'overflow-hidden group',
         disabled && 'opacity-50 cursor-not-allowed grayscale',
         className
@@ -42,7 +42,7 @@ export function GhostButton({ children, className, onClick }: ButtonProps) {
       onClick={onClick}
       className={cn(
         'relative inline-flex items-center justify-center px-7 py-3.5 rounded-full',
-        'border border-white/15 text-white font-medium',
+        'border border-lilac-500/30 hover:border-lilac-400',
         'bg-white/[0.02] hover:bg-white/[0.06] hover:border-gold/60 transition-colors',
         className
       )}

@@ -9,6 +9,7 @@ const STEPS = [
   { icon: Truck,     title: 'Saiu para Entrega',    desc: 'Equipa de distribuição local', date: 'Hoje • 09:30' },
 ];
 
+
 // Animações sequenciais
 const containerVariants = {
   hidden: {},

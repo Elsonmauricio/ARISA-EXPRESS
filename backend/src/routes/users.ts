@@ -5,6 +5,7 @@ import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
+// Todas as rotas requerem autenticação
 router.use(authenticate);
 
 router.get('/profile', UserController.getProfile);

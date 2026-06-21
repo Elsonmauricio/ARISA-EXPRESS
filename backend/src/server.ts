@@ -8,6 +8,8 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 
 import authRoutes from './routes/auth';
+import userRoutes from './routes/users'; 
+import routeRoutes from './routes/routes';
 import shipmentRoutes from './routes/shipments';
 import quotationRoutes from './routes/quotations';
 import adminRoutes from './routes/admin';
@@ -46,11 +48,13 @@ app.use(rateLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);     
 app.use('/api/shipments', shipmentRoutes);
 app.use('/api/quotations', quotationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/routes', routeRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

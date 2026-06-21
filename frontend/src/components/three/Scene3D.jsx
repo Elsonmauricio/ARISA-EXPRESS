@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, useProgress } from '@react-three/drei';
-import Globe from './Globe';
+import EarthGlobe from './EarthGlobe';
 import FlightArc from './FlightArc';
 
 function Loader() {
@@ -26,25 +26,23 @@ export default function Scene3D() {
     <Canvas
       dpr={[1, 1.8]}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      camera={{ position: [0, 0.4, 4.6], fov: 45 }}
+      camera={{ position: [0, 0.2, 5.5], fov: 45 }}
       style={{ width: '100%', height: '100%' }}
     >
       <Suspense fallback={<Loader />}>
         <color attach="background" args={[0, 0, 0]} />
-
-        {/* Luzes */}
-        <ambientLight intensity={0.45} />
-        <directionalLight position={[5, 3, 5]} intensity={1.4} color="#FFF6E0" />
-        <pointLight position={[-4, -2, -3]} intensity={0.7} color="#A974FF" />
-        <pointLight position={[3, 2, 3]} intensity={0.4} color="#D4AF37" />
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[5, 5, 5]} intensity={1.2} />
+        <pointLight position={[-3, 2, 4]} intensity={0.8} color="#A974FF" />
+        <pointLight position={[3, 1, -2]} intensity={0.5} color="#D4AF37" />
 
         {/* Estrelas */}
         <Stars radius={50} depth={50} count={3500} factor={4} saturation={0} fade speed={0.4} />
 
         {/* Globo + arco */}
-        <group rotation={[0.15, -0.4, 0]}>
-          <Globe />
-          <FlightArc />
+        <group rotation={[0.1, 0, 0]} position={[0, 0, 0]}>
+          <EarthGlobe />
+          <FlightArc radius={1.5} />
         </group>
 
         <OrbitControls

@@ -1,3 +1,4 @@
+// src/components/Stats.jsx
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -48,7 +49,6 @@ function Counter({ value, prefix, suffix, delay = 0 }) {
 export default function Stats() {
   const containerRef = useRef(null);
 
-  // Animação de entrada do card contéiner (fade up via GSAP)
   useEffect(() => {
     if (!containerRef.current) return;
     const ctx = gsap.context(() => {
@@ -73,18 +73,18 @@ export default function Stats() {
   }, []);
 
   return (
-    <section className="relative py-20">
-      <div className="container">
+    <section className="relative py-20 w-full flex justify-center">
+      <div className="container mx-auto px-4">
         <div
           ref={containerRef}
-          className="glass-strong border-gradient rounded-3xl p-10 md:p-14 grid grid-cols-2 md:grid-cols-4 gap-8"
+          className="glass-strong border-gradient rounded-3xl p-8 sm:p-10 md:p-14 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mx-auto max-w-5xl"
         >
           {STATS.map((s, i) => (
-            <div key={i} className="stat-item text-center md:text-left">
-              <div className="font-display text-4xl md:text-5xl font-bold text-gradient-gold">
+            <div key={i} className="stat-item text-center">
+              <div className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-gradient-gold">
                 <Counter value={s.value} prefix={s.prefix} suffix={s.suffix} delay={i * 0.08} />
               </div>
-              <div className="mt-2 text-xs md:text-sm text-white/60 uppercase tracking-widest">
+              <div className="mt-2 text-[10px] sm:text-xs md:text-sm text-white/60 uppercase tracking-widest">
                 {s.label}
               </div>
             </div>

@@ -7,7 +7,7 @@ const Scene = lazy(() => import('./three/Scene3D'));
 
 const SceneLoader = () => (
   <div className="w-full h-full flex items-center justify-center">
-    <div className="w-12 h-12 rounded-full border-2 border-t-gold border-lilac-500/20 animate-spin" />
+    <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/80 via-lilac-500/10 to-black/30 z-[1]" />
   </div>
 );
 

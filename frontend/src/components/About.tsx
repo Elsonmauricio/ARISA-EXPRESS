@@ -29,7 +29,7 @@ const Loader = () => (
 const About: React.FC = () => {
   return (
     <section id="sobre" className="relative py-28">
-      <div className="absolute inset-0 -z-10 bg-radial-glow opacity-40" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,_#7C3AED20,_transparent_70%)]" />
 
       <div className="container mx-auto grid lg:grid-cols-2 gap-14 items-center">
         {/* Coluna 1 — Texto */}
@@ -72,7 +72,7 @@ const About: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="relative aspect-square max-w-xl mx-auto w-full"
         >
-          <div className="absolute inset-0 rounded-[2rem] glass-strong border-gradient overflow-hidden">
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,_#7C3AED20,_transparent_70%)]" >
             {/* Glows decorativos */}
             <div className="absolute -top-24 -left-24 w-64 h-64 bg-lilac-500/25 blur-3xl rounded-full pointer-events-none z-0" />
             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-gold/20 blur-3xl rounded-full pointer-events-none z-0" />
