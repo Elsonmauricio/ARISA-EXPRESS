@@ -31,9 +31,33 @@ interface Shipment {
   weight: number;
   price: number;
   status: string;
-  createdAt: string;
+  createdAt: any; // Pode ser Timestamp do Firestore, string ISO ou Date
   senderName: string;
   receiverName: string;
+  flightDate?: any; // Opcional, para mostrar na lista se existir
+}
+
+// ======================== FUNÇÃO AUXILIAR PARA FORMATAR DATAS ========================
+function formatDate(dateValue: any): string {
+  if (!dateValue) return '—';
+  try {
+    // Se for Timestamp do Firestore (objeto com toDate)
+    if (typeof dateValue === 'object' && dateValue.toDate) {
+      return dateValue.toDate().toLocaleDateString('pt-PT');
+    }
+    // Se for string ISO
+    if (typeof dateValue === 'string') {
+      const d = new Date(dateValue);
+      return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-PT');
+    }
+    // Se for objeto Date
+    if (dateValue instanceof Date) {
+      return dateValue.toLocaleDateString('pt-PT');
+    }
+    return '—';
+  } catch {
+    return '—';
+  }
 }
 
 // ======================== BOOKING FORM ========================
@@ -61,7 +85,6 @@ function BookingForm({ routes }: { routes: Route[] }) {
 
   useEffect(() => {
     if (selectedRoute) {
-      // Preço = pricePerKg * peso (sem taxas)
       const total = selectedRoute.pricePerKg * weight;
       setEstimatedPrice(Math.round(total * 100) / 100);
     }
@@ -72,13 +95,12 @@ function BookingForm({ routes }: { routes: Route[] }) {
 
   const handleRouteSelect = (route: Route) => {
     setSelectedRoute(route);
-    // Atualizar formData com os dados da rota e o peso atual
     setFormData({
       ...formData,
       origin: route.origin,
       destination: route.destination,
       serviceType: route.serviceType,
-      weight: weight // <-- importante: usar o peso atual
+      weight: weight
     });
     setStep('form');
   };
@@ -94,7 +116,6 @@ function BookingForm({ routes }: { routes: Route[] }) {
       [name]: parsedValue
     });
 
-    // Se o campo for weight, atualizar também a variável de estado local
     if (name === 'weight') {
       setWeight(parsedValue);
     }
@@ -105,14 +126,12 @@ function BookingForm({ routes }: { routes: Route[] }) {
     setLoading(true);
     setError('');
 
-    // Validar campos obrigatórios
     if (!formData.senderName || !formData.senderPhone || !formData.receiverName || !formData.receiverPhone) {
       setError('Preencha todos os campos obrigatórios');
       setLoading(false);
       return;
     }
 
-    // Validar peso
     if (formData.weight <= 0) {
       setError('O peso deve ser maior que 0');
       setLoading(false);
@@ -127,7 +146,6 @@ function BookingForm({ routes }: { routes: Route[] }) {
         return;
       }
 
-      // Preparar payload
       const payload = {
         origin: formData.origin,
         destination: formData.destination,
@@ -145,8 +163,6 @@ function BookingForm({ routes }: { routes: Route[] }) {
         serviceType: formData.serviceType
       };
 
-      console.log('📦 Enviando reserva:', payload); // Log para depuração
-
       const response = await fetch('http://localhost:5000/api/shipments', {
         method: 'POST',
         headers: {
@@ -157,15 +173,12 @@ function BookingForm({ routes }: { routes: Route[] }) {
       });
 
       const json = await response.json();
-      console.log('📦 Resposta do servidor:', json); // Log para depuração
-
       if (json.success) {
         setStep('success');
       } else {
         setError(json.error || 'Erro ao criar encomenda');
       }
     } catch (err) {
-      console.error('❌ Erro na requisição:', err);
       setError('Erro de conexão com o servidor.');
     } finally {
       setLoading(false);
@@ -258,7 +271,6 @@ function BookingForm({ routes }: { routes: Route[] }) {
                   onChange={(e) => {
                     const val = parseFloat(e.target.value) || 0;
                     setWeight(val);
-                    // Atualizar também formData.weight para manter consistência
                     setFormData(prev => ({ ...prev, weight: val }));
                   }}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
@@ -460,6 +472,26 @@ function ShipmentList() {
     return <Clock className="w-4 h-4" />;
   };
 
+  // Função para formatar datas do Firestore
+  const formatDate = (dateValue: any): string => {
+    if (!dateValue) return '—';
+    try {
+      if (typeof dateValue === 'object' && dateValue.toDate) {
+        return dateValue.toDate().toLocaleDateString('pt-PT');
+      }
+      if (typeof dateValue === 'string') {
+        const d = new Date(dateValue);
+        return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-PT');
+      }
+      if (dateValue instanceof Date) {
+        return dateValue.toLocaleDateString('pt-PT');
+      }
+      return '—';
+    } catch {
+      return '—';
+    }
+  };
+
   if (loading) return <div className="text-center py-8 text-white/60">A carregar encomendas...</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
   if (!localStorage.getItem('token')) {
@@ -488,7 +520,12 @@ function ShipmentList() {
           <div>
             <div className="font-mono text-sm text-gold">{s.trackingCode}</div>
             <div className="text-sm text-white/80">{s.origin} → {s.destination}</div>
-            <div className="text-xs text-white/50">{new Date(s.createdAt).toLocaleDateString('pt-PT')}</div>
+            {/* Data de criação formatada */}
+            <div className="text-xs text-white/50">{formatDate(s.createdAt)}</div>
+            {/* Opcional: mostrar data do voo se existir */}
+            {s.flightDate && (
+              <div className="text-xs text-white/40">Voo: {formatDate(s.flightDate)}</div>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
@@ -693,7 +730,6 @@ export default function ShipmentsPage() {
   const [loadingRoutes, setLoadingRoutes] = useState(true);
   const [routesError, setRoutesError] = useState('');
 
-  // Ler query param para definir a tab
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab') as any;
@@ -702,7 +738,6 @@ export default function ShipmentsPage() {
     }
   }, []);
 
-  // Carregar apenas rotas disponíveis (data futura e capacidade > 0)
   useEffect(() => {
     fetchRoutes();
   }, []);
