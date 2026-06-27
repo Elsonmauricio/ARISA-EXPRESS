@@ -5,10 +5,11 @@ import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
 
-// Rotas públicas (listar rotas)
-router.get('/', RouteController.getRoutes);
+// Rotas públicas (para clientes)
+router.get('/available', RouteController.getAvailableRoutes);
 
 // Rotas protegidas (apenas admin/operador)
+router.get('/', authenticate, authorize('ADMIN', 'OPERATOR'), RouteController.getRoutes);
 router.post('/', authenticate, authorize('ADMIN', 'OPERATOR'), RouteController.upsertRoute);
 router.delete('/:id', authenticate, authorize('ADMIN', 'OPERATOR'), RouteController.deleteRoute);
 router.post('/init', authenticate, authorize('ADMIN'), RouteController.initRoutes);

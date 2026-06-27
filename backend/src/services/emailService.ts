@@ -32,29 +32,26 @@ const templates: Record<EmailOptions['template'], (data: any) => string> = {
   `,
 
   'shipment-created': (data: any) => `
-    <h1>✅ Encomenda Registada com Sucesso</h1>
-    <p><strong>Olá ${data.name},</strong></p>
-    <p>A sua encomenda foi registada no sistema da <strong>Arisa Express</strong> e será processada em breve.</p>
-    
-    <h2>📦 Detalhes da Encomenda</h2>
-    <ul style="list-style: none; padding: 0;">
-      <li><strong>Código de Rastreio:</strong> <span style="background: #7C3AED; color: white; padding: 2px 8px; border-radius: 4px;">${data.trackingCode}</span></li>
-      <li><strong>Origem:</strong> ${data.origin}</li>
-      <li><strong>Destino:</strong> ${data.destination}</li>
-      <li><strong>Remetente:</strong> ${data.senderName} (${data.senderPhone})</li>
-      <li><strong>Destinatário:</strong> ${data.receiverName} (${data.receiverPhone})</li>
-      <li><strong>Peso:</strong> ${data.weight} kg</li>
-      <li><strong>Dimensões:</strong> ${data.dimensions?.length || 'N/A'} × ${data.dimensions?.width || 'N/A'} × ${data.dimensions?.height || 'N/A'} cm</li>
-      <li><strong>Descrição:</strong> ${data.description || 'N/A'}</li>
-      <li><strong>Serviço:</strong> ${data.serviceType.replace('_', ' ')}</li>
-      <li><strong>Valor Estimado:</strong> € ${data.price.toFixed(2)}</li>
-    </ul>
-    
-    <p>🔗 <a href="${process.env.FRONTEND_URL}/rastrear?code=${data.trackingCode}" style="background: #D4AF37; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Acompanhar Encomenda</a></p>
-    
-    <p>Em breve receberá atualizações sobre o estado da sua entrega.</p>
-    <br/>
-    <p>Equipa <strong>Arisa Express</strong></p>
+  <h1>✅ Encomenda Registada com Sucesso</h1>
+  <p><strong>Olá ${data.name},</strong></p>
+  <p>A sua encomenda foi registada no sistema da <strong>Arisa Express</strong>.</p>
+  <h2>📦 Detalhes da Encomenda</h2>
+  <ul>
+    <li><strong>Código de Rastreio:</strong> ${data.trackingCode}</li>
+    <li><strong>Origem:</strong> ${data.origin}</li>
+    <li><strong>Destino:</strong> ${data.destination}</li>
+    <li><strong>Data do Voo:</strong> ${data.flightDate || 'N/A'}</li>
+    <li><strong>Remetente:</strong> ${data.senderName} (${data.senderPhone})</li>
+    <li><strong>Destinatário:</strong> ${data.receiverName} (${data.receiverPhone})</li>
+    <li><strong>Peso:</strong> ${data.weight} kg</li>
+    <li><strong>Dimensões:</strong> ${data.dimensions?.length || 'N/A'} × ${data.dimensions?.width || 'N/A'} × ${data.dimensions?.height || 'N/A'} cm</li>
+    <li><strong>Descrição:</strong> ${data.description || 'N/A'}</li>
+    <li><strong>Serviço:</strong> ${data.serviceType}</li>
+    <li><strong>Valor:</strong> € ${data.price}</li>
+  </ul>
+  <p>🔗 <a href="${process.env.FRONTEND_URL}/rastrear?code=${data.trackingCode}">Acompanhar a encomenda</a></p>
+  <br/>
+  <p>Equipa <strong>Arisa Express</strong></p>
     <p style="color: #7C3AED;">💜 Luanda • Lisboa</p>
   `,
 

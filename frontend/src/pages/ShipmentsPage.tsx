@@ -16,7 +16,7 @@ interface Route {
   origin: string;
   destination: string;
   pricePerKg: number;
-  estimatedDays: number;
+  flightDate: string;
   serviceType: 'AIR_EXPRESS' | 'AIR_ECONOMY' | 'MARITIME' | 'BUSINESS';
   capacity: number;
   reserved: number;
@@ -61,8 +61,9 @@ function BookingForm({ routes }: { routes: Route[] }) {
 
   useEffect(() => {
     if (selectedRoute) {
-      const basePrice = selectedRoute.pricePerKg * weight;
-      setEstimatedPrice(Math.round(basePrice * 100) / 100);
+      // Preço = pricePerKg * peso (sem taxas)
+      const total = selectedRoute.pricePerKg * weight;
+      setEstimatedPrice(Math.round(total * 100) / 100);
     }
   }, [selectedRoute, weight]);
 
@@ -181,18 +182,26 @@ function BookingForm({ routes }: { routes: Route[] }) {
               {routes.map((route) => {
                 const avail = Math.max(0, route.available);
                 const isLow = avail < 50 && avail > 0;
+                const flightDate = route.flightDate ? new Date(route.flightDate) : null;
+                const isExpired = flightDate && flightDate < new Date();
+                // Se a rota já expirou, não mostrar (mas o backend já filtra)
                 return (
                   <div
                     key={route.id}
                     onClick={() => handleRouteSelect(route)}
                     className="p-4 rounded-xl border border-white/10 hover:border-gold/50 cursor-pointer transition-all hover:bg-white/5"
                   >
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-start">
                       <div>
                         <div className="font-semibold">{route.origin} → {route.destination}</div>
                         <div className="text-sm text-white/60">
-                          {route.serviceType.replace('_', ' ')} • {route.estimatedDays} dias
+                          {route.serviceType.replace('_', ' ')}
                         </div>
+                        {flightDate && (
+                          <div className="text-xs text-white/40 mt-1">
+                            🗓️ {flightDate.toLocaleDateString('pt-PT')}
+                          </div>
+                        )}
                       </div>
                       <div className="text-right">
                         <div className="text-gold font-bold">€ {route.pricePerKg}/kg</div>
@@ -204,6 +213,11 @@ function BookingForm({ routes }: { routes: Route[] }) {
                   </div>
                 );
               })}
+              {routes.length === 0 && (
+                <div className="text-center text-white/40 py-8">
+                  Nenhuma rota disponível no momento. Volte mais tarde.
+                </div>
+              )}
             </div>
           </div>
 
@@ -224,9 +238,15 @@ function BookingForm({ routes }: { routes: Route[] }) {
               {selectedRoute ? (
                 <div className="space-y-2 text-sm w-full">
                   <div className="flex justify-between">
-                    <span>Base ({selectedRoute.pricePerKg}€/kg × {weight}kg)</span>
+                    <span>Preço base ({selectedRoute.pricePerKg}€/kg × {weight}kg)</span>
                     <span>€ {(selectedRoute.pricePerKg * weight).toFixed(2)}</span>
                   </div>
+                  {selectedRoute.flightDate && (
+                    <div className="flex justify-between text-white/60">
+                      <span>Data do Voo</span>
+                      <span>{new Date(selectedRoute.flightDate).toLocaleDateString('pt-PT')}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-white/60">
                     <span>Disponível</span>
                     <span className={available >= weight ? 'text-green-400' : 'text-red-400'}>
@@ -270,6 +290,12 @@ function BookingForm({ routes }: { routes: Route[] }) {
                 <span><strong>Rota:</strong> {selectedRoute.origin} → {selectedRoute.destination}</span>
                 <span><strong>Serviço:</strong> {selectedRoute.serviceType.replace('_', ' ')}</span>
               </div>
+              {selectedRoute.flightDate && (
+                <div className="flex justify-between mt-1">
+                  <span><strong>Data do Voo:</strong></span>
+                  <span>{new Date(selectedRoute.flightDate).toLocaleDateString('pt-PT')}</span>
+                </div>
+              )}
               <div className="flex justify-between mt-1">
                 <span><strong>Peso:</strong> {weight} kg</span>
                 <span><strong>Preço:</strong> € {estimatedPrice.toFixed(2)}</span>
@@ -345,31 +371,42 @@ function ShipmentList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const fetchShipments = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    const response = await fetch('http://localhost:5000/api/shipments', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Erro ao buscar encomendas:', response.status, text);
+      setError(`Erro ${response.status}: Não foi possível carregar as encomendas.`);
+      return;
+    }
+
+    const json = await response.json();
+    if (json.success) {
+      setShipments(json.data);
+    } else {
+      setError(json.error || 'Erro ao carregar encomendas');
+    }
+  } catch (err) {
+    console.error('Erro de conexão:', err);
+    setError('Erro de conexão com o servidor.');
+  } finally {
+    setLoading(false);
+  }
+};
+
   useEffect(() => {
     fetchShipments();
   }, []);
-
-  const fetchShipments = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch('http://localhost:5000/api/shipments', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const json = await response.json();
-      if (json.success) {
-        setShipments(json.data);
-      }
-    } catch (err) {
-      setError('Erro ao carregar encomendas');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -452,7 +489,7 @@ function PriceTable({ routes }: { routes: Route[] }) {
             <th className="text-left py-3 text-white/60">Destino</th>
             <th className="text-left py-3 text-white/60">Serviço</th>
             <th className="text-right py-3 text-white/60">€/kg</th>
-            <th className="text-right py-3 text-white/60">Dias</th>
+            <th className="text-right py-3 text-white/60">Data do Voo</th>
             <th className="text-right py-3 text-white/60">Disponível (kg)</th>
           </tr>
         </thead>
@@ -460,13 +497,16 @@ function PriceTable({ routes }: { routes: Route[] }) {
           {routes.map((route) => {
             const avail = Math.max(0, route.available);
             const isLow = avail < 50 && avail > 0;
+            const flightDate = route.flightDate ? new Date(route.flightDate) : null;
             return (
               <tr key={route.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                 <td className="py-3">{route.origin}</td>
                 <td className="py-3">{route.destination}</td>
                 <td className="py-3">{route.serviceType.replace('_', ' ')}</td>
                 <td className="py-3 text-right font-semibold text-gold">€ {route.pricePerKg}</td>
-                <td className="py-3 text-right">{route.estimatedDays}</td>
+                <td className="py-3 text-right">
+                  {flightDate ? flightDate.toLocaleDateString('pt-PT') : '—'}
+                </td>
                 <td className={`py-3 text-right font-semibold ${avail === 0 ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-green-400'}`}>
                   {avail > 0 ? avail : 'Esgotado'}
                 </td>
@@ -476,7 +516,7 @@ function PriceTable({ routes }: { routes: Route[] }) {
         </tbody>
       </table>
       <div className="mt-4 text-xs text-white/40">
-        * Capacidade atualizada em tempo real. Reservas confirmadas reduzem a disponibilidade.
+        * Apenas rotas com data futura e capacidade disponível são mostradas.
       </div>
     </div>
   );
@@ -592,6 +632,10 @@ function TrackingForm() {
                 <span className="text-white/60">Peso</span>
                 <span className="text-white">{result.weight} kg</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-white/60">Preço</span>
+                <span className="text-white">€ {result.price?.toFixed(2) || '—'}</span>
+              </div>
               {result.trackingUpdates && result.trackingUpdates.length > 0 && (
                 <div className="mt-4">
                   <div className="text-xs text-white/40 mb-2">Histórico</div>
@@ -620,6 +664,7 @@ export default function ShipmentsPage() {
   const [loadingRoutes, setLoadingRoutes] = useState(true);
   const [routesError, setRoutesError] = useState('');
 
+  // Ler query param para definir a tab (ex: ?tab=rastrear)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab') as any;
@@ -628,13 +673,14 @@ export default function ShipmentsPage() {
     }
   }, []);
 
+  // Carregar apenas rotas disponíveis (data futura e capacidade > 0)
   useEffect(() => {
     fetchRoutes();
   }, []);
 
   const fetchRoutes = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/routes');
+      const response = await fetch('http://localhost:5000/api/routes/available');
       const json = await response.json();
       if (json.success) {
         setRoutes(json.data);
@@ -711,7 +757,7 @@ export default function ShipmentsPage() {
           <div className="mt-6">
             {activeTab === 'reservar' && (
               loadingRoutes ? (
-                <div className="text-center py-8 text-white/60">A carregar rotas...</div>
+                <div className="text-center py-8 text-white/60">A carregar rotas disponíveis...</div>
               ) : routesError ? (
                 <div className="text-center py-8 text-red-400">{routesError}</div>
               ) : (

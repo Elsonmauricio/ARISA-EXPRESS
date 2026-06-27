@@ -16,7 +16,11 @@ export const ShipmentController = {
       } = req.body;
       const user = (req as any).user;
 
-      // Verificar se a rota existe e tem capacidade
+      if (!user || !user.id) {
+        return res.status(401).json({ error: 'Não autenticado' });
+      }
+
+      // Verificar rota
       const routeQuery = await db.collection('routes')
         .where('origin', '==', origin)
         .where('destination', '==', destination)
@@ -39,14 +43,13 @@ export const ShipmentController = {
         });
       }
 
-      // Atualizar reserva da rota
+      // Atualizar reserva
       await db.collection('routes').doc(routeDoc.id).update({
         reserved: FieldValue.increment(weightNum)
       });
 
-      // Gerar código e preço
       const trackingCode = generateTrackingCode();
-      const price = ShipmentController.calculatePrice(weightNum, serviceType);
+      const price = routeData.pricePerKg * weightNum; // sem taxas
 
       const shipmentData = {
         trackingCode,
@@ -82,7 +85,7 @@ export const ShipmentController = {
         timestamp: FieldValue.serverTimestamp()
       });
 
-      // Enviar email com todos os detalhes
+      // Enviar email
       await sendEmail({
         to: user.email,
         subject: `✅ Encomenda Registada - ${trackingCode}`,
@@ -105,24 +108,41 @@ export const ShipmentController = {
       });
 
       res.status(201).json({ success: true, data: { id: docRef.id, ...shipmentData } });
-    } catch (error) {
-      logger.error('Erro ao criar encomenda:', error);
+    } catch (error: any) {
+      logger.error('Erro ao criar encomenda:', error.message, error.stack);
       res.status(500).json({ error: 'Erro ao criar encomenda' });
     }
   },
 
   getUserShipments: async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).user.id;
+      const user = (req as any).user;
+      if (!user || !user.id) {
+        return res.status(401).json({ error: 'Não autenticado' });
+      }
+
+      const userId = user.id;
+      logger.info(`Buscando encomendas para o utilizador: ${userId}`);
+
       const snapshot = await db.collection('shipments')
         .where('userId', '==', userId)
         .orderBy('createdAt', 'desc')
         .get();
 
-      const shipments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const shipments = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return { id: doc.id, ...data };
+      });
+
+      logger.info(`Encontradas ${shipments.length} encomendas para o utilizador ${userId}`);
       res.json({ success: true, data: shipments });
-    } catch (error) {
-      logger.error('Erro ao buscar encomendas:', error);
+    } catch (error: any) {
+      logger.error('Erro ao buscar encomendas:', error.message, error.stack);
+      if (error.message && error.message.includes('requires an index')) {
+        return res.status(500).json({
+          error: 'O índice do Firestore ainda não está pronto. Aguarde alguns minutos e tente novamente.'
+        });
+      }
       res.status(500).json({ error: 'Erro ao buscar encomendas' });
     }
   },
@@ -217,10 +237,5 @@ export const ShipmentController = {
       logger.error('Erro ao cancelar encomenda:', error);
       res.status(500).json({ error: 'Erro ao cancelar encomenda' });
     }
-  },
-
-  calculatePrice: (weight: number, pricePerKg: number): number => {
-  const total = pricePerKg * weight;
-  return Math.round(total * 100) / 100;
-}
+  }
 };

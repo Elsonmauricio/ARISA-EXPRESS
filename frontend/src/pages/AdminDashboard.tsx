@@ -3,17 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Package, Truck, Users, TrendingUp,
-  CheckCircle2, Clock, XCircle,
-  Search,
-  Plus, Trash2,
-  MapPin,
-  ChevronDown
+  AlertCircle, CheckCircle2, Clock, XCircle,
+  Search, Plus, Edit, Trash2, MapPin,
+  ChevronDown, Calendar
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { useNavigate } from 'react-router-dom';
 
-// Tipos
+// ======================== TIPOS ========================
 interface Shipment {
   id: string;
   trackingCode: string;
@@ -43,7 +41,7 @@ interface Route {
   origin: string;
   destination: string;
   pricePerKg: number;
-  flightDate: string;          // Data do voo (ISO string)
+  flightDate: string;
   capacity: number;
   reserved: number;
   available: number;
@@ -76,7 +74,112 @@ function StatsCards({ stats }: { stats: any }) {
   );
 }
 
-// ======================== SHIPMENT LIST (ADMIN) ========================
+// ======================== STATUS CHART ========================
+function StatusChart({ shipments }: { shipments: Shipment[] }) {
+  const statusCounts: Record<string, number> = {};
+  shipments.forEach(s => {
+    statusCounts[s.status] = (statusCounts[s.status] || 0) + 1;
+  });
+
+  const statusColors: Record<string, string> = {
+    PENDING: 'bg-yellow-500',
+    COLLECTED: 'bg-blue-500',
+    IN_TRANSIT: 'bg-lilac-500',
+    CUSTOMS: 'bg-orange-500',
+    IN_PORTUGAL: 'bg-cyan-500',
+    IN_ANGOLA: 'bg-emerald-500',
+    OUT_FOR_DELIVERY: 'bg-purple-500',
+    DELIVERED: 'bg-green-500',
+    CANCELLED: 'bg-red-500'
+  };
+
+  const statusLabels: Record<string, string> = {
+    PENDING: 'Pendente',
+    COLLECTED: 'Recolhida',
+    IN_TRANSIT: 'Em Trânsito',
+    CUSTOMS: 'Alfândega',
+    IN_PORTUGAL: 'Em Portugal',
+    IN_ANGOLA: 'Em Angola',
+    OUT_FOR_DELIVERY: 'Saiu para Entrega',
+    DELIVERED: 'Entregue',
+    CANCELLED: 'Cancelada'
+  };
+
+  const total = shipments.length || 1;
+
+  return (
+    <div className="space-y-3">
+      {Object.entries(statusCounts).map(([status, count]) => {
+        const percentage = (count / total) * 100;
+        return (
+          <div key={status} className="flex items-center gap-2">
+            <span className="text-xs text-white/60 w-28 sm:w-32 truncate">
+              {statusLabels[status] || status.replace('_', ' ')}
+            </span>
+            <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${statusColors[status] || 'bg-white/20'}`}
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+            <span className="text-xs text-white/60 w-8 text-right">{count}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ======================== RECENT SHIPMENTS ========================
+function RecentShipments({ shipments }: { shipments: Shipment[] }) {
+  const recent = shipments.slice(0, 5);
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      PENDING: 'text-yellow-400 bg-yellow-400/10',
+      COLLECTED: 'text-blue-400 bg-blue-400/10',
+      IN_TRANSIT: 'text-lilac-400 bg-lilac-400/10',
+      CUSTOMS: 'text-orange-400 bg-orange-400/10',
+      IN_PORTUGAL: 'text-cyan-400 bg-cyan-400/10',
+      IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
+      OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
+      DELIVERED: 'text-green-400 bg-green-400/10',
+      CANCELLED: 'text-red-400 bg-red-400/10'
+    };
+    return colors[status] || 'text-white/60 bg-white/10';
+  };
+
+  if (recent.length === 0) {
+    return (
+      <div className="text-center py-8 text-white/40">
+        <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+        <p className="text-sm">Nenhuma encomenda registada</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {recent.map((s) => (
+        <div key={s.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
+          <div>
+            <div className="font-mono text-xs text-gold">{s.trackingCode}</div>
+            <div className="text-xs text-white/60">{s.origin} → {s.destination}</div>
+            <div className="text-xs text-white/40">{new Date(s.createdAt).toLocaleDateString('pt-PT')}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
+            <div className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusColor(s.status)}`}>
+              {s.status.replace('_', ' ')}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ======================== ADMIN SHIPMENT LIST ========================
 function AdminShipmentList() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -248,7 +351,7 @@ function AdminShipmentList() {
   );
 }
 
-// ======================== USER LIST (ADMIN) ========================
+// ======================== ADMIN USER LIST ========================
 function AdminUserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -347,25 +450,46 @@ function AdminUserList() {
   );
 }
 
-// ======================== ROUTE MANAGER ========================
-function AdminRouteManager({ routes, setRoutes }: { routes: Route[], setRoutes: React.Dispatch<React.SetStateAction<Route[]>> }) {
-  const [newRoute, setNewRoute] = useState<Partial<Route>>({
+// ======================== ADMIN ROUTE MANAGER ========================
+function AdminRouteManager() {
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [newRoute, setNewRoute] = useState({
     origin: '',
     destination: '',
+    serviceType: 'AIR_EXPRESS',
     pricePerKg: 0,
     flightDate: '',
-    capacity: 0,
-    serviceType: 'AIR_EXPRESS'
+    capacity: 0
   });
-  const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const handleAdd = async () => {
-    if (!newRoute.origin || !newRoute.destination || !newRoute.pricePerKg || !newRoute.flightDate || !newRoute.capacity) {
-      alert('Preencha todos os campos');
-      return;
+  useEffect(() => {
+    fetchRoutes();
+  }, []);
+
+  const fetchRoutes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/routes', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const json = await response.json();
+      if (json.success) {
+        setRoutes(json.data);
+      } else {
+        setError(json.error || 'Erro ao carregar rotas');
+      }
+    } catch (err) {
+      setError('Erro de conexão');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/routes', {
@@ -375,58 +499,73 @@ function AdminRouteManager({ routes, setRoutes }: { routes: Route[], setRoutes: 
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          origin: newRoute.origin,
-          destination: newRoute.destination,
-          serviceType: newRoute.serviceType,
-          pricePerKg: newRoute.pricePerKg,
-          flightDate: newRoute.flightDate,
-          capacity: newRoute.capacity
+          id: editingId || undefined,
+          ...newRoute
         })
       });
       const json = await response.json();
       if (json.success) {
-        // Adicionar rota à lista local
-        const route = {
-          id: json.data.id || Date.now().toString(),
-          ...json.data,
-          available: json.data.capacity
-        };
-        setRoutes([...routes, route]);
-        setNewRoute({ origin: '', destination: '', pricePerKg: 0, flightDate: '', capacity: 0, serviceType: 'AIR_EXPRESS' });
+        fetchRoutes();
+        setNewRoute({ origin: '', destination: '', serviceType: 'AIR_EXPRESS', pricePerKg: 0, flightDate: '', capacity: 0 });
+        setEditingId(null);
       } else {
-        alert(json.error || 'Erro ao criar rota');
+        alert(json.error || 'Erro ao guardar rota');
       }
     } catch (err) {
       alert('Erro de conexão');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem a certeza que deseja eliminar esta rota?')) return;
+    if (!confirm('Tem a certeza que pretende eliminar esta rota?')) return;
     try {
       const token = localStorage.getItem('token');
       await fetch(`http://localhost:5000/api/routes/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setRoutes(routes.filter(r => r.id !== id));
+      fetchRoutes();
     } catch (err) {
-      alert('Erro ao eliminar rota');
+      alert('Erro ao eliminar');
     }
   };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '—';
+    try {
+      return new Date(dateStr).toLocaleDateString('pt-PT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch {
+      return '—';
+    }
+  };
+
+  const isExpired = (flightDate: string) => {
+    if (!flightDate) return false;
+    try {
+      return new Date(flightDate) < new Date();
+    } catch {
+      return false;
+    }
+  };
+
+  if (loading) return <div className="text-center py-8 text-white/60">A carregar rotas...</div>;
+  if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
     <div>
       <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl mb-6">
-        <h4 className="font-semibold mb-4 text-sm sm:text-base">Adicionar Nova Rota</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+        <h4 className="font-semibold mb-4 text-sm sm:text-base">{editingId ? 'Editar Rota' : 'Adicionar Nova Rota'}</h4>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           <input
             type="text"
             placeholder="Origem"
             value={newRoute.origin}
             onChange={(e) => setNewRoute({ ...newRoute, origin: e.target.value })}
+            required
             className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
           />
           <input
@@ -434,29 +573,31 @@ function AdminRouteManager({ routes, setRoutes }: { routes: Route[], setRoutes: 
             placeholder="Destino"
             value={newRoute.destination}
             onChange={(e) => setNewRoute({ ...newRoute, destination: e.target.value })}
+            required
             className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
           />
           <select
             value={newRoute.serviceType}
             onChange={(e) => setNewRoute({ ...newRoute, serviceType: e.target.value })}
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
+            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none"
           >
             <option value="AIR_EXPRESS">Air Express</option>
             <option value="AIR_ECONOMY">Air Economy</option>
             <option value="MARITIME">Marítimo</option>
-            <option value="BUSINESS">Business</option>
           </select>
           <input
             type="number"
             placeholder="€/kg"
             value={newRoute.pricePerKg || ''}
             onChange={(e) => setNewRoute({ ...newRoute, pricePerKg: parseFloat(e.target.value) || 0 })}
+            required
             className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
           />
           <input
             type="date"
-            value={newRoute.flightDate || ''}
+            value={newRoute.flightDate}
             onChange={(e) => setNewRoute({ ...newRoute, flightDate: e.target.value })}
+            required
             className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
           />
           <input
@@ -464,12 +605,24 @@ function AdminRouteManager({ routes, setRoutes }: { routes: Route[], setRoutes: 
             placeholder="Capacidade (kg)"
             value={newRoute.capacity || ''}
             onChange={(e) => setNewRoute({ ...newRoute, capacity: parseFloat(e.target.value) || 0 })}
+            required
             className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
           />
-          <GoldButton onClick={handleAdd} className="py-2 text-sm col-span-full" disabled={loading}>
-            {loading ? 'A adicionar...' : 'Adicionar Rota'}
-          </GoldButton>
-        </div>
+          <div className="lg:col-span-6 flex gap-2">
+            <GoldButton type="submit" className="py-2 px-4 text-sm">
+              {editingId ? 'Atualizar' : 'Adicionar Rota'}
+            </GoldButton>
+            {editingId && (
+              <button
+                type="button"
+                onClick={() => { setEditingId(null); setNewRoute({ origin: '', destination: '', serviceType: 'AIR_EXPRESS', pricePerKg: 0, flightDate: '', capacity: 0 }); }}
+                className="px-4 py-2 rounded-lg bg-white/5 text-white/60 hover:bg-white/10 text-sm"
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
+        </form>
       </div>
 
       <div className="overflow-x-auto -mx-4 sm:mx-0">
@@ -481,34 +634,58 @@ function AdminRouteManager({ routes, setRoutes }: { routes: Route[], setRoutes: 
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Destino</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">Serviço</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">€/kg</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">Data do Voo</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Capacidade</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Reservado</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Data do Voo</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">Capacidade</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">Reservado</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Disponível</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Ações</th>
               </tr>
             </thead>
             <tbody>
               {routes.map((r) => {
-                const available = Math.max(0, r.capacity - r.reserved);
+                const expired = isExpired(r.flightDate);
                 return (
-                  <tr key={r.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                  <tr key={r.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${expired ? 'opacity-50' : ''}`}>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.origin}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.destination}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{r.serviceType.replace('_', ' ')}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">€ {r.pricePerKg}</td>
-                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">
-                      {r.flightDate ? new Date(r.flightDate).toLocaleDateString('pt-PT') : '—'}
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-white/30" />
+                        {formatDate(r.flightDate)}
+                        {expired && <span className="ml-1 text-red-400 text-[10px]">(Expirada)</span>}
+                      </div>
                     </td>
-                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.capacity} kg</td>
-                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.reserved || 0} kg</td>
-                    <td className={`py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold ${available === 0 ? 'text-red-400' : available < 50 ? 'text-orange-400' : 'text-green-400'}`}>
-                      {available} kg
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{r.capacity} kg</td>
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{r.reserved} kg</td>
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold">
+                      <span className={r.available > 0 ? 'text-green-400' : 'text-red-400'}>
+                        {r.available} kg
+                      </span>
                     </td>
                     <td className="py-3 px-2 sm:px-4">
-                      <button onClick={() => handleDelete(r.id)} className="text-red-400 hover:text-red-300">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => {
+                            setEditingId(r.id);
+                            setNewRoute({
+                              origin: r.origin,
+                              destination: r.destination,
+                              serviceType: r.serviceType,
+                              pricePerKg: r.pricePerKg,
+                              flightDate: r.flightDate ? r.flightDate.split('T')[0] : '',
+                              capacity: r.capacity
+                            });
+                          }}
+                          className="text-blue-400 hover:text-blue-300"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(r.id)} className="text-red-400 hover:text-red-300">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -517,6 +694,9 @@ function AdminRouteManager({ routes, setRoutes }: { routes: Route[], setRoutes: 
           </table>
         </div>
       </div>
+      {routes.length === 0 && (
+        <div className="text-center py-8 text-white/40">Nenhuma rota encontrada</div>
+      )}
     </div>
   );
 }
@@ -526,9 +706,9 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'shipments' | 'users' | 'routes'>('overview');
   const [stats, setStats] = useState({ totalShipments: 0, activeShipments: 0, deliveredToday: 0, totalUsers: 0 });
+  const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [routes, setRoutes] = useState<Route[]>([]);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -542,41 +722,40 @@ export default function AdminDashboard() {
       return;
     }
 
-    fetchStats();
-    fetchRoutes();
+    fetchDashboardData();
   }, []);
 
-  const fetchStats = async () => {
+  const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/stats', {
+      if (!token) return;
+
+      // Buscar estatísticas
+      const statsRes = await fetch('http://localhost:5000/api/admin/stats', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const json = await response.json();
-      if (json.success) {
+      const statsJson = await statsRes.json();
+      if (statsJson.success) {
         setStats({
-          totalShipments: json.data.totalShipments || 0,
-          activeShipments: json.data.activeShipments || 0,
+          totalShipments: statsJson.data.totalShipments || 0,
+          activeShipments: statsJson.data.activeShipments || 0,
           deliveredToday: 0,
-          totalUsers: json.data.totalUsers || 0
+          totalUsers: statsJson.data.totalUsers || 0
         });
       }
-    } catch (err) {
-      console.error('Erro ao carregar estatísticas');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchRoutes = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/routes');
-      const json = await response.json();
-      if (json.success) {
-        setRoutes(json.data);
+      // Buscar todas as encomendas para os gráficos
+      const shipmentsRes = await fetch('http://localhost:5000/api/admin/shipments', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const shipmentsJson = await shipmentsRes.json();
+      if (shipmentsJson.success) {
+        setShipments(shipmentsJson.data);
       }
     } catch (err) {
-      console.error('Erro ao carregar rotas:', err);
+      console.error('Erro ao carregar dados do dashboard');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -588,6 +767,16 @@ export default function AdminDashboard() {
   ];
 
   const currentTab = tabs.find(t => t.id === activeTab);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-black pt-28 pb-20 px-4 flex items-center justify-center">
+          <div className="text-white/60">A carregar dashboard...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -662,12 +851,18 @@ export default function AdminDashboard() {
                 <StatsCards stats={stats} />
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
-                    <h3 className="font-semibold mb-4 text-sm sm:text-base">Últimas Encomendas</h3>
-                    <p className="text-white/40 text-sm">As 5 encomendas mais recentes aparecerão aqui.</p>
+                    <h3 className="font-semibold mb-4 text-sm sm:text-base flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-gold" />
+                      Últimas Encomendas
+                    </h3>
+                    <RecentShipments shipments={shipments} />
                   </div>
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
-                    <h3 className="font-semibold mb-4 text-sm sm:text-base">Distribuição por Status</h3>
-                    <p className="text-white/40 text-sm">Gráfico de distribuição (em breve).</p>
+                    <h3 className="font-semibold mb-4 text-sm sm:text-base flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-gold" />
+                      Distribuição por Status
+                    </h3>
+                    <StatusChart shipments={shipments} />
                   </div>
                 </div>
               </>
@@ -675,7 +870,7 @@ export default function AdminDashboard() {
 
             {activeTab === 'shipments' && <AdminShipmentList />}
             {activeTab === 'users' && <AdminUserList />}
-            {activeTab === 'routes' && <AdminRouteManager routes={routes} setRoutes={setRoutes} />}
+            {activeTab === 'routes' && <AdminRouteManager />}
           </div>
         </div>
       </div>
