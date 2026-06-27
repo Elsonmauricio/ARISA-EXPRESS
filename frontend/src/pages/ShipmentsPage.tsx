@@ -72,23 +72,32 @@ function BookingForm({ routes }: { routes: Route[] }) {
 
   const handleRouteSelect = (route: Route) => {
     setSelectedRoute(route);
+    // Atualizar formData com os dados da rota e o peso atual
     setFormData({
       ...formData,
       origin: route.origin,
       destination: route.destination,
-      serviceType: route.serviceType
+      serviceType: route.serviceType,
+      weight: weight // <-- importante: usar o peso atual
     });
     setStep('form');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    const parsedValue = name === 'weight' || name === 'length' || name === 'width' || name === 'height'
+      ? parseFloat(value) || 0
+      : value;
+    
     setFormData({
       ...formData,
-      [name]: name === 'weight' || name === 'length' || name === 'width' || name === 'height'
-        ? parseFloat(value) || 0
-        : value
+      [name]: parsedValue
     });
+
+    // Se o campo for weight, atualizar também a variável de estado local
+    if (name === 'weight') {
+      setWeight(parsedValue);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,8 +105,16 @@ function BookingForm({ routes }: { routes: Route[] }) {
     setLoading(true);
     setError('');
 
+    // Validar campos obrigatórios
     if (!formData.senderName || !formData.senderPhone || !formData.receiverName || !formData.receiverPhone) {
       setError('Preencha todos os campos obrigatórios');
+      setLoading(false);
+      return;
+    }
+
+    // Validar peso
+    if (formData.weight <= 0) {
+      setError('O peso deve ser maior que 0');
       setLoading(false);
       return;
     }
@@ -110,38 +127,46 @@ function BookingForm({ routes }: { routes: Route[] }) {
         return;
       }
 
+      // Preparar payload
+      const payload = {
+        origin: formData.origin,
+        destination: formData.destination,
+        senderName: formData.senderName,
+        senderPhone: formData.senderPhone,
+        receiverName: formData.receiverName,
+        receiverPhone: formData.receiverPhone,
+        weight: formData.weight,
+        dimensions: {
+          length: formData.length || 0,
+          width: formData.width || 0,
+          height: formData.height || 0
+        },
+        description: formData.description || '',
+        serviceType: formData.serviceType
+      };
+
+      console.log('📦 Enviando reserva:', payload); // Log para depuração
+
       const response = await fetch('http://localhost:5000/api/shipments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          origin: formData.origin,
-          destination: formData.destination,
-          senderName: formData.senderName,
-          senderPhone: formData.senderPhone,
-          receiverName: formData.receiverName,
-          receiverPhone: formData.receiverPhone,
-          weight: formData.weight,
-          dimensions: {
-            length: formData.length || 0,
-            width: formData.width || 0,
-            height: formData.height || 0
-          },
-          description: formData.description,
-          serviceType: formData.serviceType
-        })
+        body: JSON.stringify(payload)
       });
 
       const json = await response.json();
+      console.log('📦 Resposta do servidor:', json); // Log para depuração
+
       if (json.success) {
         setStep('success');
       } else {
         setError(json.error || 'Erro ao criar encomenda');
       }
     } catch (err) {
-      setError('Erro de conexão com o servidor');
+      console.error('❌ Erro na requisição:', err);
+      setError('Erro de conexão com o servidor.');
     } finally {
       setLoading(false);
     }
@@ -158,6 +183,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
         <GoldButton onClick={() => {
           setStep('simulate');
           setSelectedRoute(null);
+          setWeight(1);
           setFormData({
             origin: '', destination: '', senderName: '', senderPhone: '',
             receiverName: '', receiverPhone: '', weight: 1,
@@ -183,8 +209,6 @@ function BookingForm({ routes }: { routes: Route[] }) {
                 const avail = Math.max(0, route.available);
                 const isLow = avail < 50 && avail > 0;
                 const flightDate = route.flightDate ? new Date(route.flightDate) : null;
-                const isExpired = flightDate && flightDate < new Date();
-                // Se a rota já expirou, não mostrar (mas o backend já filtra)
                 return (
                   <div
                     key={route.id}
@@ -231,7 +255,12 @@ function BookingForm({ routes }: { routes: Route[] }) {
                   min="0.1"
                   step="0.1"
                   value={weight}
-                  onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setWeight(val);
+                    // Atualizar também formData.weight para manter consistência
+                    setFormData(prev => ({ ...prev, weight: val }));
+                  }}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
                 />
               </div>
@@ -372,37 +401,37 @@ function ShipmentList() {
   const [error, setError] = useState('');
 
   const fetchShipments = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/shipments', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Erro ao buscar encomendas:', response.status, text);
+        setError(`Erro ${response.status}: Não foi possível carregar as encomendas.`);
+        return;
+      }
+
+      const json = await response.json();
+      if (json.success) {
+        setShipments(json.data);
+      } else {
+        setError(json.error || 'Erro ao carregar encomendas');
+      }
+    } catch (err) {
+      console.error('Erro de conexão:', err);
+      setError('Erro de conexão com o servidor.');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const response = await fetch('http://localhost:5000/api/shipments', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      console.error('Erro ao buscar encomendas:', response.status, text);
-      setError(`Erro ${response.status}: Não foi possível carregar as encomendas.`);
-      return;
-    }
-
-    const json = await response.json();
-    if (json.success) {
-      setShipments(json.data);
-    } else {
-      setError(json.error || 'Erro ao carregar encomendas');
-    }
-  } catch (err) {
-    console.error('Erro de conexão:', err);
-    setError('Erro de conexão com o servidor.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     fetchShipments();
@@ -664,7 +693,7 @@ export default function ShipmentsPage() {
   const [loadingRoutes, setLoadingRoutes] = useState(true);
   const [routesError, setRoutesError] = useState('');
 
-  // Ler query param para definir a tab (ex: ?tab=rastrear)
+  // Ler query param para definir a tab
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab') as any;
