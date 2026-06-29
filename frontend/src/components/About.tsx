@@ -15,8 +15,6 @@ const PILLARS: Pillar[] = [
   { icon: Eye,    title: 'Visão',  text: 'Ser a referência premium em logística Angola – Portugal até 2030, combinando tecnologia e atendimento humano.' },
 ];
 
-// Componente 3D com tipagem
-// Alterado de next/dynamic para React.lazy para compatibilidade com Vite
 const LogisticFlow3D = lazy(() => import('./three/LogisticFlow3D.jsx'));
 
 const Loader = () => (

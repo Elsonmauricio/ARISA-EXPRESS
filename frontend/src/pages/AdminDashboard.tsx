@@ -5,7 +5,7 @@ import {
   Package, Truck, Users, TrendingUp,
   AlertCircle, CheckCircle2, Clock, XCircle,
   Search, Plus, Edit, Trash2, MapPin,
-  ChevronDown, Calendar
+  ChevronDown, RefreshCw, Mail
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
@@ -20,7 +20,7 @@ interface Shipment {
   weight: number;
   price: number;
   status: string;
-  createdAt: string;
+  createdAt: any;
   senderName: string;
   receiverName: string;
   userId: string;
@@ -42,10 +42,41 @@ interface Route {
   destination: string;
   pricePerKg: number;
   flightDate: string;
+  serviceType: string;
   capacity: number;
   reserved: number;
   available: number;
-  serviceType: string;
+}
+
+interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+  createdAt: any;
+  read: boolean;
+  status?: string;
+}
+
+// ======================== FUNÇÃO AUXILIAR PARA FORMATAR DATAS ========================
+function formatDate(dateValue: any): string {
+  if (!dateValue) return '—';
+  try {
+    if (typeof dateValue === 'object' && dateValue.toDate) {
+      return dateValue.toDate().toLocaleDateString('pt-PT');
+    }
+    if (typeof dateValue === 'string') {
+      const d = new Date(dateValue);
+      return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-PT');
+    }
+    if (dateValue instanceof Date) {
+      return dateValue.toLocaleDateString('pt-PT');
+    }
+    return '—';
+  } catch {
+    return '—';
+  }
 }
 
 // ======================== STATS CARDS ========================
@@ -74,111 +105,6 @@ function StatsCards({ stats }: { stats: any }) {
   );
 }
 
-// ======================== STATUS CHART ========================
-function StatusChart({ shipments }: { shipments: Shipment[] }) {
-  const statusCounts: Record<string, number> = {};
-  shipments.forEach(s => {
-    statusCounts[s.status] = (statusCounts[s.status] || 0) + 1;
-  });
-
-  const statusColors: Record<string, string> = {
-    PENDING: 'bg-yellow-500',
-    COLLECTED: 'bg-blue-500',
-    IN_TRANSIT: 'bg-lilac-500',
-    CUSTOMS: 'bg-orange-500',
-    IN_PORTUGAL: 'bg-cyan-500',
-    IN_ANGOLA: 'bg-emerald-500',
-    OUT_FOR_DELIVERY: 'bg-purple-500',
-    DELIVERED: 'bg-green-500',
-    CANCELLED: 'bg-red-500'
-  };
-
-  const statusLabels: Record<string, string> = {
-    PENDING: 'Pendente',
-    COLLECTED: 'Recolhida',
-    IN_TRANSIT: 'Em Trânsito',
-    CUSTOMS: 'Alfândega',
-    IN_PORTUGAL: 'Em Portugal',
-    IN_ANGOLA: 'Em Angola',
-    OUT_FOR_DELIVERY: 'Saiu para Entrega',
-    DELIVERED: 'Entregue',
-    CANCELLED: 'Cancelada'
-  };
-
-  const total = shipments.length || 1;
-
-  return (
-    <div className="space-y-3">
-      {Object.entries(statusCounts).map(([status, count]) => {
-        const percentage = (count / total) * 100;
-        return (
-          <div key={status} className="flex items-center gap-2">
-            <span className="text-xs text-white/60 w-28 sm:w-32 truncate">
-              {statusLabels[status] || status.replace('_', ' ')}
-            </span>
-            <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${statusColors[status] || 'bg-white/20'}`}
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
-            <span className="text-xs text-white/60 w-8 text-right">{count}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ======================== RECENT SHIPMENTS ========================
-function RecentShipments({ shipments }: { shipments: Shipment[] }) {
-  const recent = shipments.slice(0, 5);
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      PENDING: 'text-yellow-400 bg-yellow-400/10',
-      COLLECTED: 'text-blue-400 bg-blue-400/10',
-      IN_TRANSIT: 'text-lilac-400 bg-lilac-400/10',
-      CUSTOMS: 'text-orange-400 bg-orange-400/10',
-      IN_PORTUGAL: 'text-cyan-400 bg-cyan-400/10',
-      IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
-      OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
-      DELIVERED: 'text-green-400 bg-green-400/10',
-      CANCELLED: 'text-red-400 bg-red-400/10'
-    };
-    return colors[status] || 'text-white/60 bg-white/10';
-  };
-
-  if (recent.length === 0) {
-    return (
-      <div className="text-center py-8 text-white/40">
-        <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
-        <p className="text-sm">Nenhuma encomenda registada</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      {recent.map((s) => (
-        <div key={s.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
-          <div>
-            <div className="font-mono text-xs text-gold">{s.trackingCode}</div>
-            <div className="text-xs text-white/60">{s.origin} → {s.destination}</div>
-            <div className="text-xs text-white/40">{new Date(s.createdAt).toLocaleDateString('pt-PT')}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-sm font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
-            <div className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusColor(s.status)}`}>
-              {s.status.replace('_', ' ')}
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ======================== ADMIN SHIPMENT LIST ========================
 function AdminShipmentList() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -186,10 +112,7 @@ function AdminShipmentList() {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    fetchShipments();
-  }, []);
+  const navigate = useNavigate();
 
   const fetchShipments = async () => {
     try {
@@ -203,9 +126,18 @@ function AdminShipmentList() {
       const response = await fetch('http://localhost:5000/api/admin/shipments', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
       const json = await response.json();
       if (json.success) {
         setShipments(json.data);
+        setError('');
       } else {
         setError(json.error || 'Erro ao carregar encomendas');
       }
@@ -215,6 +147,10 @@ function AdminShipmentList() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchShipments();
+  }, []);
 
   const updateStatus = async (id: string, status: string) => {
     try {
@@ -227,6 +163,14 @@ function AdminShipmentList() {
         },
         body: JSON.stringify({ status, location: 'Luanda', description: `Status atualizado para ${status}` })
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
       const json = await response.json();
       if (json.success) {
         fetchShipments();
@@ -292,6 +236,12 @@ function AdminShipmentList() {
           <option value="DELIVERED">Entregue</option>
           <option value="CANCELLED">Cancelada</option>
         </select>
+        <button
+          onClick={fetchShipments}
+          className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2"
+        >
+          <RefreshCw className="w-4 h-4" /> Atualizar
+        </button>
       </div>
 
       <div className="overflow-x-auto -mx-4 sm:mx-0">
@@ -356,10 +306,7 @@ function AdminUserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const navigate = useNavigate();
 
   const fetchUsers = async () => {
     try {
@@ -367,6 +314,14 @@ function AdminUserList() {
       const response = await fetch('http://localhost:5000/api/admin/users', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
       const json = await response.json();
       if (json.success) {
         setUsers(json.data);
@@ -380,10 +335,14 @@ function AdminUserList() {
     }
   };
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   const changeRole = async (id: string, role: string) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/admin/users/${id}/role`, {
+      const response = await fetch(`http://localhost:5000/api/admin/users/${id}/role`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -391,6 +350,14 @@ function AdminUserList() {
         },
         body: JSON.stringify({ role })
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
       fetchUsers();
     } catch (err) {
       alert('Erro ao alterar role');
@@ -464,10 +431,7 @@ function AdminRouteManager() {
     capacity: 0
   });
   const [editingId, setEditingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchRoutes();
-  }, []);
+  const navigate = useNavigate();
 
   const fetchRoutes = async () => {
     try {
@@ -475,6 +439,14 @@ function AdminRouteManager() {
       const response = await fetch('http://localhost:5000/api/routes', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
       const json = await response.json();
       if (json.success) {
         setRoutes(json.data);
@@ -487,6 +459,10 @@ function AdminRouteManager() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchRoutes();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -503,6 +479,14 @@ function AdminRouteManager() {
           ...newRoute
         })
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
       const json = await response.json();
       if (json.success) {
         fetchRoutes();
@@ -520,36 +504,26 @@ function AdminRouteManager() {
     if (!confirm('Tem a certeza que pretende eliminar esta rota?')) return;
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/routes/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/routes/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
       fetchRoutes();
     } catch (err) {
       alert('Erro ao eliminar');
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '—';
-    try {
-      return new Date(dateStr).toLocaleDateString('pt-PT', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return '—';
-    }
-  };
-
   const isExpired = (flightDate: string) => {
-    if (!flightDate) return false;
-    try {
-      return new Date(flightDate) < new Date();
-    } catch {
-      return false;
-    }
+    return new Date(flightDate) < new Date();
   };
 
   if (loading) return <div className="text-center py-8 text-white/60">A carregar rotas...</div>;
@@ -610,7 +584,7 @@ function AdminRouteManager() {
           />
           <div className="lg:col-span-6 flex gap-2">
             <GoldButton type="submit" className="py-2 px-4 text-sm">
-              {editingId ? 'Atualizar' : 'Adicionar Rota'}
+              {editingId ? 'Atualizar' : 'Adicionar'}
             </GoldButton>
             {editingId && (
               <button
@@ -651,11 +625,8 @@ function AdminRouteManager() {
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{r.serviceType.replace('_', ' ')}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">€ {r.pricePerKg}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-white/30" />
-                        {formatDate(r.flightDate)}
-                        {expired && <span className="ml-1 text-red-400 text-[10px]">(Expirada)</span>}
-                      </div>
+                      {r.flightDate ? new Date(r.flightDate).toLocaleDateString('pt-PT') : '—'}
+                      {expired && <span className="ml-2 text-red-400 text-[10px]">(Expirada)</span>}
                     </td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{r.capacity} kg</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{r.reserved} kg</td>
@@ -701,15 +672,197 @@ function AdminRouteManager() {
   );
 }
 
+// ======================== ADMIN LEADS LIST (MENSAGENS) ========================
+function AdminLeadsList() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const fetchLeads = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Não autenticado');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/admin/leads', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      const json = await response.json();
+      if (json.success) {
+        setLeads(json.data);
+      } else {
+        setError(json.error || 'Erro ao carregar mensagens');
+      }
+    } catch (err) {
+      setError('Erro de conexão');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const markAsRead = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/admin/leads/${id}/read`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      fetchLeads();
+    } catch (err) {
+      alert('Erro ao marcar como lida');
+    }
+  };
+
+  const deleteLead = async (id: string) => {
+    if (!confirm('Tem a certeza que pretende eliminar esta mensagem?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/admin/leads/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      fetchLeads();
+    } catch (err) {
+      alert('Erro ao eliminar mensagem');
+    }
+  };
+
+  // Função para formatar data/hora
+  const formatDateTime = (dateValue: any): string => {
+    if (!dateValue) return '—';
+    try {
+      let d;
+      if (typeof dateValue === 'object' && dateValue.toDate) {
+        d = dateValue.toDate();
+      } else if (typeof dateValue === 'string') {
+        d = new Date(dateValue);
+      } else if (dateValue instanceof Date) {
+        d = dateValue;
+      } else {
+        return '—';
+      }
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('pt-PT') + ' ' + d.toLocaleTimeString('pt-PT');
+    } catch {
+      return '—';
+    }
+  };
+
+  if (loading) return <div className="text-center py-8 text-white/60">A carregar mensagens...</div>;
+  if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
+
+  if (leads.length === 0) {
+    return (
+      <div className="text-center py-8 text-white/60">
+        <Mail className="w-12 h-12 mx-auto mb-3 opacity-30" />
+        <p>Nenhuma mensagem de contacto recebida.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {leads.map((lead) => (
+        <div
+          key={lead.id}
+          className={`glass-strong border-gradient p-4 rounded-xl transition-all ${
+            lead.read ? 'opacity-60' : 'border-gold/50'
+          }`}
+        >
+          <div className="flex flex-wrap justify-between items-start gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className="font-semibold text-white text-sm sm:text-base truncate">{lead.name}</span>
+                <span className="text-sm text-white/40 hidden sm:inline">•</span>
+                <a href={`mailto:${lead.email}`} className="text-sm text-gold hover:underline truncate">
+                  {lead.email}
+                </a>
+                {lead.phone && (
+                  <>
+                    <span className="text-sm text-white/40 hidden sm:inline">•</span>
+                    <a href={`tel:${lead.phone}`} className="text-sm text-white/60 hover:text-white truncate">
+                      {lead.phone}
+                    </a>
+                  </>
+                )}
+                <span className="text-xs text-white/30 ml-auto whitespace-nowrap">
+                  {formatDateTime(lead.createdAt)}
+                </span>
+              </div>
+              <div className="mt-2 text-sm text-white/80 whitespace-pre-wrap break-words">{lead.message}</div>
+              {!lead.read && (
+                <div className="mt-1">
+                  <span className="text-[10px] text-gold bg-gold/10 px-2 py-0.5 rounded-full">Nova</span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              {!lead.read && (
+                <button
+                  onClick={() => markAsRead(lead.id)}
+                  className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors whitespace-nowrap"
+                >
+                  Marcar lida
+                </button>
+              )}
+              <button
+                onClick={() => deleteLead(lead.id)}
+                className="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors whitespace-nowrap"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ======================== MAIN DASHBOARD ========================
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'shipments' | 'users' | 'routes'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'shipments' | 'users' | 'routes' | 'messages'>('overview');
   const [stats, setStats] = useState({ totalShipments: 0, activeShipments: 0, deliveredToday: 0, totalUsers: 0 });
-  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
+  const [statusDistribution, setStatusDistribution] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
+  // Verificar permissões
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (!userStr) {
@@ -721,12 +874,12 @@ export default function AdminDashboard() {
       navigate('/');
       return;
     }
-
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
     try {
+      setRefreshing(true);
       const token = localStorage.getItem('token');
       if (!token) return;
 
@@ -734,6 +887,14 @@ export default function AdminDashboard() {
       const statsRes = await fetch('http://localhost:5000/api/admin/stats', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (statsRes.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
       const statsJson = await statsRes.json();
       if (statsJson.success) {
         setStats({
@@ -744,39 +905,63 @@ export default function AdminDashboard() {
         });
       }
 
-      // Buscar todas as encomendas para os gráficos
+      // Buscar encomendas recentes (últimas 5)
       const shipmentsRes = await fetch('http://localhost:5000/api/admin/shipments', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (shipmentsRes.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
       const shipmentsJson = await shipmentsRes.json();
       if (shipmentsJson.success) {
-        setShipments(shipmentsJson.data);
+        const all = shipmentsJson.data || [];
+        // Ordenar por createdAt decrescente
+        const sorted = all.sort((a: any, b: any) => {
+          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+          return dateB.getTime() - dateA.getTime();
+        });
+        setRecentShipments(sorted.slice(0, 5));
+
+        // Calcular distribuição por status
+        const dist: Record<string, number> = {};
+        all.forEach((s: any) => {
+          dist[s.status] = (dist[s.status] || 0) + 1;
+        });
+        setStatusDistribution(dist);
       }
     } catch (err) {
-      console.error('Erro ao carregar dados do dashboard');
+      console.error('Erro ao carregar dashboard:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  // Atualização automática a cada 30 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (activeTab === 'overview') {
+        fetchDashboardData();
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [activeTab]);
 
   const tabs = [
     { id: 'overview', label: 'Visão Geral', icon: TrendingUp },
     { id: 'shipments', label: 'Encomendas', icon: Package },
     { id: 'users', label: 'Utilizadores', icon: Users },
     { id: 'routes', label: 'Rotas', icon: MapPin },
+    { id: 'messages', label: 'Mensagens', icon: Mail },
   ];
 
   const currentTab = tabs.find(t => t.id === activeTab);
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="min-h-screen bg-black pt-28 pb-20 px-4 flex items-center justify-center">
-          <div className="text-white/60">A carregar dashboard...</div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -787,11 +972,23 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6 sm:mb-8"
           >
-            <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold text-white flex flex-wrap items-center gap-2">
-              <span className="text-gradient-gold">Dashboard</span>
-              <span className="text-sm text-white/40">Administração</span>
-            </h1>
-            <p className="text-white/60 mt-1 text-sm sm:text-base">Gerencie encomendas, utilizadores e rotas.</p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold text-white flex flex-wrap items-center gap-2">
+                  <span className="text-gradient-gold">Dashboard</span>
+                  <span className="text-sm text-white/40">Administração</span>
+                </h1>
+                <p className="text-white/60 mt-1 text-sm sm:text-base">Gerencie encomendas, utilizadores, rotas e mensagens.</p>
+              </div>
+              <button
+                onClick={fetchDashboardData}
+                disabled={refreshing}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                {refreshing ? 'A atualizar...' : 'Atualizar'}
+              </button>
+            </div>
           </motion.div>
 
           {/* Tabs - Desktop */}
@@ -850,19 +1047,47 @@ export default function AdminDashboard() {
               <>
                 <StatsCards stats={stats} />
                 <div className="grid md:grid-cols-2 gap-6">
+                  {/* Últimas Encomendas */}
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
-                    <h3 className="font-semibold mb-4 text-sm sm:text-base flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gold" />
-                      Últimas Encomendas
-                    </h3>
-                    <RecentShipments shipments={shipments} />
+                    <h3 className="font-semibold mb-4 text-sm sm:text-base">Últimas Encomendas</h3>
+                    <div className="space-y-3">
+                      {recentShipments.length === 0 ? (
+                        <p className="text-white/40 text-sm">Nenhuma encomenda recente.</p>
+                      ) : (
+                        recentShipments.map((s) => (
+                          <div key={s.id} className="flex justify-between items-center border-b border-white/5 pb-2 last:border-0">
+                            <div>
+                              <div className="font-mono text-xs text-gold">{s.trackingCode}</div>
+                              <div className="text-xs text-white/60">{s.origin} → {s.destination}</div>
+                              <div className="text-[10px] text-white/40">{formatDate(s.createdAt)}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-xs font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
+                              <div className={`text-[10px] px-2 py-0.5 rounded-full ${s.status === 'DELIVERED' ? 'text-green-400 bg-green-400/10' : 'text-yellow-400 bg-yellow-400/10'}`}>
+                                {s.status.replace('_', ' ')}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
+
+                  {/* Distribuição por Status */}
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
-                    <h3 className="font-semibold mb-4 text-sm sm:text-base flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-gold" />
-                      Distribuição por Status
-                    </h3>
-                    <StatusChart shipments={shipments} />
+                    <h3 className="font-semibold mb-4 text-sm sm:text-base">Distribuição por Status</h3>
+                    {Object.keys(statusDistribution).length === 0 ? (
+                      <p className="text-white/40 text-sm">Nenhuma encomenda.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {Object.entries(statusDistribution).map(([status, count]) => (
+                          <div key={status} className="flex justify-between items-center">
+                            <span className="text-sm text-white/60">{status.replace('_', ' ')}</span>
+                            <span className="text-sm font-semibold text-white">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </>
@@ -871,6 +1096,7 @@ export default function AdminDashboard() {
             {activeTab === 'shipments' && <AdminShipmentList />}
             {activeTab === 'users' && <AdminUserList />}
             {activeTab === 'routes' && <AdminRouteManager />}
+            {activeTab === 'messages' && <AdminLeadsList />}
           </div>
         </div>
       </div>

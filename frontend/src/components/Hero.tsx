@@ -1,17 +1,29 @@
+// src/components/Hero.tsx
 import React, { Suspense, lazy } from 'react';
 import { motion } from 'framer-motion';
 import { GoldButton, GhostButton } from './Button';
 import { ArrowRight, Package } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Scene = lazy(() => import('./three/Scene3D'));
 
 const SceneLoader = () => (
   <div className="w-full h-full flex items-center justify-center">
-    <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/80 via-lilac-500/10 to-black/30 z-[1]" />
+    <div className="w-12 h-12 rounded-full border-2 border-t-gold border-lilac-500/20 animate-spin" />
   </div>
 );
 
 export default function Hero() {
+  const navigate = useNavigate();
+
+  // Função para scroll suave até uma secção
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <section className="relative min-h-screen w-full overflow-hidden">
       {/* 3D Canvas absolute layer */}
@@ -54,10 +66,13 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}
             className="mt-9 flex flex-wrap gap-4"
           >
-            <GoldButton>
+            {/* Botão Solicitar Orçamento → rola para a secção de contacto */}
+            <GoldButton onClick={() => scrollToSection('contactos')}>
               <span className="flex items-center gap-2">Solicitar Orçamento <ArrowRight className="w-4 h-4" /></span>
             </GoldButton>
-            <GhostButton>
+
+            {/* Botão Acompanhar Encomenda → navega para a página de encomendas (aba rastrear) */}
+            <GhostButton onClick={() => navigate('/encomendas?tab=rastrear')}>
               <span className="flex items-center gap-2"><Package className="w-4 h-4" /> Acompanhar Encomenda</span>
             </GhostButton>
           </motion.div>

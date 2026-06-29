@@ -47,7 +47,7 @@ export const TrackingController = {
         };
       });
 
-      // Construir resposta com dados completos
+      // Construir resposta com dados completos + datas de cada etapa
       const responseData = {
         trackingCode: shipment.trackingCode || code,
         origin: shipment.origin || 'N/A',
@@ -58,7 +58,15 @@ export const TrackingController = {
         senderName: shipment.senderName || 'N/A',
         receiverName: shipment.receiverName || 'N/A',
         createdAt: shipment.createdAt ? shipment.createdAt.toDate() : new Date(),
-        trackingUpdates
+        // ✅ Datas reais de cada etapa (vindas do Firestore)
+        collectedAt: shipment.collectedAt?.toDate?.() || null,
+        inTransitAt: shipment.inTransitAt?.toDate?.() || null,
+        arrivedAt: shipment.arrivedAt?.toDate?.() || null,
+        outForDeliveryAt: shipment.outForDeliveryAt?.toDate?.() || null,
+        deliveredAt: shipment.deliveredAt?.toDate?.() || null,
+        trackingUpdates,
+        // Progresso (opcional, pode ser calculado com base no status)
+        progress: shipment.progress || 0,
       };
 
       logger.info(`Rastreamento encontrado para o código: ${code}`);
