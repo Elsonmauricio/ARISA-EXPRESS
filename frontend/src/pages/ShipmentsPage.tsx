@@ -117,7 +117,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
     });
 
     if (name === 'weight') {
-      setWeight(parsedValue);
+      setWeight(parseFloat(value) || 0);
     }
   };
 
@@ -543,51 +543,182 @@ function ShipmentList() {
   );
 }
 
+// src/pages/ShipmentsPage.tsx – componente PriceTable refatorado
+
 // ======================== PRICE TABLE ========================
-function PriceTable({ routes }: { routes: Route[] }) {
+function PriceTable() {
+  // Dados estáticos baseados nas imagens fornecidas
+  const baseItems = [
+    { item: '1KG', euro: '13,00', kz: '16.900,00' },
+    { item: 'Alimentos', euro: 'Por KG', kz: '—' },
+    { item: 'Roupas', euro: 'Por KG', kz: '—' },
+    { item: 'Calçados', euro: 'Por KG', kz: '—' },
+    { item: 'Diversos (ex: SHEIN/TEMU)', euro: 'Por KG', kz: '—' },
+  ];
+
+  const malas = [
+    { peso: '5kg', euro: '85,00', kz: '110.500,00' },
+    { peso: '10kg', euro: '110,00', kz: '143.000,00' },
+    { peso: '23kg', euro: '200,00', kz: '260.000,00' },
+    { peso: '32kg', euro: '300,00', kz: '390.000,00' },
+  ];
+
+  const eletronicos = [
+    { item: 'Telemóvel', euro: '35,00', kz: '45.000,00' },
+    { item: 'Smart Watch', euro: '15,00', kz: '19.500,00' },
+    { item: 'AirPods', euro: '15,00', kz: '19.500,00' },
+    { item: 'Computador', euro: '50,00 / 60,00', kz: '65.000,00 / 78.000,00' },
+    { item: 'PlayStation 4', euro: '60,00', kz: '78.000,00' },
+    { item: 'PlayStation 5', euro: '90,00', kz: '117.000,00' },
+  ];
+
+  const pessoais = [
+    { item: 'Documentos/Cartões', euro: '15,00', kz: '19.500,00' },
+    { item: 'Passaporte', euro: '20,00', kz: '26.000,00' },
+    { item: 'Medicamentos', euro: '5,00', kz: '6.500,00' },
+    { item: 'Peças de ouro', euro: '15,00 / 25,00', kz: '19.500,00 / 32.500,00' },
+    { item: 'Peruca', euro: '7,00', kz: '9.100,00' },
+    { item: 'Outros itens', euro: 'Sob consulta', kz: 'Sob consulta' },
+  ];
+
+  const alfandega = [
+    { item: 'Perfumes', euro: 'Kg + 46% da fatura', kz: 'Kg + 35% da fatura' },
+    { item: 'Produtos de Cosmética', euro: 'Kg + 46% da fatura', kz: 'Kg + 35% da fatura' },
+    { item: 'Material de Manicure', euro: 'Kg + 23% da fatura', kz: 'Kg + 23% da fatura' },
+    { item: 'Aparelhos de Som', euro: 'Kg + 23% da fatura', kz: 'Kg + 23% da fatura' },
+    { item: 'Peças de Carro', euro: 'Kg + 23% da fatura', kz: 'Kg + 23% da fatura' },
+    { item: 'TV', euro: 'Kg + 23% da fatura', kz: '195.000,00 + 23% fatura' },
+  ];
+
   return (
-    <div className="glass-strong border-gradient p-6 rounded-2xl overflow-x-auto">
-      <h3 className="text-xl font-bold mb-4">📊 Tabela de Preços e Disponibilidade</h3>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-white/10">
-            <th className="text-left py-3 text-white/60">Origem</th>
-            <th className="text-left py-3 text-white/60">Destino</th>
-            <th className="text-left py-3 text-white/60">Serviço</th>
-            <th className="text-right py-3 text-white/60">€/kg</th>
-            <th className="text-right py-3 text-white/60">Data do Voo</th>
-            <th className="text-right py-3 text-white/60">Disponível (kg)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {routes.map((route) => {
-            const avail = Math.max(0, route.available);
-            const isLow = avail < 50 && avail > 0;
-            const flightDate = route.flightDate ? new Date(route.flightDate) : null;
-            return (
-              <tr key={route.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                <td className="py-3">{route.origin}</td>
-                <td className="py-3">{route.destination}</td>
-                <td className="py-3">{route.serviceType.replace('_', ' ')}</td>
-                <td className="py-3 text-right font-semibold text-gold">€ {route.pricePerKg}</td>
-                <td className="py-3 text-right">
-                  {flightDate ? flightDate.toLocaleDateString('pt-PT') : '—'}
-                </td>
-                <td className={`py-3 text-right font-semibold ${avail === 0 ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-green-400'}`}>
-                  {avail > 0 ? avail : 'Esgotado'}
-                </td>
+    <div className="space-y-8">
+      <div className="glass-strong border-gradient p-6 rounded-2xl overflow-x-auto">
+        <h3 className="text-xl font-bold mb-4">📊 Tabela de Preços</h3>
+        <p className="text-sm text-white/60 mb-4">
+          Valores em Euro (€) e Kwanza (KZ) — sujeitos a alteração. <br />
+          <span className="text-xs">* Valores em KZ sob consulta para itens não listados.</span>
+        </p>
+
+        {/* Items Base */}
+        <h4 className="text-lg font-semibold text-gold mt-6 mb-3">📦 Items Base</h4>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="text-left py-2 text-white/60">Item</th>
+              <th className="text-right py-2 text-white/60">Euro (€)</th>
+              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {baseItems.map((row, idx) => (
+              <tr key={idx} className="border-b border-white/5 hover:bg-white/5">
+                <td className="py-2">{row.item}</td>
+                <td className="py-2 text-right">{row.euro}</td>
+                <td className="py-2 text-right">{row.kz}</td>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <div className="mt-4 text-xs text-white/40">
-        * Apenas rotas com data futura e capacidade disponível são mostradas.
+            ))}
+          </tbody>
+        </table>
+
+        {/* Malas */}
+        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">🧳 Malas (Cabine e Porão)</h4>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="text-left py-2 text-white/60">Peso</th>
+              <th className="text-right py-2 text-white/60">Euro (€)</th>
+              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {malas.map((row, idx) => (
+              <tr key={idx} className="border-b border-white/5 hover:bg-white/5">
+                <td className="py-2">{row.peso}</td>
+                <td className="py-2 text-right">{row.euro}</td>
+                <td className="py-2 text-right">{row.kz}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="text-xs text-white/40 mt-2">
+          * Com mercadoria com teor alfandegário, acresce 35% da fatura dos artigos.
+        </p>
+
+        {/* Eletrónicos */}
+        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">💻 Itens Electrónicos</h4>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="text-left py-2 text-white/60">Item</th>
+              <th className="text-right py-2 text-white/60">Euro (€)</th>
+              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {eletronicos.map((row, idx) => (
+              <tr key={idx} className="border-b border-white/5 hover:bg-white/5">
+                <td className="py-2">{row.item}</td>
+                <td className="py-2 text-right">{row.euro}</td>
+                <td className="py-2 text-right">{row.kz}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Itens Pessoais */}
+        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">👤 Itens Pessoais / Diversos</h4>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="text-left py-2 text-white/60">Item</th>
+              <th className="text-right py-2 text-white/60">Euro (€)</th>
+              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pessoais.map((row, idx) => (
+              <tr key={idx} className="border-b border-white/5 hover:bg-white/5">
+                <td className="py-2">{row.item}</td>
+                <td className="py-2 text-right">{row.euro}</td>
+                <td className="py-2 text-right">{row.kz}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Itens Alfândega */}
+        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">📜 Itens com Teor Alfandegário</h4>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="text-left py-2 text-white/60">Item</th>
+              <th className="text-right py-2 text-white/60">Euro (€)</th>
+              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {alfandega.map((row, idx) => (
+              <tr key={idx} className="border-b border-white/5 hover:bg-white/5">
+                <td className="py-2">{row.item}</td>
+                <td className="py-2 text-right">{row.euro}</td>
+                <td className="py-2 text-right">{row.kz}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Contactos */}
+        <div className="mt-8 pt-4 border-t border-white/10 text-center">
+          <p className="text-sm text-white/60">Para mais informações:</p>
+          <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm text-white/80">
+            <span>📞 (+244) 948 440 920</span>
+            <span>📞 (+351) 934 292 082</span>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
 // ======================== TRACKING FORM ========================
 function TrackingForm() {
   const [code, setCode] = useState('');
@@ -836,7 +967,7 @@ export default function ShipmentsPage() {
               ) : routesError ? (
                 <div className="text-center py-8 text-red-400">{routesError}</div>
               ) : (
-                <PriceTable routes={routes} />
+                <PriceTable/>
               )
             )}
           </div>

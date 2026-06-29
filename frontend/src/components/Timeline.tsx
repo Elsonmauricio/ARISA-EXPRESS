@@ -2,6 +2,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import { Mailbox, Plane, Warehouse, Truck, Check } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -21,7 +22,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Check,
 };
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: {},
   show: {
     transition: {
@@ -31,7 +32,7 @@ const containerVariants = {
   },
 };
 
-const dotVariants = {
+const dotVariants: Variants = {
   hidden: { scale: 0.4, opacity: 0 },
   show: {
     scale: 1,
@@ -40,7 +41,7 @@ const dotVariants = {
   },
 };
 
-const lineVariants = {
+const lineVariants: Variants = {
   hidden: { scaleX: 0 },
   show: {
     scaleX: 1,
@@ -48,7 +49,7 @@ const lineVariants = {
   },
 };
 
-const contentVariants = {
+const contentVariants: Variants = {
   hidden: { opacity: 0, y: 10 },
   show: {
     opacity: 1,

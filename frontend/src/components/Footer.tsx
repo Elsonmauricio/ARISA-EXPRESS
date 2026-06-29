@@ -7,6 +7,7 @@ import {
 import { cn } from '../lib/utils';
 import { SiInstagram } from 'react-icons/si';
 import ARISAEXPRESStLogo from '../assets/logo-Arisa-express.png';
+import { Link } from 'react-router-dom';
 
 const QUICK_LINKS = [
   { label: 'Sobre Nós', href: '#sobre' },
@@ -19,7 +20,11 @@ const SOCIALS = [
   { Icon: SiInstagram, label: 'Instagram', href: '#' },
 ];
 
-const LEGAL = ['Termos & Condições', 'Política de Privacidade', 'Cookies'];
+// Footer.tsx
+const LEGAL = [
+  { label: 'Termos & Condições', href: '/termos' },
+  { label: 'Política de Privacidade', href: '/privacidade' },
+];
 
 export default function Footer() {
   return (
@@ -112,13 +117,15 @@ export default function Footer() {
               ))}
             </div>
             <div className="text-xs uppercase tracking-widest text-white/40 mb-3">Legal</div>
-            <ul className="space-y-2 text-xs text-white/50">
-              {LEGAL.map((l) => (
-                <li key={l}>
-                  <a href="#" className="hover:text-lilac-300 transition-colors">{l}</a>
-                </li>
-              ))}
-            </ul>
+                <ul className="space-y-2 text-xs text-white/50">
+                {LEGAL.map((l) => (
+                  <li key={l.label}>
+                    <Link to={l.href} className="hover:text-gold transition-colors">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
           </div>
         </div>
 

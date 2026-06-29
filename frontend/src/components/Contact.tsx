@@ -9,6 +9,7 @@ export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const whatsappUrl = 'https://wa.me/351934292082';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,9 +177,14 @@ export default function Contact() {
 
             <div className="glass-strong border-gradient p-6 text-center rounded-3xl">
               <h3 className="font-bold mb-2">Atendimento via WhatsApp</h3>
-              <button className="bg-green-600 text-white w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-green-600 text-white w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+              >
                 WhatsApp
-              </button>
+              </a>
             </div>
           </div>
         </div>

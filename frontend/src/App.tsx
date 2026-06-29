@@ -10,12 +10,15 @@ import Footer from './components/Footer';
 import Reveal from './components/Reveal.jsx';
 import Layout from './components/Layout';
 import Contact from './components/Contact';
+import Gallery  from './components/Gallery';
 import ShipmentsPage from './pages/ShipmentsPage';
 import Login from './pages/LoginPage';
 import Register from './pages/RegisterPage';
 import Profile from './pages/ProfilePage';
 import Settings from './pages/SettingsPage';
 import AdminDashboard from './pages/AdminDashboard';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
 function HomePage() {
   return (
@@ -27,6 +30,7 @@ function HomePage() {
           <Reveal><About /></Reveal>
           <Reveal><Services /></Reveal>
           <Reveal><Stats /></Reveal>
+          <Reveal><Gallery /></Reveal>
           <Reveal><Tracking /></Reveal>
           <Reveal><Contact /></Reveal>
           <Reveal><Footer /></Reveal>
@@ -47,6 +51,8 @@ const App: React.FC = () => {
         <Route path="/perfil" element={<Profile />} />
         <Route path="/definicoes" element={<Settings />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/termos" element={<Terms />} />
+        <Route path="/privacidade" element={<Privacy />} />
       </Routes>
     </BrowserRouter>
   );
