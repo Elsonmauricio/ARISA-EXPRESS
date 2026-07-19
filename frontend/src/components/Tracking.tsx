@@ -7,6 +7,7 @@ import { Search, AlertCircle } from 'lucide-react';
 import SectionHeading from './SectionHeading';
 import { GoldButton } from './Button';
 import Timeline, { StepData } from './Timeline';
+import { useT } from '../i18n/LanguageContext';
 
 // ======================== TIPOS ========================
 interface TrackingUpdate {
@@ -56,6 +57,7 @@ function formatDate(dateValue: Date | string | undefined | null): string {
 
 // ======================== COMPONENTE PRINCIPAL ========================
 export default function Tracking() {
+  const { t } = useT();
   const [code, setCode] = useState<string>('');
   const [result, setResult] = useState<TrackingData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -65,7 +67,7 @@ export default function Tracking() {
     e.preventDefault();
     const trackingCode = code.trim();
     if (!trackingCode) {
-      setError('Insira um código de rastreio.');
+      setError(t('track.erroCodigo'));
       return;
     }
 
@@ -75,11 +77,11 @@ export default function Tracking() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/tracking/${encodeURIComponent(trackingCode.toUpperCase())}`
+        `http://localhost:5001/api/tracking/${encodeURIComponent(trackingCode.toUpperCase())}`
       );
 
       if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        throw new Error(t('track.erroStatus', { status: response.status, statusText: response.statusText }));
       }
 
       const json: ApiResponse = await response.json();
@@ -87,11 +89,11 @@ export default function Tracking() {
       if (json.success && json.data) {
         setResult(json.data);
       } else {
-        setError(json.error || 'Encomenda não encontrada.');
+        setError(json.error || t('track.naoEncontrada'));
       }
     } catch (err: any) {
       console.error('Erro ao rastrear:', err);
-      setError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
+      setError(t('track.erroServidor'));
     } finally {
       setLoading(false);
     }
@@ -124,29 +126,29 @@ export default function Tracking() {
       {
         id: 'step-1',
         icon: 'Mailbox',
-        title: 'Recebido em Portugal',
-        description: 'Hub logístico de Lisboa',
+        title: t('track.recebido'),
+        description: t('track.hubLisboa'),
         date: formatDate(data.collectedAt),
       },
       {
         id: 'step-2',
         icon: 'Plane',
-        title: 'Em Trânsito (Voo)',
-        description: 'Voo TAP LIS → LAD',
+        title: t('track.emTransito'),
+        description: t('track.vooTap'),
         date: formatDate(data.inTransitAt),
       },
       {
         id: 'step-3',
         icon: 'Warehouse',
-        title: 'Chegado a Luanda',
-        description: 'Aeroporto 4 de Fevereiro',
+        title: t('track.chegadaLuanda'),
+        description: t('track.aeroporto'),
         date: formatDate(data.arrivedAt),
       },
       {
         id: 'step-4',
         icon: 'Truck',
-        title: 'Saiu para Entrega',
-        description: 'Equipa de distribuição local',
+        title: t('track.saidaEntrega'),
+        description: t('track.distribuicao'),
         date: formatDate(data.outForDeliveryAt),
       },
     ];
@@ -155,8 +157,8 @@ export default function Tracking() {
       steps.push({
         id: 'step-5',
         icon: 'Check',
-        title: 'Entregue',
-        description: 'Encomenda entregue ao destinatário',
+        title: t('track.entregue'),
+        description: t('track.entregueDesc'),
         date: formatDate(data.deliveredAt),
       });
     }
@@ -169,13 +171,13 @@ export default function Tracking() {
       <div className="container mx-auto max-w-5xl px-4">
         <SectionHeading
           align="center"
-          eyebrow="Rastreamento"
+          eyebrow={t('track.eyebrow')}
           title={
             <>
-              Onde está a sua <span className="text-gradient-lilac">encomenda</span>?
+              {t('track.title1')}<span className="text-gradient-lilac">{t('track.title2')}</span>{t('track.title3')}
             </>
           }
-          subtitle="Insira o código de rastreio para acompanhar cada etapa da entrega em tempo real."
+          subtitle={t('track.subtitle')}
         />
 
         <motion.form
@@ -194,12 +196,12 @@ export default function Tracking() {
                 setCode(e.target.value);
                 if (error) setError('');
               }}
-              placeholder="Insira o código (ex. ARISA-1A2B-3C4D)"
+              placeholder={t('track.inputPlaceholder')}
               className="flex-1 bg-transparent outline-none px-2 py-2 text-sm placeholder:text-white/30 text-white"
               disabled={loading}
             />
             <GoldButton type="submit" className="px-5 py-2.5 text-sm" disabled={loading}>
-              {loading ? 'A buscar...' : 'Rastrear'}
+              {loading ? t('track.buscando') : t('track.botao')}
             </GoldButton>
           </div>
 
@@ -229,17 +231,17 @@ export default function Tracking() {
             >
               <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
                 <div>
-                  <div className="text-[10px] tracking-[0.3em] uppercase text-gold mb-1">
-                    Código de Rastreio
-                  </div>
+                     <div className="text-[10px] tracking-[0.3em] uppercase text-gold mb-1">
+                     {t('track.labelCodigo')}
+                   </div>
                   <div className="font-display text-2xl md:text-3xl text-white">
                     {result.trackingCode}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] tracking-[0.3em] uppercase text-white/40 mb-1">
-                    Estado atual
-                  </div>
+                   <div className="text-[10px] tracking-[0.3em] uppercase text-white/40 mb-1">
+                     {t('track.labelEstado')}
+                   </div>
                   <div className="text-gold font-semibold">
                     {result.status.replace('_', ' ')}
                   </div>
@@ -247,22 +249,22 @@ export default function Tracking() {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-white/5 rounded-xl">
-                <div>
-                  <div className="text-[10px] text-white/40 uppercase tracking-wider">Origem</div>
-                  <div className="text-sm text-white font-medium">{result.origin}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-white/40 uppercase tracking-wider">Destino</div>
-                  <div className="text-sm text-white font-medium">{result.destination}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-white/40 uppercase tracking-wider">Peso</div>
-                  <div className="text-sm text-white font-medium">{result.weight} kg</div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-white/40 uppercase tracking-wider">Preço</div>
-                  <div className="text-sm text-white font-medium">€ {result.price?.toFixed(2) ?? '—'}</div>
-                </div>
+                 <div>
+                   <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelOrigem')}</div>
+                   <div className="text-sm text-white font-medium">{result.origin}</div>
+                 </div>
+                 <div>
+                   <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelDestino')}</div>
+                   <div className="text-sm text-white font-medium">{result.destination}</div>
+                 </div>
+                 <div>
+                   <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelPeso')}</div>
+                   <div className="text-sm text-white font-medium">{result.weight} {t('track.kg')}</div>
+                 </div>
+                 <div>
+                   <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelPreco')}</div>
+                   <div className="text-sm text-white font-medium">{t('track.euro')} {result.price?.toFixed(2) ?? '—'}</div>
+                 </div>
               </div>
 
               <Timeline
@@ -272,7 +274,7 @@ export default function Tracking() {
 
               {result.trackingUpdates && result.trackingUpdates.length > 0 && (
                 <div className="mt-6 pt-4 border-t border-white/10">
-                  <div className="text-xs text-white/40 uppercase tracking-wider mb-3">Histórico de Atualizações</div>
+                   <div className="text-xs text-white/40 uppercase tracking-wider mb-3">{t('track.historico')}</div>
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-2 scrollbar-thin">
                     {result.trackingUpdates.map((update, idx) => (
                       <div key={idx} className="flex justify-between items-center text-sm border-b border-white/5 pb-2">

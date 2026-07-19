@@ -5,6 +5,7 @@ import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { Link, useNavigate } from 'react-router-dom';
+import { useT } from '../i18n/LanguageContext';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useT();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +22,7 @@ export default function Login() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('http://localhost:5001/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -32,10 +34,10 @@ export default function Login() {
         localStorage.setItem('user', JSON.stringify(json.data.user));
         navigate('/');
       } else {
-        setError(json.error || 'Credenciais inválidas');
+        setError(json.error || t('login.credenciaisInvalidas'));
       }
     } catch (err) {
-      setError('Erro de conexão com o servidor');
+      setError(t('login.erroConexao'));
     } finally {
       setLoading(false);
     }
@@ -51,13 +53,13 @@ export default function Login() {
         >
           <div className="glass-strong border-gradient p-8 rounded-2xl">
             <div className="text-center mb-8">
-              <h2 className="font-display text-3xl font-bold text-white">Bem-vindo de volta</h2>
-              <p className="text-white/60 mt-2">Inicie sessão na sua conta Arisa Express</p>
+              <h2 className="font-display text-3xl font-bold text-white">{t('login.bemVindo')}</h2>
+              <p className="text-white/60 mt-2">{t('login.subtitle')}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm text-white/60 mb-1">Email</label>
+                <label className="block text-sm text-white/60 mb-1">{t('login.email')}</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
@@ -66,13 +68,13 @@ export default function Login() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
-                    placeholder="seu@email.com"
+                    placeholder={t('login.emailPlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">Senha</label>
+                <label className="block text-sm text-white/60 mb-1">{t('login.senha')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
@@ -100,14 +102,14 @@ export default function Login() {
               )}
 
               <GoldButton type="submit" className="w-full py-3" disabled={loading}>
-                {loading ? 'A entrar...' : 'Entrar'}
+                {loading ? t('login.entrar') : t('login.botao')}
               </GoldButton>
             </form>
 
             <div className="mt-6 text-center text-sm text-white/50">
-              Não tem conta?{' '}
+              {t('login.semConta')}{' '}
               <Link to="/registar" className="text-gold hover:underline">
-                Criar conta
+                {t('login.criarConta')}
               </Link>
             </div>
           </div>

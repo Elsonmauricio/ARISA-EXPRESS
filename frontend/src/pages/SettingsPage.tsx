@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Lock, Bell, Shield, Moon, Sun, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
+import { useT } from '../i18n/LanguageContext';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -19,22 +20,24 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
 
+  const { lang, setLang, t } = useT();
+
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-      setError('As senhas não coincidem');
+      setError(t('settings.senhasCoincidir'));
       return;
     }
     if (passwordData.newPassword.length < 6) {
-      setError('A nova senha deve ter pelo menos 6 caracteres');
+      setError(t('settings.senhaMin'));
       return;
     }
 
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/change-password', {
+      const response = await fetch('http://localhost:5001/api/users/change-password', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -51,10 +54,10 @@ export default function SettingsPage() {
         setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
         setTimeout(() => setSuccess(false), 3000);
       } else {
-        setError(json.error || 'Erro ao alterar senha');
+        setError(json.error || t('settings.senhaErro'));
       }
     } catch (err) {
-      setError('Erro de conexão');
+      setError(t('settings.erroConexao'));
     } finally {
       setLoading(false);
     }
@@ -68,12 +71,12 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="font-display text-3xl font-bold text-white mb-2">Definições</h1>
-            <p className="text-white/60 text-sm mb-6">Gerencie as suas preferências e segurança</p>
+            <h1 className="font-display text-3xl font-bold text-white mb-2">{t('settings.title')}</h1>
+            <p className="text-white/60 text-sm mb-6">{t('settings.subtitle')}</p>
 
             {success && (
               <div className="flex items-center gap-2 text-green-400 bg-green-500/10 p-3 rounded-lg mb-4">
-                <CheckCircle2 size={18} /> Senha alterada com sucesso!
+                <CheckCircle2 size={18} /> {t('settings.senhaSucesso')}
               </div>
             )}
 
@@ -86,11 +89,11 @@ export default function SettingsPage() {
             {/* Alterar Senha */}
             <div className="glass-strong border-gradient p-6 rounded-2xl mb-6">
               <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <Lock className="w-5 h-5 text-gold" /> Alterar Senha
+                <Lock className="w-5 h-5 text-gold" /> {t('settings.alterarSenha')}
               </h2>
               <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Senha atual</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('settings.senhaAtual')}</label>
                   <input
                     type="password"
                     value={passwordData.currentPassword}
@@ -100,7 +103,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Nova senha</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('settings.novaSenha')}</label>
                   <input
                     type="password"
                     value={passwordData.newPassword}
@@ -110,7 +113,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Confirmar nova senha</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('settings.confirmarSenha')}</label>
                   <input
                     type="password"
                     value={passwordData.confirmNewPassword}
@@ -120,7 +123,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <GoldButton type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'A alterar...' : 'Alterar Senha'}
+                  {loading ? t('settings.aAlterar') : t('settings.alterarSenha')}
                 </GoldButton>
               </form>
             </div>
@@ -132,7 +135,7 @@ export default function SettingsPage() {
               </h2>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-white/80">Notificações por email</span>
+                  <span className="text-white/80">{t('settings.notificacoes')}</span>
                   <button
                     onClick={() => setNotifications(!notifications)}
                     className={`w-12 h-6 rounded-full transition-colors ${notifications ? 'bg-gold' : 'bg-white/20'}`}
@@ -141,13 +144,30 @@ export default function SettingsPage() {
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-white/80">Modo escuro</span>
+                  <span className="text-white/80">{t('settings.modoEscuro')}</span>
                   <button
                     onClick={() => setDarkMode(!darkMode)}
                     className={`w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-gold' : 'bg-white/20'}`}
                   >
                     <div className={`w-5 h-5 rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
                   </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/80">{t('settings.idioma')}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setLang('pt')}
+                      className={`px-3 py-1 rounded-lg text-sm transition-colors ${lang === 'pt' ? 'bg-gold text-black' : 'bg-white/10 text-white/80 hover:bg-white/20'}`}
+                    >
+                      {t('settings.idiomaPt')}
+                    </button>
+                    <button
+                      onClick={() => setLang('en')}
+                      className={`px-3 py-1 rounded-lg text-sm transition-colors ${lang === 'en' ? 'bg-gold text-black' : 'bg-white/10 text-white/80 hover:bg-white/20'}`}
+                    >
+                      {t('settings.idiomaEn')}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -159,7 +179,7 @@ export default function SettingsPage() {
               </h2>
               <div className="space-y-2">
                 <Link to="/perfil" className="block text-sm text-gold hover:underline">
-                  Voltar ao Perfil
+                  {t('settings.voltarPerfil')}
                 </Link>
                 <button
                   onClick={() => {
@@ -168,7 +188,7 @@ export default function SettingsPage() {
                   }}
                   className="block text-sm text-red-400 hover:underline"
                 >
-                  Terminar Sessão
+                  {t('settings.terminarSessao')}
                 </button>
               </div>
             </div>

@@ -5,11 +5,13 @@ import {
   Package, Truck, Users, TrendingUp,
   AlertCircle, CheckCircle2, Clock, XCircle,
   Search, Plus, Edit, Trash2, MapPin,
-  ChevronDown, RefreshCw, Mail
+  ChevronDown, RefreshCw, Mail,
+  Tag, UserPlus, StickyNote, Filter, ChevronRight, Send
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { useNavigate } from 'react-router-dom';
+import { useT } from '../i18n/LanguageContext';
 
 // ======================== TIPOS ========================
 interface Shipment {
@@ -56,8 +58,33 @@ interface Lead {
   message: string;
   createdAt: any;
   read: boolean;
-  status?: string;
+  stage?: string;
+  assignedTo?: string | null;
+  assignedToName?: string | null;
+  tags?: string[];
+  notes?: any[];
 }
+
+const LEAD_STAGES = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'WON', 'LOST'] as const;
+type LeadStage = typeof LEAD_STAGES[number];
+
+const STAGE_LABELS: Record<LeadStage | string, string> = {
+  NEW: 'admin.novo',
+  CONTACTED: 'admin.contactado',
+  QUALIFIED: 'admin.qualificado',
+  PROPOSAL: 'admin.proposta',
+  WON: 'admin.convertido',
+  LOST: 'admin.perdido'
+};
+
+const STAGE_COLORS: Record<LeadStage | string, string> = {
+  NEW: 'text-blue-400 bg-blue-400/10',
+  CONTACTED: 'text-lilac-400 bg-lilac-400/10',
+  QUALIFIED: 'text-orange-400 bg-orange-400/10',
+  PROPOSAL: 'text-cyan-400 bg-cyan-400/10',
+  WON: 'text-green-400 bg-green-400/10',
+  LOST: 'text-red-400 bg-red-400/10'
+};
 
 // ======================== FUNÇÃO AUXILIAR PARA FORMATAR DATAS ========================
 function formatDate(dateValue: any): string {
@@ -81,11 +108,12 @@ function formatDate(dateValue: any): string {
 
 // ======================== STATS CARDS ========================
 function StatsCards({ stats }: { stats: any }) {
+  const { t } = useT();
   const cards = [
-    { label: 'Total Encomendas', value: stats.totalShipments || 0, icon: Package, color: 'text-blue-400' },
-    { label: 'Em Trânsito', value: stats.activeShipments || 0, icon: Truck, color: 'text-lilac-400' },
-    { label: 'Entregues Hoje', value: stats.deliveredToday || 0, icon: CheckCircle2, color: 'text-green-400' },
-    { label: 'Utilizadores', value: stats.totalUsers || 0, icon: Users, color: 'text-gold' },
+    { label: t('admin.statTotal'), value: stats.totalShipments || 0, icon: Package, color: 'text-blue-400' },
+    { label: t('admin.statTransito'), value: stats.activeShipments || 0, icon: Truck, color: 'text-lilac-400' },
+    { label: t('admin.statEntregues'), value: stats.deliveredToday || 0, icon: CheckCircle2, color: 'text-green-400' },
+    { label: t('admin.statUsers'), value: stats.totalUsers || 0, icon: Users, color: 'text-gold' },
   ];
 
   return (
@@ -113,17 +141,18 @@ function AdminShipmentList() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  const { t } = useT();
 
   const fetchShipments = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        setError('Não autenticado');
+        setError(t('admin.naoAutenticado'));
         setLoading(false);
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/admin/shipments', {
+      const response = await fetch('http://localhost:5001/api/admin/shipments', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -139,10 +168,10 @@ function AdminShipmentList() {
         setShipments(json.data);
         setError('');
       } else {
-        setError(json.error || 'Erro ao carregar encomendas');
+        setError(json.error || t('admin.erroEncomendas'));
       }
     } catch (err) {
-      setError('Erro de conexão');
+      setError(t('admin.erroConexao'));
     } finally {
       setLoading(false);
     }
@@ -155,13 +184,13 @@ function AdminShipmentList() {
   const updateStatus = async (id: string, status: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/shipments/${id}/status`, {
+      const response = await fetch(`http://localhost:5001/api/admin/shipments/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ status, location: 'Luanda', description: `Status atualizado para ${status}` })
+        body: JSON.stringify({ status, location: 'Luanda', description: t('admin.statusAtualizado', { status }) })
       });
 
       if (response.status === 401) {
@@ -176,7 +205,7 @@ function AdminShipmentList() {
         fetchShipments();
       }
     } catch (err) {
-      alert('Erro ao atualizar status');
+      alert(t('admin.erroStatus'));
     }
   };
 
@@ -202,7 +231,7 @@ function AdminShipmentList() {
     return matchFilter && matchSearch;
   });
 
-  if (loading) return <div className="text-center py-8 text-white/60">A carregar encomendas...</div>;
+  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarEncomendas')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
@@ -213,7 +242,7 @@ function AdminShipmentList() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
             <input
               type="text"
-              placeholder="Pesquisar por código ou remetente..."
+              placeholder={t('admin.pesquisar')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
@@ -225,22 +254,22 @@ function AdminShipmentList() {
           onChange={(e) => setFilter(e.target.value)}
           className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none"
         >
-          <option value="all">Todos os status</option>
-          <option value="PENDING">Pendente</option>
-          <option value="COLLECTED">Recolhida</option>
-          <option value="IN_TRANSIT">Em Trânsito</option>
-          <option value="CUSTOMS">Alfândega</option>
-          <option value="IN_PORTUGAL">Em Portugal</option>
-          <option value="IN_ANGOLA">Em Angola</option>
-          <option value="OUT_FOR_DELIVERY">Saiu para Entrega</option>
-          <option value="DELIVERED">Entregue</option>
-          <option value="CANCELLED">Cancelada</option>
+          <option value="all">{t('admin.todosStatus')}</option>
+          <option value="PENDING">{t('status.PENDING')}</option>
+          <option value="COLLECTED">{t('status.COLLECTED')}</option>
+          <option value="IN_TRANSIT">{t('status.IN_TRANSIT')}</option>
+          <option value="CUSTOMS">{t('status.CUSTOMS')}</option>
+          <option value="IN_PORTUGAL">{t('status.IN_PORTUGAL')}</option>
+          <option value="IN_ANGOLA">{t('status.IN_ANGOLA')}</option>
+          <option value="OUT_FOR_DELIVERY">{t('status.OUT_FOR_DELIVERY')}</option>
+          <option value="DELIVERED">{t('status.DELIVERED')}</option>
+          <option value="CANCELLED">{t('status.CANCELLED')}</option>
         </select>
         <button
           onClick={fetchShipments}
           className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2"
         >
-          <RefreshCw className="w-4 h-4" /> Atualizar
+          <RefreshCw className="w-4 h-4" /> {t('admin.atualizar')}
         </button>
       </div>
 
@@ -249,13 +278,13 @@ function AdminShipmentList() {
           <table className="min-w-full text-sm">
             <thead className="border-b border-white/10">
               <tr>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Código</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">Remetente</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Rota</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">Peso</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">Preço</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Status</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Ações</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.codigo')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.remetente')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.rota')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.peso')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.preco')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.status')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
               </tr>
             </thead>
             <tbody>
@@ -264,11 +293,11 @@ function AdminShipmentList() {
                   <td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} → {s.destination}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} kg</td>
+                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} {t('ship.kg')}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">€ {s.price?.toFixed(2) || '—'}</td>
                   <td className="py-3 px-2 sm:px-4">
                     <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(s.status)}`}>
-                      {s.status.replace('_', ' ')}
+                      {t(`status.${s.status}`)}
                     </span>
                   </td>
                   <td className="py-3 px-2 sm:px-4">
@@ -277,15 +306,15 @@ function AdminShipmentList() {
                       onChange={(e) => updateStatus(s.id, e.target.value)}
                       className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none max-w-[100px]"
                     >
-                      <option value="PENDING">Pendente</option>
-                      <option value="COLLECTED">Recolhida</option>
-                      <option value="IN_TRANSIT">Em Trânsito</option>
-                      <option value="CUSTOMS">Alfândega</option>
-                      <option value="IN_PORTUGAL">Em Portugal</option>
-                      <option value="IN_ANGOLA">Em Angola</option>
-                      <option value="OUT_FOR_DELIVERY">Saiu para Entrega</option>
-                      <option value="DELIVERED">Entregue</option>
-                      <option value="CANCELLED">Cancelada</option>
+                      <option value="PENDING">{t('status.PENDING')}</option>
+                      <option value="COLLECTED">{t('status.COLLECTED')}</option>
+                      <option value="IN_TRANSIT">{t('status.IN_TRANSIT')}</option>
+                      <option value="CUSTOMS">{t('status.CUSTOMS')}</option>
+                      <option value="IN_PORTUGAL">{t('status.IN_PORTUGAL')}</option>
+                      <option value="IN_ANGOLA">{t('status.IN_ANGOLA')}</option>
+                      <option value="OUT_FOR_DELIVERY">{t('status.OUT_FOR_DELIVERY')}</option>
+                      <option value="DELIVERED">{t('status.DELIVERED')}</option>
+                      <option value="CANCELLED">{t('status.CANCELLED')}</option>
                     </select>
                   </td>
                 </tr>
@@ -295,7 +324,7 @@ function AdminShipmentList() {
         </div>
       </div>
       {filtered.length === 0 && (
-        <div className="text-center py-8 text-white/40">Nenhuma encomenda encontrada</div>
+        <div className="text-center py-8 text-white/40">{t('admin.nenhumaEncomenda')}</div>
       )}
     </div>
   );
@@ -307,11 +336,12 @@ function AdminUserList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { t } = useT();
 
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/users', {
+      const response = await fetch('http://localhost:5001/api/admin/users', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -326,10 +356,10 @@ function AdminUserList() {
       if (json.success) {
         setUsers(json.data);
       } else {
-        setError(json.error || 'Erro ao carregar utilizadores');
+        setError(json.error || t('admin.erroUsers'));
       }
     } catch (err) {
-      setError('Erro de conexão');
+      setError(t('admin.erroConexao'));
     } finally {
       setLoading(false);
     }
@@ -342,7 +372,7 @@ function AdminUserList() {
   const changeRole = async (id: string, role: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/users/${id}/role`, {
+      const response = await fetch(`http://localhost:5001/api/admin/users/${id}/role`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -360,11 +390,11 @@ function AdminUserList() {
 
       fetchUsers();
     } catch (err) {
-      alert('Erro ao alterar role');
+      alert(t('admin.erroAlterarRole'));
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-white/60">A carregar utilizadores...</div>;
+  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarUsers')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
@@ -373,12 +403,12 @@ function AdminUserList() {
         <table className="min-w-full text-sm">
           <thead className="border-b border-white/10">
             <tr>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Nome</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">Email</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">Telefone</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">Empresa</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Role</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Ações</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.nome')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.email')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.telefone')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.empresa')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.role')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
             </tr>
           </thead>
           <tbody>
@@ -403,9 +433,9 @@ function AdminUserList() {
                     onChange={(e) => changeRole(u.id, e.target.value)}
                     className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none"
                   >
-                    <option value="CLIENT">Cliente</option>
-                    <option value="OPERATOR">Operador</option>
-                    <option value="ADMIN">Admin</option>
+                    <option value="CLIENT">{t('admin.cliente')}</option>
+                    <option value="OPERATOR">{t('admin.operador')}</option>
+                    <option value="ADMIN">{t('admin.admin')}</option>
                   </select>
                 </td>
               </tr>
@@ -432,11 +462,12 @@ function AdminRouteManager() {
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { t } = useT();
 
   const fetchRoutes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/routes', {
+      const response = await fetch('http://localhost:5001/api/routes', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -451,10 +482,10 @@ function AdminRouteManager() {
       if (json.success) {
         setRoutes(json.data);
       } else {
-        setError(json.error || 'Erro ao carregar rotas');
+        setError(json.error || t('admin.erroRotas'));
       }
     } catch (err) {
-      setError('Erro de conexão');
+      setError(t('admin.erroConexao'));
     } finally {
       setLoading(false);
     }
@@ -468,7 +499,7 @@ function AdminRouteManager() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/routes', {
+      const response = await fetch('http://localhost:5001/api/routes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -493,18 +524,18 @@ function AdminRouteManager() {
         setNewRoute({ origin: '', destination: '', serviceType: 'AIR_EXPRESS', pricePerKg: 0, flightDate: '', capacity: 0 });
         setEditingId(null);
       } else {
-        alert(json.error || 'Erro ao guardar rota');
+        alert(json.error || t('admin.erroGuardar'));
       }
     } catch (err) {
-      alert('Erro de conexão');
+      alert(t('admin.erroConexao'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem a certeza que pretende eliminar esta rota?')) return;
+    if (!confirm(t('admin.confirmarEliminar'))) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/routes/${id}`, {
+      const response = await fetch(`http://localhost:5001/api/routes/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -518,7 +549,7 @@ function AdminRouteManager() {
 
       fetchRoutes();
     } catch (err) {
-      alert('Erro ao eliminar');
+      alert(t('admin.erroEliminar'));
     }
   };
 
@@ -526,17 +557,17 @@ function AdminRouteManager() {
     return new Date(flightDate) < new Date();
   };
 
-  if (loading) return <div className="text-center py-8 text-white/60">A carregar rotas...</div>;
+  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarRotas')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
     <div>
       <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl mb-6">
-        <h4 className="font-semibold mb-4 text-sm sm:text-base">{editingId ? 'Editar Rota' : 'Adicionar Nova Rota'}</h4>
+        <h4 className="font-semibold mb-4 text-sm sm:text-base">{editingId ? t('admin.editarRota') : t('admin.adicionarRota')}</h4>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           <input
             type="text"
-            placeholder="Origem"
+            placeholder={t('admin.origem')}
             value={newRoute.origin}
             onChange={(e) => setNewRoute({ ...newRoute, origin: e.target.value })}
             required
@@ -544,7 +575,7 @@ function AdminRouteManager() {
           />
           <input
             type="text"
-            placeholder="Destino"
+            placeholder={t('admin.destino')}
             value={newRoute.destination}
             onChange={(e) => setNewRoute({ ...newRoute, destination: e.target.value })}
             required
@@ -555,13 +586,13 @@ function AdminRouteManager() {
             onChange={(e) => setNewRoute({ ...newRoute, serviceType: e.target.value })}
             className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none"
           >
-            <option value="AIR_EXPRESS">Air Express</option>
-            <option value="AIR_ECONOMY">Air Economy</option>
-            <option value="MARITIME">Marítimo</option>
+            <option value="AIR_EXPRESS">{t('admin.airExpress')}</option>
+            <option value="AIR_ECONOMY">{t('admin.airEconomy')}</option>
+            <option value="MARITIME">{t('admin.maritimo')}</option>
           </select>
           <input
             type="number"
-            placeholder="€/kg"
+            placeholder={t('admin.euKg')}
             value={newRoute.pricePerKg || ''}
             onChange={(e) => setNewRoute({ ...newRoute, pricePerKg: parseFloat(e.target.value) || 0 })}
             required
@@ -576,7 +607,7 @@ function AdminRouteManager() {
           />
           <input
             type="number"
-            placeholder="Capacidade (kg)"
+            placeholder={t('admin.capacidadeKg')}
             value={newRoute.capacity || ''}
             onChange={(e) => setNewRoute({ ...newRoute, capacity: parseFloat(e.target.value) || 0 })}
             required
@@ -584,16 +615,16 @@ function AdminRouteManager() {
           />
           <div className="lg:col-span-6 flex gap-2">
             <GoldButton type="submit" className="py-2 px-4 text-sm">
-              {editingId ? 'Atualizar' : 'Adicionar'}
+              {editingId ? t('admin.atualizar') : t('admin.adicionar')}
             </GoldButton>
             {editingId && (
               <button
                 type="button"
                 onClick={() => { setEditingId(null); setNewRoute({ origin: '', destination: '', serviceType: 'AIR_EXPRESS', pricePerKg: 0, flightDate: '', capacity: 0 }); }}
                 className="px-4 py-2 rounded-lg bg-white/5 text-white/60 hover:bg-white/10 text-sm"
-              >
-                Cancelar
-              </button>
+                >
+                  {t('admin.cancelar')}
+                </button>
             )}
           </div>
         </form>
@@ -604,15 +635,15 @@ function AdminRouteManager() {
           <table className="min-w-full text-sm">
             <thead className="border-b border-white/10">
               <tr>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Origem</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Destino</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">Serviço</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">€/kg</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Data do Voo</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">Capacidade</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">Reservado</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Disponível</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">Ações</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.origem')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.destino')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.servico')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.euKg')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.dataVoo')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.capacidade')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.reservado')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.disponivel')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
               </tr>
             </thead>
             <tbody>
@@ -622,17 +653,17 @@ function AdminRouteManager() {
                   <tr key={r.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${expired ? 'opacity-50' : ''}`}>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.origin}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.destination}</td>
-                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{r.serviceType.replace('_', ' ')}</td>
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{t(`admin.${r.serviceType.toLowerCase()}`)}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">€ {r.pricePerKg}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
                       {r.flightDate ? new Date(r.flightDate).toLocaleDateString('pt-PT') : '—'}
-                      {expired && <span className="ml-2 text-red-400 text-[10px]">(Expirada)</span>}
+                      {expired && <span className="ml-2 text-red-400 text-[10px]">{t('admin.expirada')}</span>}
                     </td>
-                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{r.capacity} kg</td>
-                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{r.reserved} kg</td>
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{r.capacity} {t('ship.kg')}</td>
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{r.reserved} {t('ship.kg')}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold">
                       <span className={r.available > 0 ? 'text-green-400' : 'text-red-400'}>
-                        {r.available} kg
+                          {r.available} {t('ship.kg')}
                       </span>
                     </td>
                     <td className="py-3 px-2 sm:px-4">
@@ -666,29 +697,48 @@ function AdminRouteManager() {
         </div>
       </div>
       {routes.length === 0 && (
-        <div className="text-center py-8 text-white/40">Nenhuma rota encontrada</div>
+        <div className="text-center py-8 text-white/40">{t('admin.nenhumaRota')}</div>
       )}
     </div>
   );
 }
 
-// ======================== ADMIN LEADS LIST (MENSAGENS) ========================
+// ======================== ADMIN LEADS LIST (CRM / MENSAGENS) ========================
 function AdminLeadsList() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [pipeline, setPipeline] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [stageFilter, setStageFilter] = useState<string>('ALL');
+  const [notesOpen, setNotesOpen] = useState<Record<string, boolean>>({});
+  const [newNote, setNewNote] = useState<Record<string, string>>({});
+  const [newTag, setNewTag] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
+  const { t } = useT();
+
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  })();
 
   const fetchLeads = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        setError('Não autenticado');
+        setError(t('admin.naoAutenticado'));
         setLoading(false);
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/admin/leads', {
+      const url = stageFilter === 'ALL'
+        ? 'http://localhost:5001/api/admin/leads'
+        : `http://localhost:5001/api/admin/leads?stage=${encodeURIComponent(stageFilter)}`;
+
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -703,23 +753,55 @@ function AdminLeadsList() {
       if (json.success) {
         setLeads(json.data);
       } else {
-        setError(json.error || 'Erro ao carregar mensagens');
+        setError(json.error || t('admin.erroMsgs'));
       }
     } catch (err) {
-      setError('Erro de conexão');
+      setError(t('admin.erroConexao'));
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchPipeline = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch('http://localhost:5001/api/admin/leads/pipeline', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      const json = await response.json();
+      if (json.success) {
+        setPipeline(json.data || {});
+      }
+    } catch (err) {
+      // pipeline is non-critical
+    }
+  };
+
+  const refreshAll = async () => {
+    setLoading(true);
+    setError('');
+    await Promise.all([fetchLeads(), fetchPipeline()]);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    fetchLeads();
-  }, []);
+    refreshAll();
+  }, [stageFilter]);
 
   const markAsRead = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/leads/${id}/read`, {
+      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/read`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -733,15 +815,15 @@ function AdminLeadsList() {
 
       fetchLeads();
     } catch (err) {
-      alert('Erro ao marcar como lida');
+      alert(t('admin.erroMarcarLida'));
     }
   };
 
   const deleteLead = async (id: string) => {
-    if (!confirm('Tem a certeza que pretende eliminar esta mensagem?')) return;
+    if (!confirm(t('admin.confirmarEliminarMsg'))) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/leads/${id}`, {
+      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -754,8 +836,136 @@ function AdminLeadsList() {
       }
 
       fetchLeads();
+      fetchPipeline();
     } catch (err) {
-      alert('Erro ao eliminar mensagem');
+      alert(t('admin.erroEliminarMsg'));
+    }
+  };
+
+  const changeStage = async (id: string, stage: string) => {
+    try {
+      setSaving(s => ({ ...s, [id]: true }));
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/stage`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ stage })
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      await Promise.all([fetchLeads(), fetchPipeline()]);
+    } catch (err) {
+      alert(t('admin.erroEstado'));
+    } finally {
+      setSaving(s => ({ ...s, [id]: false }));
+    }
+  };
+
+  const assignToMe = async (id: string) => {
+    try {
+      setSaving(s => ({ ...s, [id]: true }));
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/assign`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          assignedTo: currentUser?.id || null,
+          assignedToName: currentUser?.name || null
+        })
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      fetchLeads();
+    } catch (err) {
+      alert(t('admin.erroAtribuir'));
+    } finally {
+      setSaving(s => ({ ...s, [id]: false }));
+    }
+  };
+
+  const addTag = async (id: string) => {
+    const tag = (newTag[id] || '').trim();
+    if (!tag) return;
+    try {
+      setSaving(s => ({ ...s, [id]: true }));
+      const token = localStorage.getItem('token');
+      const current = leads.find(l => l.id === id)?.tags || [];
+      if (current.includes(tag)) {
+        setNewTag(s => ({ ...s, [id]: '' }));
+        return;
+      }
+      const merged = [...current, tag];
+      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/tags`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ tags: merged })
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      setNewTag(s => ({ ...s, [id]: '' }));
+      fetchLeads();
+    } catch (err) {
+      alert(t('admin.erroAddEtiqueta'));
+    } finally {
+      setSaving(s => ({ ...s, [id]: false }));
+    }
+  };
+
+  const addNote = async (id: string) => {
+    const text = (newNote[id] || '').trim();
+    if (!text) return;
+    try {
+      setSaving(s => ({ ...s, [id]: true }));
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ text })
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      setNewNote(s => ({ ...s, [id]: '' }));
+      fetchLeads();
+    } catch (err) {
+      alert(t('admin.erroAddNota'));
+    } finally {
+      setSaving(s => ({ ...s, [id]: false }));
     }
   };
 
@@ -780,73 +990,213 @@ function AdminLeadsList() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-white/60">A carregar mensagens...</div>;
+  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarMsgs')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
-  if (leads.length === 0) {
-    return (
-      <div className="text-center py-8 text-white/60">
-        <Mail className="w-12 h-12 mx-auto mb-3 opacity-30" />
-        <p>Nenhuma mensagem de contacto recebida.</p>
-      </div>
-    );
-  }
+  const filterPills = [
+    { key: 'ALL', label: t('admin.todos'), count: leads.length },
+    ...LEAD_STAGES.map(stage => ({
+      key: stage,
+      label: t(STAGE_LABELS[stage]),
+      count: pipeline[stage] || 0
+    }))
+  ];
 
   return (
     <div className="space-y-4">
-      {leads.map((lead) => (
-        <div
-          key={lead.id}
-          className={`glass-strong border-gradient p-4 rounded-xl transition-all ${
-            lead.read ? 'opacity-60' : 'border-gold/50'
-          }`}
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <Filter className="w-4 h-4 text-white/40" />
+        {filterPills.map((pill) => (
+          <button
+            key={pill.key}
+            onClick={() => setStageFilter(pill.key)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 ${
+              stageFilter === pill.key
+                ? 'bg-gold text-black'
+                : 'bg-white/5 text-white/60 hover:bg-white/10'
+            }`}
+          >
+            {pill.label}
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+              stageFilter === pill.key ? 'bg-black/20 text-black' : 'bg-white/10 text-white/70'
+            }`}>
+              {pill.count}
+            </span>
+          </button>
+        ))}
+        <button
+          onClick={refreshAll}
+          className="ml-auto px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2 text-xs"
         >
-          <div className="flex flex-wrap justify-between items-start gap-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <span className="font-semibold text-white text-sm sm:text-base truncate">{lead.name}</span>
-                <span className="text-sm text-white/40 hidden sm:inline">•</span>
-                <a href={`mailto:${lead.email}`} className="text-sm text-gold hover:underline truncate">
-                  {lead.email}
-                </a>
-                {lead.phone && (
-                  <>
-                    <span className="text-sm text-white/40 hidden sm:inline">•</span>
-                    <a href={`tel:${lead.phone}`} className="text-sm text-white/60 hover:text-white truncate">
-                      {lead.phone}
-                    </a>
-                  </>
-                )}
-                <span className="text-xs text-white/30 ml-auto whitespace-nowrap">
-                  {formatDateTime(lead.createdAt)}
-                </span>
-              </div>
-              <div className="mt-2 text-sm text-white/80 whitespace-pre-wrap break-words">{lead.message}</div>
-              {!lead.read && (
-                <div className="mt-1">
-                  <span className="text-[10px] text-gold bg-gold/10 px-2 py-0.5 rounded-full">Nova</span>
+          <RefreshCw className="w-4 h-4" /> {t('admin.atualizar')}
+        </button>
+      </div>
+
+      {leads.length === 0 && (
+        <div className="text-center py-8 text-white/60">
+          <Mail className="w-12 h-12 mx-auto mb-3 opacity-30" />
+           <p>{t('admin.nenhumaLead')}</p>
+        </div>
+      )}
+
+      {leads.map((lead) => {
+        const stage = lead.stage || 'NEW';
+        const notes = lead.notes || [];
+        const tags = lead.tags || [];
+        const isOpen = notesOpen[lead.id] || false;
+        const isSaving = saving[lead.id] || false;
+        return (
+          <div
+            key={lead.id}
+            className={`glass-strong border-gradient p-4 rounded-xl transition-all ${
+              lead.read ? 'opacity-60' : 'border-gold/50'
+            }`}
+          >
+            <div className="flex flex-wrap justify-between items-start gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <span className="font-semibold text-white text-sm sm:text-base truncate">{lead.name}</span>
+                  <span className="text-sm text-white/40 hidden sm:inline">•</span>
+                  <a href={`mailto:${lead.email}`} className="text-sm text-gold hover:underline truncate">
+                    {lead.email}
+                  </a>
+                  {lead.phone && (
+                    <>
+                      <span className="text-sm text-white/40 hidden sm:inline">•</span>
+                      <a href={`tel:${lead.phone}`} className="text-sm text-white/60 hover:text-white truncate">
+                        {lead.phone}
+                      </a>
+                    </>
+                  )}
+                  <span className="text-xs text-white/30 ml-auto whitespace-nowrap">
+                    {formatDateTime(lead.createdAt)}
+                  </span>
                 </div>
-              )}
-            </div>
-            <div className="flex gap-2 flex-shrink-0">
-              {!lead.read && (
+                <div className="mt-2 text-sm text-white/80 whitespace-pre-wrap break-words">{lead.message}</div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${STAGE_COLORS[stage]}`}>
+                    {t(STAGE_LABELS[stage])}
+                  </span>
+                  <select
+                    value={stage}
+                    disabled={isSaving}
+                    onChange={(e) => changeStage(lead.id, e.target.value)}
+                    className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none"
+                  >
+                    {LEAD_STAGES.map(s => (
+                      <option key={s} value={s}>{t(STAGE_LABELS[s])}</option>
+                    ))}
+                  </select>
+                  {!lead.read && (
+                     <span className="text-[10px] text-gold bg-gold/10 px-2 py-0.5 rounded-full">{t('admin.nova')}</span>
+                  )}
+                </div>
+
+                <div className="mt-2 text-xs">
+                  {lead.assignedToName ? (
+                    <span className="text-white/60 flex items-center gap-1">
+                       <UserPlus className="w-3 h-3" /> {t('admin.atribuidoA', { name: lead.assignedToName })}
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => assignToMe(lead.id)}
+                      disabled={isSaving}
+                      className="flex items-center gap-1 px-2 py-1 bg-lilac-400/20 text-lilac-400 rounded-lg hover:bg-lilac-400/30 transition-colors text-[10px] sm:text-xs"
+                    >
+                       <UserPlus className="w-3 h-3" /> {t('admin.atribuirMe')}
+                    </button>
+                  )}
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <Tag className="w-3 h-3 text-white/40" />
+                  {tags.map((t) => (
+                    <span key={t} className="text-[10px] text-gold bg-gold/10 px-2 py-0.5 rounded-full">
+                      {t}
+                    </span>
+                  ))}
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="text"
+                      placeholder={t('admin.etiqueta')}
+                      value={newTag[lead.id] || ''}
+                      onChange={(e) => setNewTag(s => ({ ...s, [lead.id]: e.target.value }))}
+                      onKeyDown={(e) => { if (e.key === 'Enter') addTag(lead.id); }}
+                      className="w-24 px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none"
+                    />
+                    <button
+                      onClick={() => addTag(lead.id)}
+                      disabled={isSaving}
+                      className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] text-white/70 hover:bg-white/20"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-2">
+                  <button
+                    onClick={() => setNotesOpen(s => ({ ...s, [lead.id]: !isOpen }))}
+                    className="flex items-center gap-1 text-xs text-white/60 hover:text-white transition-colors"
+                  >
+                    <StickyNote className="w-3 h-3" />
+                    {t('admin.notasContador', { n: notes.length, s: notes.length === 1 ? '' : 's' })}
+                    <ChevronRight className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="mt-2 space-y-2">
+                      {notes.length === 0 && (
+                         <p className="text-xs text-white/40">{t('admin.semNotas')}</p>
+                      )}
+                      {notes.map((n, i) => (
+                        <div key={i} className="text-xs bg-white/5 border border-white/10 rounded-lg p-2">
+                          <div className="text-white/80 whitespace-pre-wrap break-words">{n.text}</div>
+                          <div className="text-white/40 mt-1">
+                             {n.author ? t('admin.por', { author: n.author }) : '—'} • {formatDateTime(n.createdAt)}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex items-end gap-2">
+                        <textarea
+                          placeholder={t('admin.addNotaPlaceholder')}
+                          value={newNote[lead.id] || ''}
+                          onChange={(e) => setNewNote(s => ({ ...s, [lead.id]: e.target.value }))}
+                          rows={2}
+                          className="flex-1 px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:border-gold outline-none resize-none"
+                        />
+                        <button
+                          onClick={() => addNote(lead.id)}
+                          disabled={isSaving}
+                          className="px-3 py-1.5 bg-gold text-black rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1"
+                        >
+                           <Send className="w-3 h-3" /> {t('admin.addNota')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
+                {!lead.read && (
+                  <button
+                    onClick={() => markAsRead(lead.id)}
+                    className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors whitespace-nowrap"
+                  >
+                     {t('admin.marcarLida')}
+                  </button>
+                )}
                 <button
-                  onClick={() => markAsRead(lead.id)}
-                  className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors whitespace-nowrap"
+                  onClick={() => deleteLead(lead.id)}
+                  className="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors whitespace-nowrap"
                 >
-                  Marcar lida
+                   {t('admin.eliminar')}
                 </button>
-              )}
-              <button
-                onClick={() => deleteLead(lead.id)}
-                className="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors whitespace-nowrap"
-              >
-                Eliminar
-              </button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -854,6 +1204,7 @@ function AdminLeadsList() {
 // ======================== MAIN DASHBOARD ========================
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const { t } = useT();
   const [activeTab, setActiveTab] = useState<'overview' | 'shipments' | 'users' | 'routes' | 'messages'>('overview');
   const [stats, setStats] = useState({ totalShipments: 0, activeShipments: 0, deliveredToday: 0, totalUsers: 0 });
   const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
@@ -884,7 +1235,7 @@ export default function AdminDashboard() {
       if (!token) return;
 
       // Buscar estatísticas
-      const statsRes = await fetch('http://localhost:5000/api/admin/stats', {
+      const statsRes = await fetch('http://localhost:5001/api/admin/stats', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -906,7 +1257,7 @@ export default function AdminDashboard() {
       }
 
       // Buscar encomendas recentes (últimas 5)
-      const shipmentsRes = await fetch('http://localhost:5000/api/admin/shipments', {
+      const shipmentsRes = await fetch('http://localhost:5001/api/admin/shipments', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -954,11 +1305,11 @@ export default function AdminDashboard() {
   }, [activeTab]);
 
   const tabs = [
-    { id: 'overview', label: 'Visão Geral', icon: TrendingUp },
-    { id: 'shipments', label: 'Encomendas', icon: Package },
-    { id: 'users', label: 'Utilizadores', icon: Users },
-    { id: 'routes', label: 'Rotas', icon: MapPin },
-    { id: 'messages', label: 'Mensagens', icon: Mail },
+    { id: 'overview', label: t('admin.tabVisao'), icon: TrendingUp },
+    { id: 'shipments', label: t('admin.tabEncomendas'), icon: Package },
+    { id: 'users', label: t('admin.tabUtilizadores'), icon: Users },
+    { id: 'routes', label: t('admin.tabRotas'), icon: MapPin },
+    { id: 'messages', label: t('admin.tabMensagens'), icon: Mail },
   ];
 
   const currentTab = tabs.find(t => t.id === activeTab);
@@ -975,10 +1326,10 @@ export default function AdminDashboard() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold text-white flex flex-wrap items-center gap-2">
-                  <span className="text-gradient-gold">Dashboard</span>
-                  <span className="text-sm text-white/40">Administração</span>
+                  <span className="text-gradient-gold">{t('admin.titulo')}</span>
+                  <span className="text-sm text-white/40">{t('admin.subtitle')}</span>
                 </h1>
-                <p className="text-white/60 mt-1 text-sm sm:text-base">Gerencie encomendas, utilizadores, rotas e mensagens.</p>
+                <p className="text-white/60 mt-1 text-sm sm:text-base">{t('admin.desc')}</p>
               </div>
               <button
                 onClick={fetchDashboardData}
@@ -986,7 +1337,7 @@ export default function AdminDashboard() {
                 className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                {refreshing ? 'A atualizar...' : 'Atualizar'}
+                {refreshing ? t('admin.atualizando') : t('admin.atualizar')}
               </button>
             </div>
           </motion.div>
@@ -1049,10 +1400,10 @@ export default function AdminDashboard() {
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Últimas Encomendas */}
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
-                    <h3 className="font-semibold mb-4 text-sm sm:text-base">Últimas Encomendas</h3>
-                    <div className="space-y-3">
-                      {recentShipments.length === 0 ? (
-                        <p className="text-white/40 text-sm">Nenhuma encomenda recente.</p>
+                     <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.ultimasEncomendas')}</h3>
+                     <div className="space-y-3">
+                       {recentShipments.length === 0 ? (
+                         <p className="text-white/40 text-sm">{t('admin.nenhumaRecente')}</p>
                       ) : (
                         recentShipments.map((s) => (
                           <div key={s.id} className="flex justify-between items-center border-b border-white/5 pb-2 last:border-0">
@@ -1064,7 +1415,7 @@ export default function AdminDashboard() {
                             <div className="text-right">
                               <div className="text-xs font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
                               <div className={`text-[10px] px-2 py-0.5 rounded-full ${s.status === 'DELIVERED' ? 'text-green-400 bg-green-400/10' : 'text-yellow-400 bg-yellow-400/10'}`}>
-                                {s.status.replace('_', ' ')}
+                      {t(`status.${s.status}`)}
                               </div>
                             </div>
                           </div>
@@ -1075,9 +1426,9 @@ export default function AdminDashboard() {
 
                   {/* Distribuição por Status */}
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
-                    <h3 className="font-semibold mb-4 text-sm sm:text-base">Distribuição por Status</h3>
-                    {Object.keys(statusDistribution).length === 0 ? (
-                      <p className="text-white/40 text-sm">Nenhuma encomenda.</p>
+                     <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.distribuicao')}</h3>
+                     {Object.keys(statusDistribution).length === 0 ? (
+                       <p className="text-white/40 text-sm">{t('admin.nenhumaEncomenda2')}</p>
                     ) : (
                       <div className="space-y-2">
                         {Object.entries(statusDistribution).map(([status, count]) => (

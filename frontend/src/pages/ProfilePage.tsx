@@ -5,6 +5,7 @@ import { User, Mail, Phone, Building, AlertCircle, CheckCircle2 } from 'lucide-r
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { useNavigate } from 'react-router-dom';
+import { useT } from '../i18n/LanguageContext';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Profile() {
     phone: '',
     company: ''
   });
+  const { t } = useT();
 
   useEffect(() => {
     fetchProfile();
@@ -30,7 +32,7 @@ export default function Profile() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch('http://localhost:5001/api/users/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const json = await response.json();
@@ -42,10 +44,10 @@ export default function Profile() {
           company: json.data.company || ''
         });
       } else {
-        setError('Erro ao carregar perfil');
+        setError(t('profile.erroCarregar'));
       }
     } catch (err) {
-      setError('Erro de conexão');
+      setError(t('profile.erroConexao'));
     } finally {
       setLoading(false);
     }
@@ -59,7 +61,7 @@ export default function Profile() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch('http://localhost:5001/api/users/profile', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -69,15 +71,15 @@ export default function Profile() {
       });
       const json = await response.json();
       if (json.success) {
-        setSuccess('Perfil atualizado com sucesso!');
+        setSuccess(t('profile.sucesso'));
         // Atualizar dados locais
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         localStorage.setItem('user', JSON.stringify({ ...storedUser, ...formData }));
       } else {
-        setError(json.error || 'Erro ao atualizar');
+        setError(json.error || t('profile.erroAtualizar'));
       }
     } catch (err) {
-      setError('Erro de conexão');
+      setError(t('profile.erroConexao'));
     } finally {
       setLoading(false);
     }
@@ -87,7 +89,7 @@ export default function Profile() {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center bg-black">
-          <div className="text-white/60">A carregar...</div>
+          <div className="text-white/60">{t('profile.aCarregar')}</div>
         </div>
       </Layout>
     );
@@ -102,14 +104,14 @@ export default function Profile() {
             animate={{ opacity: 1, y: 0 }}
           >
             <h1 className="font-display text-4xl font-bold text-white mb-2">
-              <span className="text-gradient-gold">Meu Perfil</span>
+              <span className="text-gradient-gold">{t('profile.titulo')}</span>
             </h1>
-            <p className="text-white/60 mb-8">Gerencie as suas informações pessoais</p>
+              <p className="text-white/60 mb-8">{t('profile.subtitle')}</p>
 
             <div className="glass-strong border-gradient p-8 rounded-2xl">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Nome completo</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('profile.nome')}</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                     <input
@@ -122,7 +124,7 @@ export default function Profile() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Email</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('profile.email')}</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                     <input
@@ -132,11 +134,11 @@ export default function Profile() {
                       className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg outline-none text-white/50 cursor-not-allowed"
                     />
                   </div>
-                  <p className="text-xs text-white/30 mt-1">O email não pode ser alterado</p>
+                  <p className="text-xs text-white/30 mt-1">{t('profile.emailFixo')}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Telefone</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('profile.telefone')}</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                     <input
@@ -149,7 +151,7 @@ export default function Profile() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Empresa (opcional)</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('profile.empresa')}</label>
                   <div className="relative">
                     <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                     <input
@@ -157,7 +159,7 @@ export default function Profile() {
                       value={formData.company}
                       onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                       className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
-                      placeholder="Nome da sua empresa"
+                      placeholder={t('profile.empresaPlaceholder')}
                     />
                   </div>
                 </div>
@@ -175,7 +177,7 @@ export default function Profile() {
                 )}
 
                 <GoldButton type="submit" className="w-full py-3" disabled={loading}>
-                  {loading ? 'A guardar...' : 'Guardar Alterações'}
+                  {loading ? t('profile.aGuardar') : t('profile.guardar')}
                 </GoldButton>
               </form>
             </div>

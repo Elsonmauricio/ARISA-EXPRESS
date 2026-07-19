@@ -19,9 +19,14 @@ router.get('/users', AdminController.getAllUsers);
 router.patch('/users/:id/role', AdminController.changeUserRole);
 router.delete('/users/:id', AdminController.deleteUser);
 
-// Novas rotas para leads
+// Rotas para leads
 router.get('/leads', LeadController.getLeads);
+router.get('/leads/pipeline', LeadController.getLeadPipeline);
 router.patch('/leads/:id/read', LeadController.markAsRead);
+router.patch('/leads/:id/stage', LeadController.updateLeadStage);
+router.patch('/leads/:id/assign', LeadController.assignLead);
+router.patch('/leads/:id/tags', LeadController.updateLeadTags);
+router.post('/leads/:id/notes', LeadController.addLeadNote);
 router.delete('/leads/:id', LeadController.deleteLead);
 
 export default router;

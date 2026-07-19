@@ -3,38 +3,48 @@ import { motion } from 'framer-motion';
 import { Search, ArrowUpRight } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { Float, OrbitControls, Environment } from '@react-three/drei';
-import Plane3D from './three/Plane.jsx';
 import Forklift3D from './three/Forklift3D.jsx';
 import Mailbox3D from './three/Mailbox3D.jsx';
+import Shopping3D from './three/Shopping3D.jsx';
+import { useT } from '../i18n/LanguageContext';
 
-const SERVICES = [
+const getServices = (t) => ([
   {
     n: '1',
-    component: <Plane3D scale={15} rotation={[0, Math.PI / 1.5, 0]} />,
-    title: 'Transporte Aéreo',
-    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do enusmod.',
+    component: <Forklift3D />,
+    title: t('services.1.title'),
+    desc: t('services.1.desc'),
     accent: 'from-lilac-500/40 to-lilac-700/5',
     iconBg: 'bg-lilac-500/10',
   },
   {
     n: '2',
-    component: <Forklift3D />,
-    title: 'Logística Empresarial',
-    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do nonumy nibh.',
+    component: <Mailbox3D />,
+    title: t('services.2.title'),
+    desc: t('services.2.desc'),
     accent: 'from-gold/40 to-gold/0',
     iconBg: 'bg-gold/10',
   },
   {
     n: '3',
-    component: <Mailbox3D />,
-    title: 'Encomendas Particulares',
-    desc: 'Lorem ipsum dolor sit amet, consestetur adipiscing elit, sed do nonuiny nibh.',
+    component: <Shopping3D />,
+    title: t('services.3.title'),
+    desc: t('services.3.desc'),
     accent: 'from-lilac-400/40 to-gold/10',
     iconBg: 'bg-lilac-400/10',
   },
-];
+]);
+
+const WHATSAPP_NUMBER = '351934292082';
+
+const openWhatsApp = (message) => {
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
 
 function ServiceCard({ s, i }) {
+  const { t } = useT();
+  const waMessage = t('services.waMsg', { title: s.title });
   return (
     <motion.article
       initial={{ opacity: 0, y: 40, rotateX: 15 }}
@@ -42,6 +52,10 @@ function ServiceCard({ s, i }) {
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.6, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -10, scale: 1.015, transition: { duration: 0.3 } }}
+      onClick={() => openWhatsApp(waMessage)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openWhatsApp(waMessage); } }}
       className="group relative rounded-3xl overflow-hidden cursor-pointer h-full"
     >
       {/* Camada de borda gradiente (animação de brilho no hover) */}
@@ -75,7 +89,7 @@ function ServiceCard({ s, i }) {
         </p>
 
         <div className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-gold/80 group-hover:text-gold transition-all duration-300">
-          Saber mais
+          {t('services.saberMais')}
           <ArrowUpRight className="w-4 h-4 group-hover:rotate-12 transition-transform" />
         </div>
       </div>
@@ -87,6 +101,7 @@ function ServiceCard({ s, i }) {
 }
 
 export default function Services() {
+  const { t } = useT();
   return (
     <section id="servicos" className="relative py-28">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-lilac-900/10 via-black to-black opacity-60" />
@@ -94,11 +109,11 @@ export default function Services() {
       <div className="container mx-auto">
         {/* Apenas o título, sem a barra de pesquisa */}
         <h2 className="font-display text-5xl md:text-6xl font-bold text-white mb-16">
-          Serviços
+          {t('services.title')}
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {SERVICES.map((s, i) => (
+          {getServices(t).map((s, i) => (
             <ServiceCard key={s.n} s={s} i={i} />
           ))}
         </div>

@@ -2,17 +2,19 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { TelemetryCard } from './TelemetryCard';
+import { useT } from '../i18n/LanguageContext';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const STATS = [
-  { value: 10000, prefix: '+', suffix: '',   label: 'Encomendas entregues' },
-  { value: 95,    prefix: '+', suffix: '%',  label: 'Clientes satisfeitos' },
-  { value: 48,    prefix: '',  suffix: 'h',  label: 'Tempo médio Lisboa → Luanda' },
-  { value: 24,    prefix: '',  suffix: '/7', label: 'Apoio ao cliente' },
-];
+const getStats = (t) => ([
+  { value: 10000, prefix: '+', suffix: '',   label: t('stats.1') },
+  { value: 95,    prefix: '+', suffix: '%',  label: t('stats.2') },
+  { value: 48,    prefix: '',  suffix: 'h',  label: t('stats.3'), labelTone: 'lilas' },
+  { value: 24,    prefix: '',  suffix: '/7', label: t('stats.4'), labelTone: 'white' },
+]);
 
 function Counter({ value, prefix, suffix, delay = 0 }) {
   const ref = useRef(null);
@@ -47,6 +49,7 @@ function Counter({ value, prefix, suffix, delay = 0 }) {
 }
 
 export default function Stats() {
+  const { t } = useT();
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -73,20 +76,20 @@ export default function Stats() {
   }, []);
 
   return (
-    <section className="relative py-20 w-full flex justify-center">
+    <section id="stats" className="relative py-20 w-full flex justify-center">
       <div className="container mx-auto px-4">
         <div
           ref={containerRef}
           className="glass-strong border-gradient rounded-3xl p-8 sm:p-10 md:p-14 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mx-auto max-w-5xl"
         >
-          {STATS.map((s, i) => (
-            <div key={i} className="stat-item text-center">
-              <div className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-gradient-gold">
-                <Counter value={s.value} prefix={s.prefix} suffix={s.suffix} delay={i * 0.08} />
-              </div>
-              <div className="mt-2 text-[10px] sm:text-xs md:text-sm text-white/60 uppercase tracking-widest">
-                {s.label}
-              </div>
+          {getStats(t).map((s, i) => (
+            <div key={i} className="stat-item">
+              <TelemetryCard
+                tag={s.tag}
+                tagTone={s.tagTone}
+                value={<Counter value={s.value} prefix={s.prefix} suffix={s.suffix} delay={i * 0.08} />}
+                title={s.label}
+              />
             </div>
           ))}
         </div>

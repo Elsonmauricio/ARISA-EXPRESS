@@ -1,16 +1,13 @@
-import React, { Suspense, useLayoutEffect, useRef } from 'react';
+import React, { Suspense, useLayoutEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Float, ContactShadows, Environment, Stars } from '@react-three/drei';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import FlightArc from './FlightArc.jsx';
-import EarthGlobe from './EarthGlobe.jsx';
 
 gsap.registerPlugin(ScrollTrigger);
 
 function SceneContent() {
   const { camera } = useThree();
-  const sceneRef = useRef();
 
   useLayoutEffect(() => {
     const tl = gsap.timeline({
@@ -25,7 +22,6 @@ function SceneContent() {
 
     tl.to(camera.position, { x: -3, y: 1.5, z: 7, ease: "power2.inOut" }, "about")
       .to(camera.rotation, { y: 0.5, ease: "power2.inOut" }, "about")
-      .to(sceneRef.current.position, { y: -10, ease: "power2.in" }, "services")
       .to(camera.position, { x: 0, y: 0, z: 3, ease: "expo.inOut" }, "tracking");
 
     return () => {
@@ -33,17 +29,7 @@ function SceneContent() {
     };
   }, [camera]);
 
-  return (
-    <group ref={sceneRef}>
-      {/* Globo + Arco (com avião dentro) */}
-      <group position={[0, 0, 0]} rotation={[0.1, 0, 0]}>
-        <EarthGlobe />
-        <FlightArc radius={1.5} />
-      </group>
-
-      {/* Removido o avião extra que estava aqui com scale={4} */}
-    </group>
-  );
+  return null;
 }
 
 export default function LogisticFlow3D() {

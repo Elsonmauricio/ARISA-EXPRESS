@@ -1,7 +1,9 @@
 // src/components/Layout.tsx
 import React, { useEffect } from 'react';
 import Navbar from './Navbar';
+import SplineScene from './SplineScene';
 import '../index.css';
+import { useT } from '../i18n/LanguageContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,20 +11,22 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, hideNavbar = false }: LayoutProps) {
+  const { t } = useT();
   useEffect(() => {
     const verifyCSS = () => {
       const bodyBg = window.getComputedStyle(document.body).backgroundColor;
       if (bodyBg !== 'rgb(0, 0, 0)' && bodyBg !== '#000000') {
-        console.error('❌ [ERRO DE ESTILO]: O arquivo index.css não foi carregado ou o Tailwind não está ativo.');
+        console.error(t('layout.cssError'));
       } else {
-        console.log('✅ [CSS Check]: Estilos globais carregados com sucesso.');
+        console.log(t('layout.cssOk'));
       }
     };
     verifyCSS();
-  }, []);
+  }, [t]);
 
   return (
-    <div className="min-h-screen bg-black text-white antialiased relative">
+    <div className="min-h-screen bg-transparent text-white antialiased relative">
+      <SplineScene />
       {!hideNavbar && <Navbar />}
       {children}
     </div>

@@ -4,8 +4,10 @@ import { Mail, Phone, MapPin, Clock, Send, AlertCircle, CheckCircle2 } from 'luc
 import { GoldButton } from './Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import SectionHeading from './SectionHeading.jsx';
+import { useT } from '../i18n/LanguageContext';
 
 export default function Contact() {
+  const { t } = useT();
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -17,7 +19,7 @@ export default function Contact() {
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/contact', {
+      const response = await fetch('http://localhost:5001/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -28,13 +30,13 @@ export default function Contact() {
       if (json.success) {
         setStatus('success');
         setFormData({ name: '', email: '', phone: '', message: '' });
-        setTimeout(() => setStatus('idle'), 5000);
+        setTimeout(() => setStatus('idle'), 5001);
       } else {
-        throw new Error(json.error || 'Erro ao enviar mensagem');
+        throw new Error(json.error || t('contact.erroEnvio'));
       }
     } catch (err: any) {
       setStatus('error');
-      setErrorMessage(err.message || 'Ocorreu um erro inesperado.');
+      setErrorMessage(err.message || t('contact.erroInesperado'));
     }
   };
 
@@ -43,9 +45,9 @@ export default function Contact() {
       <div className="container mx-auto max-w-6xl">
         <SectionHeading
           align="center"
-          eyebrow="Contactos"
-          title="Vamos conversar"
-          subtitle="Tem alguma dúvida ou precisa de um serviço personalizado? A nossa equipa está pronta para ajudar."
+          eyebrow={t('contact.eyebrow')}
+          title={t('contact.title')}
+          subtitle={t('contact.subtitle')}
         />
 
         <div className="grid md:grid-cols-2 gap-8 mt-12">
@@ -53,7 +55,7 @@ export default function Contact() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 type="text"
-                placeholder="Nome completo"
+                placeholder={t('contact.nome')}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
@@ -61,7 +63,7 @@ export default function Contact() {
               />
               <input
                 type="email"
-                placeholder="Email"
+                placeholder={t('contact.email')}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
@@ -69,14 +71,14 @@ export default function Contact() {
               />
               <input
                 type="tel"
-                placeholder="Telefone"
+                placeholder={t('contact.telefone')}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-white"
               />
               <textarea
                 rows={4}
-                placeholder="Mensagem"
+                placeholder={t('contact.mensagem')}
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 required
@@ -84,7 +86,7 @@ export default function Contact() {
               />
 
               <GoldButton type="submit" className="w-full py-3 flex items-center justify-center gap-2" disabled={status === 'loading'}>
-                <Send size={18} /> {status === 'loading' ? 'Enviando...' : 'Enviar Mensagem'}
+                <Send size={18} /> {status === 'loading' ? t('contact.enviando') : t('contact.enviar')}
               </GoldButton>
 
               <AnimatePresence>
@@ -94,7 +96,7 @@ export default function Contact() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-2 text-green-400 text-sm justify-center mt-4"
                   >
-                    <CheckCircle2 size={16} /> Mensagem enviada com sucesso!
+                    <CheckCircle2 size={16} /> {t('contact.sucesso')}
                   </motion.div>
                 )}
                 {status === 'error' && (
@@ -112,7 +114,7 @@ export default function Contact() {
 
           <div className="space-y-4">
             <div className="glass-strong border-gradient p-6 rounded-3xl">
-              <h3 className="text-xl font-bold mb-4">Informações de Contacto</h3>
+              <h3 className="text-xl font-bold mb-4">{t('contact.infoTitle')}</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Phone size={18} className="text-gold" />
@@ -128,23 +130,23 @@ export default function Contact() {
             {/* Horários */}
             <div className="glass-strong border-gradient p-6 rounded-3xl">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Clock size={18} className="text-gold" /> Horário de Funcionamento
+                <Clock size={18} className="text-gold" /> {t('contact.horario')}
               </h3>
               <div className="space-y-3 text-sm">
                 <div>
                   <div className="flex items-center gap-2 text-gold font-medium">
-                    🇵🇹 Portugal (Lisboa)
+                    🇵🇹 {t('contact.portugal')}
                   </div>
                   <p className="text-white/70 mt-1">
-                    9:00 – 13:00 • 14:00 – 18:00
+                    {t('contact.horarioPT')}
                   </p>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 text-gold font-medium">
-                    🇦🇴 Angola (Luanda)
+                    🇦🇴 {t('contact.angola')}
                   </div>
                   <p className="text-white/70 mt-1">
-                    8:00 – 12:00 • 13:00 – 17:00
+                    {t('contact.horarioAO')}
                   </p>
                 </div>
               </div>
@@ -156,34 +158,34 @@ export default function Contact() {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2 text-gold font-medium text-sm">
-                    <MapPin size={16} /> Luanda
+                    <MapPin size={16} /> {t('contact.luanda')}
                   </div>
                   <p className="text-sm text-white/70 mt-1">
-                    Avenida 21 de janeiro, Sentido Gamek<br />
-                    Defronte ao Hotel Ágatha
+                    {t('contact.moradaLuanda1')}<br />
+                    {t('contact.moradaLuanda2')}
                   </p>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 text-gold font-medium text-sm">
-                    <MapPin size={16} /> Lisboa
+                    <MapPin size={16} /> {t('contact.lisboa')}
                   </div>
                   <p className="text-sm text-white/70 mt-1">
-                    Praceta Salgado Zenha 2<br />
-                    2660-328 Santo António Cavaleiros, Portugal
+                    {t('contact.moradaLisboa1')}<br />
+                    {t('contact.moradaLisboa2')}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="glass-strong border-gradient p-6 text-center rounded-3xl">
-              <h3 className="font-bold mb-2">Atendimento via WhatsApp</h3>
+              <h3 className="font-bold mb-2">{t('contact.whatsappTitle')}</h3>
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block bg-green-600 text-white w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
               >
-                WhatsApp
+                {t('contact.whatsapp')}
               </a>
             </div>
           </div>

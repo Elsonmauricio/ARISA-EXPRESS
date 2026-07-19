@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { Mailbox, Plane, Warehouse, Truck, Check } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useT } from '../i18n/LanguageContext';
 
 export interface StepData {
   id?: string;
@@ -69,10 +70,11 @@ export default function Timeline({
   currentStep = 0,
   className = '',
 }: TimelineProps) {
+  const { t } = useT();
   if (!steps || steps.length === 0) {
     return (
       <div className="text-center text-white/40 py-8 text-sm">
-        Nenhuma etapa disponível.
+        {t('timeline.vazio')}
       </div>
     );
   }

@@ -124,15 +124,27 @@ export const ShipmentController = {
       const userId = user.id;
       logger.info(`Buscando encomendas para o utilizador: ${userId}`);
 
-      const snapshot = await db.collection('shipments')
-        .where('userId', '==', userId)
-        .orderBy('createdAt', 'desc')
-        .get();
+      let snapshot;
+      try {
+        snapshot = await db.collection('shipments')
+          .where('userId', '==', userId)
+          .orderBy('createdAt', 'desc')
+          .get();
+      } catch (indexErr: any) {
+        if (indexErr?.message && indexErr.message.includes('requires an index')) {
+          logger.warn('Índice composto em falta; a usar fallback sem orderBy para userId=' + userId);
+          snapshot = await db.collection('shipments').where('userId', '==', userId).get();
+        } else {
+          throw indexErr;
+        }
+      }
 
-      const shipments = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return { id: doc.id, ...data };
-      });
+      const shipments = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+        .sort((a: any, b: any) => {
+          const ta = a.createdAt?.toMillis?.() ?? a.createdAt?.toDate?.()?.getTime?.() ?? 0;
+          const tb = b.createdAt?.toMillis?.() ?? b.createdAt?.toDate?.()?.getTime?.() ?? 0;
+          return tb - ta;
+        });
 
       logger.info(`Encontradas ${shipments.length} encomendas para o utilizador ${userId}`);
       res.json({ success: true, data: shipments });

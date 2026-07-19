@@ -5,6 +5,7 @@ import { Mail, Lock, User, Phone, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { Link, useNavigate } from 'react-router-dom';
+import { useT } from '../i18n/LanguageContext';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useT();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,13 +31,13 @@ export default function Register() {
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('As senhas não coincidem');
+      setError(t('register.senhasCoincidir'));
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch('http://localhost:5001/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -52,10 +54,10 @@ export default function Register() {
         localStorage.setItem('user', JSON.stringify(json.data.user));
         navigate('/');
       } else {
-        setError(json.error || 'Erro ao registar');
+        setError(json.error || t('register.erroRegistar'));
       }
     } catch (err) {
-      setError('Erro de conexão com o servidor');
+      setError(t('register.erroConexao'));
     } finally {
       setLoading(false);
     }
@@ -71,13 +73,13 @@ export default function Register() {
         >
           <div className="glass-strong border-gradient p-8 rounded-2xl">
             <div className="text-center mb-8">
-              <h2 className="font-display text-3xl font-bold text-white">Criar Conta</h2>
-              <p className="text-white/60 mt-2">Registe-se na Arisa Express</p>
+              <h2 className="font-display text-3xl font-bold text-white">{t('register.titulo')}</h2>
+              <p className="text-white/60 mt-2">{t('register.subtitle')}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm text-white/60 mb-1">Nome completo *</label>
+                <label className="block text-sm text-white/60 mb-1">{t('register.nome')}</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
@@ -87,13 +89,13 @@ export default function Register() {
                     onChange={handleChange}
                     required
                     className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
-                    placeholder="João Silva"
+                    placeholder={t('register.nomePlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">Email *</label>
+                <label className="block text-sm text-white/60 mb-1">{t('register.email')}</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
@@ -103,13 +105,13 @@ export default function Register() {
                     onChange={handleChange}
                     required
                     className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
-                    placeholder="seu@email.com"
+                    placeholder={t('login.emailPlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">Telefone</label>
+                <label className="block text-sm text-white/60 mb-1">{t('register.telefone')}</label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
@@ -118,13 +120,13 @@ export default function Register() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
-                    placeholder="+351 912 345 678"
+                    placeholder={t('register.telefonePlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">Senha *</label>
+                <label className="block text-sm text-white/60 mb-1">{t('register.senha')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
@@ -135,7 +137,7 @@ export default function Register() {
                     required
                     minLength={6}
                     className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
-                    placeholder="••••••••"
+                    placeholder={t('register.senhaPlaceholder')}
                   />
                   <button
                     type="button"
@@ -148,7 +150,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">Confirmar senha *</label>
+                <label className="block text-sm text-white/60 mb-1">{t('register.confirmarSenha')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
@@ -158,7 +160,7 @@ export default function Register() {
                     onChange={handleChange}
                     required
                     className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
-                    placeholder="••••••••"
+                    placeholder={t('register.confirmarSenhaPlaceholder')}
                   />
                 </div>
               </div>
@@ -170,14 +172,14 @@ export default function Register() {
               )}
 
               <GoldButton type="submit" className="w-full py-3" disabled={loading}>
-                {loading ? 'A registar...' : 'Registar'}
+                {loading ? t('register.aRegistar') : t('register.botao')}
               </GoldButton>
             </form>
 
             <div className="mt-6 text-center text-sm text-white/50">
-              Já tem conta?{' '}
+              {t('register.temConta')}{' '}
               <Link to="/login" className="text-gold hover:underline">
-                Iniciar sessão
+                {t('register.iniciarSessao')}
               </Link>
             </div>
           </div>

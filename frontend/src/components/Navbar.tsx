@@ -4,31 +4,35 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronDown, User, Settings, LogOut, Package, Search } from 'lucide-react';
 import { GoldButton } from './Button';
 import ARISAEXPRESStLogo from '../assets/logo-Arisa-express.png';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { scrollToAnchor } from '../lib/scroll';
+import { useT } from '../i18n/LanguageContext';
 
-const BRAND_LINKS = [
-  { href: '#sobre', label: 'Sobre Nós' },
-  { href: '#servicos', label: 'Serviços' },
-  { href: '#contactos', label: 'Contactos' },
-];
-
-const SHIPMENT_LINKS = [
-  { href: '/encomendas?tab=reservar', label: 'Reservar' },
-  { href: '/encomendas?tab=consultar', label: 'Minhas Encomendas' },
-  { href: '/encomendas?tab=rastrear', label: 'Rastrear' },
-  { href: '/encomendas?tab=tabela', label: 'Tabela de Preços' },
-];
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<null | any>(null);
   const [dropdowns, setDropdowns] = useState({
     brand: false,
     shipments: false,
     profile: false
   });
+  const { t } = useT();
+
+  const BRAND_LINKS = [
+    { href: '/sobre', label: t('nav.sobre') },
+    { href: '/servicos', label: t('nav.servicos') },
+    { href: '/contactos', label: t('nav.contactos') },
+  ];
+  const SHIPMENT_LINKS = [
+    { href: '/encomendas?tab=reservar', label: t('nav.reservar') },
+    { href: '/encomendas?tab=consultar', label: t('nav.minhasEncomendas') },
+    { href: '/encomendas?tab=rastrear', label: t('nav.rastrear') },
+    { href: '/encomendas?tab=tabela', label: t('nav.tabelaPrecos') },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -44,7 +48,7 @@ export default function Navbar() {
       // Tentar buscar da API se houver token mas não user (fallback)
       const token = localStorage.getItem('token');
       if (token) {
-        fetch('http://localhost:5000/api/auth/me', {
+        fetch('http://localhost:5001/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
         })
           .then(res => res.json())
@@ -61,9 +65,22 @@ export default function Navbar() {
 
   const toggleDropdown = (name: 'brand' | 'shipments' | 'profile') => {
     setDropdowns((prev) => ({
-      ...prev,
-      [name]: !prev[name]
+      brand: false,
+      shipments: false,
+      profile: false,
+      [name]: !prev[name],
     }));
+  };
+
+  const goToSection = (hash: string) => {
+    const scroll = () => scrollToAnchor(hash);
+    if (location.pathname !== '/') {
+      navigate('/');
+      // Wait for home to mount before scrolling.
+      setTimeout(scroll, 350);
+    } else {
+      scroll();
+    }
   };
 
   const handleLogout = () => {
@@ -89,15 +106,15 @@ export default function Navbar() {
       onClick={() => { setDropdowns({ ...dropdowns, profile: false }); setOpen(false); }}
       className="block px-4 py-2 text-sm text-white/80 hover:text-gold hover:bg-white/5 rounded-lg transition-colors"
     >
-      Dashboard Admin
+      {t('nav.dashboardAdmin')}
     </Link>
   ) : null;
 
   // Links do perfil (comum)
   const profileLinks = [
-    { href: '/perfil', label: 'Perfil', icon: <User className="w-4 h-4" /> },
-    { href: '/definicoes', label: 'Definições', icon: <Settings className="w-4 h-4" /> },
-    { href: '#', label: 'Sair', icon: <LogOut className="w-4 h-4" />, onClick: true },
+    { href: '/perfil', label: t('nav.perfil'), icon: <User className="w-4 h-4" /> },
+    { href: '/definicoes', label: t('nav.definicoes'), icon: <Settings className="w-4 h-4" /> },
+    { href: '#', label: t('nav.sair'), icon: <LogOut className="w-4 h-4" />, onClick: true },
   ];
 
   return (
@@ -105,7 +122,7 @@ export default function Navbar() {
       initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-7 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled ? 'py-3' : 'py-5'
       }`}
     >
@@ -114,11 +131,11 @@ export default function Navbar() {
       }`}>
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <img src={ARISAEXPRESStLogo} alt="ARISA EXPRESS Logo" className="h-14" />
-          <div className="flex flex-col leading-none">
-            <span className="font-display text-lg font-bold tracking-tight text-lilac-300">ARISA</span>
-            <span className="text-[10px] tracking-[0.35em] text-gold">EXPRESS</span>
-          </div>
+          <img
+            src={ARISAEXPRESStLogo}
+             alt={t('nav.logoAlt')}
+            className="h-16 sm:h-20 w-auto drop-shadow-[0_0_14px_rgba(168,85,247,0.5)] brightness-110 group-hover:brightness-125 transition-all duration-300"
+          />
         </Link>
 
         {/* Desktop Nav */}
@@ -129,7 +146,7 @@ export default function Navbar() {
               onClick={() => toggleDropdown('brand')}
               className="flex items-center gap-1 text-sm text-white/80 hover:text-white transition-colors group"
             >
-              Arisa Express
+              {t('nav.marca')}
               <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.brand ? 'rotate-180' : ''}`} />
             </button>
             <AnimatePresence>
@@ -144,7 +161,7 @@ export default function Navbar() {
                     <a
                       key={link.href}
                       href={link.href}
-                      onClick={() => setDropdowns({ ...dropdowns, brand: false })}
+                      onClick={(e) => { e.preventDefault(); goToSection(link.href); setDropdowns({ brand: false, shipments: false, profile: false }); }}
                       className="block px-4 py-2 text-sm text-white/80 hover:text-gold hover:bg-white/5 rounded-lg transition-colors"
                     >
                       {link.label}
@@ -161,7 +178,7 @@ export default function Navbar() {
               onClick={() => toggleDropdown('shipments')}
               className="flex items-center gap-1 text-sm text-white/80 hover:text-white transition-colors group"
             >
-              Encomendas
+              {t('nav.encomendas')}
               <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.shipments ? 'rotate-180' : ''}`} />
             </button>
             <AnimatePresence>
@@ -230,17 +247,17 @@ export default function Navbar() {
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/login" className="text-sm text-white/80 hover:text-white transition-colors">
-                Entrar
+                {t('nav.entrar')}
               </Link>
               <GoldButton className="px-5 py-2 text-sm" onClick={() => navigate('/registar')}>
-                Criar Conta
+                {t('nav.criarConta')}
               </GoldButton>
             </div>
           )}
         </nav>
 
         {/* Mobile menu button */}
-        <button className="md:hidden text-white" onClick={() => setOpen(!open)} aria-label="menu">
+        <button className="md:hidden text-white" onClick={() => setOpen(!open)} aria-label={t('nav.menu')}>
           {open ? <X /> : <Menu />}
         </button>
       </div>
@@ -258,7 +275,7 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                onClick={() => setOpen(false)}
+                onClick={(e) => { e.preventDefault(); goToSection(link.href); setOpen(false); }}
                 className="text-white/80 hover:text-gold transition-colors"
               >
                 {link.label}
@@ -284,26 +301,26 @@ export default function Navbar() {
                     <hr className="border-white/10" />
                   </>
                 )}
-                <Link to="/perfil" onClick={() => setOpen(false)} className="text-white/80 hover:text-gold transition-colors">
-                  Perfil
-                </Link>
-                <Link to="/definicoes" onClick={() => setOpen(false)} className="text-white/80 hover:text-gold transition-colors">
-                  Definições
-                </Link>
-                <button
-                  onClick={() => { handleLogout(); setOpen(false); }}
-                  className="text-red-400 hover:text-red-300 text-left"
-                >
-                  Sair
-                </button>
+                 <Link to="/perfil" onClick={() => setOpen(false)} className="text-white/80 hover:text-gold transition-colors">
+                   {t('nav.perfil')}
+                 </Link>
+                 <Link to="/definicoes" onClick={() => setOpen(false)} className="text-white/80 hover:text-gold transition-colors">
+                   {t('nav.definicoes')}
+                 </Link>
+                 <button
+                   onClick={() => { handleLogout(); setOpen(false); }}
+                   className="text-red-400 hover:text-red-300 text-left"
+                 >
+                   {t('nav.sair')}
+                 </button>
               </>
             ) : (
               <>
                 <Link to="/login" onClick={() => setOpen(false)} className="text-white/80 hover:text-gold transition-colors">
-                  Entrar
+                  {t('nav.entrar')}
                 </Link>
                 <GoldButton className="w-full" onClick={() => { navigate('/registar'); setOpen(false); }}>
-                  Criar Conta
+                  {t('nav.criarConta')}
                 </GoldButton>
               </>
             )}

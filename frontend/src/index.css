@@ -1,8 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ============================================================
+   AERO-LOGISTICS // DESIGN TOKENS
+   Paleta recombinada: BLK · LIL · GLD · WHT
+   ============================================================ */
+:root {
+  --aero-black: #08080a;     /* Fuselagem de Radar */
+  --aero-panel: #0f0f14;     /* Preto Industrial */
+  --aero-border: #221f2d;    /* Borda sutil violácea */
+  --aero-white: #ffffff;
+  --aero-muted: #9e9cb0;     /* Branco acinzentado / lilás muted */
+  --aero-lilas: #a855f7;     /* Lilás / Violeta Aero */
+  --aero-lilas-dark: #3b185f;
+  --aero-gold: #f59e0b;      /* Dourado Aero */
+  --aero-gold-glow: rgba(245, 158, 11, 0.35);
+  --aero-lilas-glow: rgba(168, 85, 247, 0.3);
+  --aero-chamfer: 16px;
+}
 
 @layer base {
   :root { color-scheme: dark; }
@@ -19,6 +37,7 @@
       radial-gradient(900px 600px at -10% 20%, rgba(212,175,55,0.12), transparent 60%),
       #000;
   }
+
 }
 
 @layer components {
@@ -58,6 +77,20 @@
   .shadow-gold {
     box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
   }
+  /* AERO-ANGLES: canto chanfrado (chamfer) para painéis "fora da caixa" */
+  .aero-chamfer {
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--aero-chamfer)) 0,
+      100% var(--aero-chamfer),
+      100% 100%,
+      var(--aero-chamfer) 100%,
+      0 calc(100% - var(--aero-chamfer))
+    );
+  }
+  .aero-tag-clip {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+  }
   .border-gradient {
     position: relative;
   }
@@ -77,8 +110,16 @@
 
 @layer utilities {
   .font-display { font-family: 'Syne', 'Inter', sans-serif; letter-spacing: -0.02em; }
+  .font-data { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em; }
   .scrollbar-hidden::-webkit-scrollbar { display: none; }
 }
 
 /* canvas crisp */
 canvas { display: block; outline: none; touch-action: none; }
+
+/* Lenis smooth scroll recommended styles */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }

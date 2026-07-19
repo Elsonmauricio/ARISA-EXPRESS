@@ -9,6 +9,7 @@ import {
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { Link } from 'react-router-dom';
+import { useT } from '../i18n/LanguageContext';
 
 // ======================== TIPOS ========================
 interface Route {
@@ -62,6 +63,7 @@ function formatDate(dateValue: any): string {
 
 // ======================== BOOKING FORM ========================
 function BookingForm({ routes }: { routes: Route[] }) {
+  const { t } = useT();
   const [step, setStep] = useState<'simulate' | 'form' | 'success'>('simulate');
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [weight, setWeight] = useState<number>(1);
@@ -127,13 +129,13 @@ function BookingForm({ routes }: { routes: Route[] }) {
     setError('');
 
     if (!formData.senderName || !formData.senderPhone || !formData.receiverName || !formData.receiverPhone) {
-      setError('Preencha todos os campos obrigatórios');
+      setError(t('ship.camposObrigatorios'));
       setLoading(false);
       return;
     }
 
     if (formData.weight <= 0) {
-      setError('O peso deve ser maior que 0');
+      setError(t('ship.pesoMaior'));
       setLoading(false);
       return;
     }
@@ -141,7 +143,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        setError('Por favor, faça login para reservar um envio');
+        setError(t('ship.loginReservar'));
         setLoading(false);
         return;
       }
@@ -163,7 +165,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
         serviceType: formData.serviceType
       };
 
-      const response = await fetch('http://localhost:5000/api/shipments', {
+      const response = await fetch('http://localhost:5001/api/shipments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,10 +178,10 @@ function BookingForm({ routes }: { routes: Route[] }) {
       if (json.success) {
         setStep('success');
       } else {
-        setError(json.error || 'Erro ao criar encomenda');
+        setError(json.error || t('ship.erroCriar'));
       }
     } catch (err) {
-      setError('Erro de conexão com o servidor.');
+      setError(t('ship.erroServidor'));
     } finally {
       setLoading(false);
     }
@@ -189,9 +191,9 @@ function BookingForm({ routes }: { routes: Route[] }) {
     return (
       <div className="glass-strong border-gradient p-10 rounded-2xl text-center">
         <CheckCircle2 className="w-16 h-16 text-gold mx-auto mb-4" />
-        <h3 className="text-2xl font-bold mb-2">✅ Reserva Confirmada!</h3>
+        <h3 className="text-2xl font-bold mb-2">{t('ship.reservaConfirmada')}</h3>
         <p className="text-white/60 mb-4">
-          A sua encomenda foi registada com sucesso. Em breve receberá um email com o código de rastreio.
+          {t('ship.reservaSucesso')}
         </p>
         <GoldButton onClick={() => {
           setStep('simulate');
@@ -203,7 +205,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
             length: 0, width: 0, height: 0, description: '', serviceType: 'AIR_EXPRESS'
           });
         }}>
-          Nova Reserva
+          {t('ship.novaReserva')}
         </GoldButton>
       </div>
     );
@@ -214,9 +216,9 @@ function BookingForm({ routes }: { routes: Route[] }) {
       {step === 'simulate' && (
         <div className="grid md:grid-cols-2 gap-6">
           <div className="glass-strong border-gradient p-6 rounded-2xl">
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <MapPin className="text-gold" /> Rotas Disponíveis
-            </h3>
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <MapPin className="text-gold" /> {t('ship.rotasDisp')}
+              </h3>
             <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
               {routes.map((route) => {
                 const avail = Math.max(0, route.available);
@@ -236,14 +238,14 @@ function BookingForm({ routes }: { routes: Route[] }) {
                         </div>
                         {flightDate && (
                           <div className="text-xs text-white/40 mt-1">
-                            🗓️ {flightDate.toLocaleDateString('pt-PT')}
+                            {t('ship.dataVoo2', { date: flightDate.toLocaleDateString('pt-PT') })}
                           </div>
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-gold font-bold">€ {route.pricePerKg}/kg</div>
+                        <div className="text-gold font-bold">{t('ship.precoKg', { price: route.pricePerKg })}</div>
                         <div className={`text-xs ${avail > 0 ? (isLow ? 'text-orange-400' : 'text-green-400') : 'text-red-400'}`}>
-                          {avail > 0 ? `${avail} kg disponíveis` : 'Esgotado'}
+                          {avail > 0 ? t('ship.kgDisp', { avail }) : t('ship.esgotado')}
                         </div>
                       </div>
                     </div>
@@ -252,7 +254,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
               })}
               {routes.length === 0 && (
                 <div className="text-center text-white/40 py-8">
-                  Nenhuma rota disponível no momento. Volte mais tarde.
+                  {t('ship.semRotas')}
                 </div>
               )}
             </div>
@@ -260,9 +262,9 @@ function BookingForm({ routes }: { routes: Route[] }) {
 
           <div className="glass-strong border-gradient p-6 rounded-2xl flex flex-col justify-center items-center">
             <div className="w-full max-w-sm">
-              <h3 className="text-xl font-bold mb-4 text-center">Simulação</h3>
+              <h3 className="text-xl font-bold mb-4 text-center">{t('ship.simulacao')}</h3>
               <div className="mb-4">
-                <label className="block text-sm text-white/60 mb-1">Peso (kg)</label>
+                <label className="block text-sm text-white/60 mb-1">{t('ship.peso')}</label>
                 <input
                   type="number"
                   min="0.1"
@@ -279,37 +281,37 @@ function BookingForm({ routes }: { routes: Route[] }) {
               {selectedRoute ? (
                 <div className="space-y-2 text-sm w-full">
                   <div className="flex justify-between">
-                    <span>Preço base ({selectedRoute.pricePerKg}€/kg × {weight}kg)</span>
+                    <span>{t('ship.precoBase', { pricePerKg: selectedRoute.pricePerKg, weight })}</span>
                     <span>€ {(selectedRoute.pricePerKg * weight).toFixed(2)}</span>
                   </div>
                   {selectedRoute.flightDate && (
                     <div className="flex justify-between text-white/60">
-                      <span>Data do Voo</span>
+                      <span>{t('ship.dataVoo')}</span>
                       <span>{new Date(selectedRoute.flightDate).toLocaleDateString('pt-PT')}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-white/60">
-                    <span>Disponível</span>
+                    <span>{t('ship.disponivel')}</span>
                     <span className={available >= weight ? 'text-green-400' : 'text-red-400'}>
                       {available} kg
                     </span>
                   </div>
                   <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span className="text-gold">€ {estimatedPrice.toFixed(2)}</span>
+                    <span>{t('ship.total')}</span>
+                    <span className="text-gold">{t('ship.totalValor', { estimatedPrice: estimatedPrice.toFixed(2) })}</span>
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-white/40 py-8">Selecione uma rota</div>
+                <div className="text-center text-white/40 py-8">{t('ship.selecionarRota')}</div>
               )}
               <GoldButton
                 className="w-full mt-4"
                 disabled={!canReserve}
                 onClick={() => selectedRoute && handleRouteSelect(selectedRoute)}
               >
-                {!selectedRoute ? 'Selecione uma rota' :
-                 weight > available ? `Apenas ${available} kg disponíveis` :
-                 'Reservar Agora'}
+                {!selectedRoute ? t('ship.selecionarRota') :
+                 weight > available ? t('ship.kgDisponiveis', { available }) :
+                 t('ship.reservarAgora')}
               </GoldButton>
             </div>
           </div>
@@ -320,31 +322,31 @@ function BookingForm({ routes }: { routes: Route[] }) {
         <div className="max-w-2xl mx-auto">
           <div className="glass-strong border-gradient p-8 rounded-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold">Dados da Encomenda</h3>
+              <h3 className="text-xl font-bold">{t('ship.dadosEncomenda')}</h3>
               <button onClick={() => setStep('simulate')} className="text-sm text-gold hover:underline">
-                ← Voltar
+                {t('ship.voltar')}
               </button>
             </div>
 
             <div className="bg-white/5 p-4 rounded-xl mb-6 text-sm">
               <div className="flex justify-between">
-                <span><strong>Rota:</strong> {selectedRoute.origin} → {selectedRoute.destination}</span>
-                <span><strong>Serviço:</strong> {selectedRoute.serviceType.replace('_', ' ')}</span>
+                <span><strong>{t('ship.rota')}</strong> {selectedRoute.origin} → {selectedRoute.destination}</span>
+                <span><strong>{t('ship.servico')}</strong> {selectedRoute.serviceType.replace('_', ' ')}</span>
               </div>
               {selectedRoute.flightDate && (
                 <div className="flex justify-between mt-1">
-                  <span><strong>Data do Voo:</strong></span>
+                  <span><strong>{t('ship.dataVoo3')}</strong></span>
                   <span>{new Date(selectedRoute.flightDate).toLocaleDateString('pt-PT')}</span>
                 </div>
               )}
               <div className="flex justify-between mt-1">
-                <span><strong>Peso:</strong> {weight} kg</span>
-                <span><strong>Preço:</strong> € {estimatedPrice.toFixed(2)}</span>
+                  <span><strong>{t('ship.peso2')}</strong> {weight} kg</span>
+                  <span><strong>{t('ship.preco')}</strong> € {estimatedPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between mt-1">
-                <span><strong>Disponível:</strong> {available} kg</span>
+                  <span><strong>{t('ship.disponivel2')}</strong> {available} kg</span>
                 <span className={available >= weight ? 'text-green-400' : 'text-red-400'}>
-                  {available >= weight ? '✓ Suficiente' : '⚠️ Insuficiente'}
+                  {available >= weight ? t('ship.suficiente') : t('ship.insuficiente')}
                 </span>
               </div>
             </div>
@@ -352,41 +354,41 @@ function BookingForm({ routes }: { routes: Route[] }) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Remetente *</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('ship.remetente')}</label>
                   <input type="text" name="senderName" value={formData.senderName} onChange={handleInputChange} required className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white" />
                 </div>
+                 <div>
+                   <label className="block text-sm text-white/60 mb-1">{t('ship.remetenteTel')}</label>
+                   <input type="tel" name="senderPhone" value={formData.senderPhone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white" />
+                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Telefone *</label>
-                  <input type="tel" name="senderPhone" value={formData.senderPhone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white" />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/60 mb-1">Destinatário *</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('ship.destinatario')}</label>
                   <input type="text" name="receiverName" value={formData.receiverName} onChange={handleInputChange} required className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Telefone *</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('ship.destinatarioTel')}</label>
                   <input type="tel" name="receiverPhone" value={formData.receiverPhone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white" />
                 </div>
               </div>
 
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Comprimento (cm)</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('ship.comprimento')}</label>
                   <input type="number" name="length" value={formData.length} onChange={handleInputChange} className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Largura (cm)</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('ship.largura')}</label>
                   <input type="number" name="width" value={formData.width} onChange={handleInputChange} className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Altura (cm)</label>
+                  <label className="block text-sm text-white/60 mb-1">{t('ship.altura')}</label>
                   <input type="number" name="height" value={formData.height} onChange={handleInputChange} className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">Descrição</label>
-                <textarea name="description" value={formData.description} onChange={handleInputChange} rows={3} className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white resize-none" placeholder="Ex: Roupas, eletrónicos..." />
+                <label className="block text-sm text-white/60 mb-1">{t('ship.descricao')}</label>
+                <textarea name="description" value={formData.description} onChange={handleInputChange} rows={3} className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white resize-none"                   placeholder={t('ship.descricaoPlaceholder')} />
               </div>
 
               {error && (
@@ -396,7 +398,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
               )}
 
               <GoldButton type="submit" className="w-full py-3" disabled={loading || !canReserve}>
-                {loading ? 'A processar...' : 'Confirmar Reserva'}
+                {loading ? t('ship.aProcessar') : t('ship.confirmarReserva')}
               </GoldButton>
             </form>
           </div>
@@ -408,6 +410,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
 
 // ======================== SHIPMENT LIST ========================
 function ShipmentList() {
+  const { t } = useT();
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -420,14 +423,14 @@ function ShipmentList() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/shipments', {
+      const response = await fetch('http://localhost:5001/api/shipments', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (!response.ok) {
         const text = await response.text();
         console.error('Erro ao buscar encomendas:', response.status, text);
-        setError(`Erro ${response.status}: Não foi possível carregar as encomendas.`);
+        setError(t('ship.erroStatus', { status: response.status }));
         return;
       }
 
@@ -435,11 +438,11 @@ function ShipmentList() {
       if (json.success) {
         setShipments(json.data);
       } else {
-        setError(json.error || 'Erro ao carregar encomendas');
+        setError(json.error || t('ship.erroCarregarEncomendas'));
       }
     } catch (err) {
       console.error('Erro de conexão:', err);
-      setError('Erro de conexão com o servidor.');
+      setError(t('ship.erroServidor'));
     } finally {
       setLoading(false);
     }
@@ -492,13 +495,13 @@ function ShipmentList() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-white/60">A carregar encomendas...</div>;
+  if (loading) return <div className="text-center py-8 text-white/60">{t('ship.carregarEncomendas')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
   if (!localStorage.getItem('token')) {
     return (
       <div className="text-center py-8 text-white/60">
-        <p>Faça login para ver as suas encomendas.</p>
-        <Link to="/login" className="text-gold hover:underline">Iniciar sessão</Link>
+          <p>{t('ship.loginEncomendas')}</p>
+          <Link to="/login" className="text-gold hover:underline">{t('ship.iniciarSessao')}</Link>
       </div>
     );
   }
@@ -507,8 +510,8 @@ function ShipmentList() {
     return (
       <div className="text-center py-8 text-white/60">
         <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-        <p>Não tem encomendas registadas.</p>
-        <p className="text-sm">Utilize o formulário acima para criar a sua primeira reserva.</p>
+        <p>{t('ship.semEncomendas')}</p>
+        <p className="text-sm">{t('ship.usarFormulario')}</p>
       </div>
     );
   }
@@ -524,7 +527,7 @@ function ShipmentList() {
             <div className="text-xs text-white/50">{formatDate(s.createdAt)}</div>
             {/* Opcional: mostrar data do voo se existir */}
             {s.flightDate && (
-              <div className="text-xs text-white/40">Voo: {formatDate(s.flightDate)}</div>
+              <div className="text-xs text-white/40">Voo: {t('ship.voo', { date: formatDate(s.flightDate) })}</div>
             )}
           </div>
           <div className="flex items-center gap-4">
@@ -547,66 +550,67 @@ function ShipmentList() {
 
 // ======================== PRICE TABLE ========================
 function PriceTable() {
+  const { t } = useT();
   // Dados estáticos baseados nas imagens fornecidas
   const baseItems = [
-    { item: '1KG', euro: '13,00', kz: '16.900,00' },
-    { item: 'Alimentos', euro: 'Por KG', kz: '—' },
-    { item: 'Roupas', euro: 'Por KG', kz: '—' },
-    { item: 'Calçados', euro: 'Por KG', kz: '—' },
-    { item: 'Diversos (ex: SHEIN/TEMU)', euro: 'Por KG', kz: '—' },
+    { item: t('ship.kg'), euro: '13,00', kz: '16.900,00' },
+    { item: t('ship.alimentos'), euro: t('ship.porKg'), kz: '—' },
+    { item: t('ship.roupas'), euro: t('ship.porKg'), kz: '—' },
+    { item: t('ship.calcados'), euro: t('ship.porKg'), kz: '—' },
+    { item: t('ship.diversos'), euro: t('ship.porKg'), kz: '—' },
   ];
 
   const malas = [
-    { peso: '5kg', euro: '85,00', kz: '110.500,00' },
-    { peso: '10kg', euro: '110,00', kz: '143.000,00' },
-    { peso: '23kg', euro: '200,00', kz: '260.000,00' },
-    { peso: '32kg', euro: '300,00', kz: '390.000,00' },
+    { peso: t('ship.kg5'), euro: '85,00', kz: '110.500,00' },
+    { peso: t('ship.kg10'), euro: '110,00', kz: '143.000,00' },
+    { peso: t('ship.kg23'), euro: '200,00', kz: '260.000,00' },
+    { peso: t('ship.kg32'), euro: '300,00', kz: '390.000,00' },
   ];
 
   const eletronicos = [
-    { item: 'Telemóvel', euro: '35,00', kz: '45.000,00' },
-    { item: 'Smart Watch', euro: '15,00', kz: '19.500,00' },
-    { item: 'AirPods', euro: '15,00', kz: '19.500,00' },
-    { item: 'Computador', euro: '50,00 / 60,00', kz: '65.000,00 / 78.000,00' },
-    { item: 'PlayStation 4', euro: '60,00', kz: '78.000,00' },
-    { item: 'PlayStation 5', euro: '90,00', kz: '117.000,00' },
+    { item: t('ship.telemovel'), euro: '35,00', kz: '45.000,00' },
+    { item: t('ship.smartwatch'), euro: '15,00', kz: '19.500,00' },
+    { item: t('ship.airpods'), euro: '15,00', kz: '19.500,00' },
+    { item: t('ship.computador'), euro: '50,00 / 60,00', kz: '65.000,00 / 78.000,00' },
+    { item: t('ship.ps4'), euro: '60,00', kz: '78.000,00' },
+    { item: t('ship.ps5'), euro: '90,00', kz: '117.000,00' },
   ];
 
   const pessoais = [
-    { item: 'Documentos/Cartões', euro: '15,00', kz: '19.500,00' },
-    { item: 'Passaporte', euro: '20,00', kz: '26.000,00' },
-    { item: 'Medicamentos', euro: '5,00', kz: '6.500,00' },
-    { item: 'Peças de ouro', euro: '15,00 / 25,00', kz: '19.500,00 / 32.500,00' },
-    { item: 'Peruca', euro: '7,00', kz: '9.100,00' },
-    { item: 'Outros itens', euro: 'Sob consulta', kz: 'Sob consulta' },
+    { item: t('ship.documentos'), euro: '15,00', kz: '19.500,00' },
+    { item: t('ship.passaporte'), euro: '20,00', kz: '26.000,00' },
+    { item: t('ship.medicamentos'), euro: '5,00', kz: '6.500,00' },
+    { item: t('ship.ouro'), euro: '15,00 / 25,00', kz: '19.500,00 / 32.500,00' },
+    { item: t('ship.peruca'), euro: '7,00', kz: '9.100,00' },
+    { item: t('ship.outros'), euro: t('ship.sobConsulta'), kz: t('ship.sobConsulta') },
   ];
 
   const alfandega = [
-    { item: 'Perfumes', euro: 'Kg + 46% da fatura', kz: 'Kg + 35% da fatura' },
-    { item: 'Produtos de Cosmética', euro: 'Kg + 46% da fatura', kz: 'Kg + 35% da fatura' },
-    { item: 'Material de Manicure', euro: 'Kg + 23% da fatura', kz: 'Kg + 23% da fatura' },
-    { item: 'Aparelhos de Som', euro: 'Kg + 23% da fatura', kz: 'Kg + 23% da fatura' },
-    { item: 'Peças de Carro', euro: 'Kg + 23% da fatura', kz: 'Kg + 23% da fatura' },
-    { item: 'TV', euro: 'Kg + 23% da fatura', kz: '195.000,00 + 23% fatura' },
+    { item: t('ship.perfumes'), euro: t('ship.kg46'), kz: t('ship.kg35') },
+    { item: t('ship.cosmetica'), euro: t('ship.kg46'), kz: t('ship.kg35') },
+    { item: t('ship.manicure'), euro: t('ship.kg23Alfandega'), kz: t('ship.kg23Alfandega') },
+    { item: t('ship.som'), euro: t('ship.kg23Alfandega'), kz: t('ship.kg23Alfandega') },
+    { item: t('ship.carro'), euro: t('ship.kg23Alfandega'), kz: t('ship.kg23Alfandega') },
+    { item: t('ship.tv'), euro: t('ship.kg23Alfandega'), kz: t('ship.195kz') },
   ];
 
   return (
     <div className="space-y-8">
       <div className="glass-strong border-gradient p-6 rounded-2xl overflow-x-auto">
-        <h3 className="text-xl font-bold mb-4">📊 Tabela de Preços</h3>
+        <h3 className="text-xl font-bold mb-4">{t('ship.tabelaTitulo')}</h3>
         <p className="text-sm text-white/60 mb-4">
-          Valores em Euro (€) e Kwanza (KZ) — sujeitos a alteração. <br />
-          <span className="text-xs">* Valores em KZ sob consulta para itens não listados.</span>
+          {t('ship.tabelaSub')} <br />
+          <span className="text-xs">{t('ship.tabelaNota')}</span>
         </p>
 
         {/* Items Base */}
-        <h4 className="text-lg font-semibold text-gold mt-6 mb-3">📦 Items Base</h4>
+        <h4 className="text-lg font-semibold text-gold mt-6 mb-3">{t('ship.itemsBase')}</h4>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/10">
-              <th className="text-left py-2 text-white/60">Item</th>
-              <th className="text-right py-2 text-white/60">Euro (€)</th>
-              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+              <th className="text-left py-2 text-white/60">{t('ship.item')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
@@ -621,13 +625,13 @@ function PriceTable() {
         </table>
 
         {/* Malas */}
-        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">🧳 Malas (Cabine e Porão)</h4>
+        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.malas')}</h4>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/10">
-              <th className="text-left py-2 text-white/60">Peso</th>
-              <th className="text-right py-2 text-white/60">Euro (€)</th>
-              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+              <th className="text-left py-2 text-white/60">{t('ship.pesoMalas')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
@@ -641,17 +645,17 @@ function PriceTable() {
           </tbody>
         </table>
         <p className="text-xs text-white/40 mt-2">
-          * Com mercadoria com teor alfandegário, acresce 35% da fatura dos artigos.
+          {t('ship.notaAlfandega')}
         </p>
 
         {/* Eletrónicos */}
-        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">💻 Itens Electrónicos</h4>
+        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.eletronicos')}</h4>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/10">
-              <th className="text-left py-2 text-white/60">Item</th>
-              <th className="text-right py-2 text-white/60">Euro (€)</th>
-              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+              <th className="text-left py-2 text-white/60">{t('ship.item')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
@@ -666,13 +670,13 @@ function PriceTable() {
         </table>
 
         {/* Itens Pessoais */}
-        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">👤 Itens Pessoais / Diversos</h4>
+        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.pessoais')}</h4>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/10">
-              <th className="text-left py-2 text-white/60">Item</th>
-              <th className="text-right py-2 text-white/60">Euro (€)</th>
-              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+              <th className="text-left py-2 text-white/60">{t('ship.item')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
@@ -687,13 +691,13 @@ function PriceTable() {
         </table>
 
         {/* Itens Alfândega */}
-        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">📜 Itens com Teor Alfandegário</h4>
+        <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.alfandega')}</h4>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/10">
-              <th className="text-left py-2 text-white/60">Item</th>
-              <th className="text-right py-2 text-white/60">Euro (€)</th>
-              <th className="text-right py-2 text-white/60">Kwanza (KZ)</th>
+              <th className="text-left py-2 text-white/60">{t('ship.item')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
@@ -709,7 +713,7 @@ function PriceTable() {
 
         {/* Contactos */}
         <div className="mt-8 pt-4 border-t border-white/10 text-center">
-          <p className="text-sm text-white/60">Para mais informações:</p>
+          <p className="text-sm text-white/60">{t('ship.maisInfo')}</p>
           <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm text-white/80">
             <span>📞 (+244) 948 440 920</span>
             <span>📞 (+351) 934 292 082</span>
@@ -721,6 +725,7 @@ function PriceTable() {
 }
 // ======================== TRACKING FORM ========================
 function TrackingForm() {
+  const { t } = useT();
   const [code, setCode] = useState('');
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -730,7 +735,7 @@ function TrackingForm() {
     e.preventDefault();
     const trackingCode = code.trim().toUpperCase();
     if (!trackingCode) {
-      setError('Insira um código de rastreio.');
+      setError(t('ship.erroCodigo'));
       return;
     }
     setLoading(true);
@@ -738,15 +743,15 @@ function TrackingForm() {
     setResult(null);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/tracking/${trackingCode}`);
+      const response = await fetch(`http://localhost:5001/api/tracking/${trackingCode}`);
       const json = await response.json();
       if (json.success) {
         setResult(json.data);
       } else {
-        setError(json.error || 'Encomenda não encontrada.');
+        setError(json.error || t('ship.encomendaNaoEncontrada'));
       }
     } catch (err) {
-      setError('Erro ao conectar com o servidor.');
+      setError(t('ship.erroServidor2'));
     } finally {
       setLoading(false);
     }
@@ -779,7 +784,7 @@ function TrackingForm() {
     <div className="max-w-xl mx-auto">
       <div className="glass-strong border-gradient p-6 rounded-2xl">
         <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Search className="text-gold" /> Rastrear Encomenda
+          <Search className="text-gold" /> {t('ship.rastrearEncomenda')}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-2">
@@ -787,11 +792,11 @@ function TrackingForm() {
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="Ex: ARISA-1A2B-3C4D"
+              placeholder={t('ship.rastrearPlaceholder')}
               className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
             />
             <GoldButton type="submit" disabled={loading} className="px-6">
-              {loading ? '...' : 'Rastrear'}
+              {loading ? '...' : t('ship.rastrearBotao')}
             </GoldButton>
           </div>
           {error && (
@@ -805,11 +810,11 @@ function TrackingForm() {
           <div className="mt-6 space-y-4">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <div>
-                <div className="text-xs text-white/40">Código</div>
+                 <div className="text-xs text-white/40">{t('ship.codigo')}</div>
                 <div className="font-mono text-gold">{result.trackingCode}</div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-white/40">Status</div>
+                 <div className="text-xs text-white/40">{t('ship.status')}</div>
                 <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(result.status)}`}>
                   {getStatusIcon(result.status)}
                   {result.status.replace('_', ' ')}
@@ -818,24 +823,24 @@ function TrackingForm() {
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-white/60">Origem</span>
+                <span className="text-white/60">{t('ship.origem')}</span>
                 <span className="text-white">{result.origin}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/60">Destino</span>
+                <span className="text-white/60">{t('ship.destino')}</span>
                 <span className="text-white">{result.destination}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/60">Peso</span>
+                <span className="text-white/60">{t('ship.peso')}</span>
                 <span className="text-white">{result.weight} kg</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/60">Preço</span>
-                <span className="text-white">€ {result.price?.toFixed(2) || '—'}</span>
+                <span className="text-white/60">{t('ship.precoLabel')}</span>
+                <span className="text-white">{result.price?.toFixed(2) || '—'}</span>
               </div>
               {result.trackingUpdates && result.trackingUpdates.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-xs text-white/40 mb-2">Histórico</div>
+                  <div className="text-xs text-white/40 mb-2">{t('ship.historico')}</div>
                   <ul className="space-y-1 text-xs text-white/60">
                     {result.trackingUpdates.map((update: any, idx: number) => (
                       <li key={idx} className="flex justify-between">
@@ -856,6 +861,7 @@ function TrackingForm() {
 
 // ======================== MAIN PAGE ========================
 export default function ShipmentsPage() {
+  const { t } = useT();
   const [activeTab, setActiveTab] = useState<'reservar' | 'consultar' | 'rastrear' | 'tabela'>('reservar');
   const [routes, setRoutes] = useState<Route[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
@@ -875,15 +881,15 @@ export default function ShipmentsPage() {
 
   const fetchRoutes = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/routes/available');
+      const response = await fetch('http://localhost:5001/api/routes/available');
       const json = await response.json();
       if (json.success) {
         setRoutes(json.data);
       } else {
-        setRoutesError('Erro ao carregar rotas');
+        setRoutesError(t('ship.erroCarregarRotas'));
       }
     } catch (err) {
-      setRoutesError('Erro de conexão ao carregar rotas');
+      setRoutesError(t('ship.erroConexaoRotas'));
     } finally {
       setLoadingRoutes(false);
     }
@@ -899,9 +905,9 @@ export default function ShipmentsPage() {
             className="mb-8"
           >
             <h1 className="font-display text-4xl md:text-5xl font-bold text-white">
-              <span className="text-gradient-gold">Encomendas</span>
+              <span className="text-gradient-gold">{t('ship.titulo')}</span>
             </h1>
-            <p className="text-white/60 mt-2">Reserve, consulte, rastreie ou veja a tabela de preços.</p>
+            <p className="text-white/60 mt-2">{t('ship.subtitle')}</p>
           </motion.div>
 
           {/* Tabs */}
@@ -914,7 +920,7 @@ export default function ShipmentsPage() {
                   : 'bg-white/5 text-white/60 hover:bg-white/10'
               }`}
             >
-              <Plus className="w-4 h-4 inline mr-1.5" /> Reservar
+              <Plus className="w-4 h-4 inline mr-1.5" /> {t('ship.tabReservar')}
             </button>
             <button
               onClick={() => setActiveTab('consultar')}
@@ -924,7 +930,7 @@ export default function ShipmentsPage() {
                   : 'bg-white/5 text-white/60 hover:bg-white/10'
               }`}
             >
-              <Package className="w-4 h-4 inline mr-1.5" /> Minhas Encomendas
+              <Package className="w-4 h-4 inline mr-1.5" /> {t('ship.tabMinhas')}
             </button>
             <button
               onClick={() => setActiveTab('rastrear')}
@@ -934,7 +940,7 @@ export default function ShipmentsPage() {
                   : 'bg-white/5 text-white/60 hover:bg-white/10'
               }`}
             >
-              <Search className="w-4 h-4 inline mr-1.5" /> Rastrear
+              <Search className="w-4 h-4 inline mr-1.5" /> {t('ship.tabRastrear')}
             </button>
             <button
               onClick={() => setActiveTab('tabela')}
@@ -944,7 +950,7 @@ export default function ShipmentsPage() {
                   : 'bg-white/5 text-white/60 hover:bg-white/10'
               }`}
             >
-              📊 Tabela de Preços
+              {t('ship.tabTabela')}
             </button>
           </div>
 
@@ -952,7 +958,7 @@ export default function ShipmentsPage() {
           <div className="mt-6">
             {activeTab === 'reservar' && (
               loadingRoutes ? (
-                <div className="text-center py-8 text-white/60">A carregar rotas disponíveis...</div>
+                <div className="text-center py-8 text-white/60">{t('ship.carregarRotas')}</div>
               ) : routesError ? (
                 <div className="text-center py-8 text-red-400">{routesError}</div>
               ) : (
@@ -963,7 +969,7 @@ export default function ShipmentsPage() {
             {activeTab === 'rastrear' && <TrackingForm />}
             {activeTab === 'tabela' && (
               loadingRoutes ? (
-                <div className="text-center py-8 text-white/60">A carregar rotas...</div>
+                <div className="text-center py-8 text-white/60">{t('ship.carregarRotas2')}</div>
               ) : routesError ? (
                 <div className="text-center py-8 text-red-400">{routesError}</div>
               ) : (
