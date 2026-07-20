@@ -7,6 +7,7 @@ import ARISAEXPRESStLogo from '../assets/logo-Arisa-express.png';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { scrollToAnchor } from '../lib/scroll';
 import { useT } from '../i18n/LanguageContext';
+import { api } from '../lib/api';
 
 
 export default function Navbar() {
@@ -48,7 +49,7 @@ export default function Navbar() {
       // Tentar buscar da API se houver token mas não user (fallback)
       const token = localStorage.getItem('token');
       if (token) {
-        fetch('http://localhost:5001/api/auth/me', {
+        fetch(api('/api/auth/me'), {
           headers: { Authorization: `Bearer ${token}` }
         })
           .then(res => res.json())

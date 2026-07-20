@@ -8,6 +8,7 @@ import SectionHeading from './SectionHeading';
 import { GoldButton } from './Button';
 import Timeline, { StepData } from './Timeline';
 import { useT } from '../i18n/LanguageContext';
+import { api } from '../lib/api';
 
 // ======================== TIPOS ========================
 interface TrackingUpdate {
@@ -77,7 +78,7 @@ export default function Tracking() {
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/tracking/${encodeURIComponent(trackingCode.toUpperCase())}`
+        api(`/api/tracking/${encodeURIComponent(trackingCode.toUpperCase())}`)
       );
 
       if (!response.ok) {

@@ -12,6 +12,7 @@ import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
+import { api } from '../lib/api';
 
 // ======================== TIPOS ========================
 interface Shipment {
@@ -152,7 +153,7 @@ function AdminShipmentList() {
         return;
       }
 
-      const response = await fetch('http://localhost:5001/api/admin/shipments', {
+      const response = await fetch(api('/api/admin/shipments'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -184,7 +185,7 @@ function AdminShipmentList() {
   const updateStatus = async (id: string, status: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/shipments/${id}/status`, {
+      const response = await fetch(api(`/api/admin/shipments/${id}/status`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -341,7 +342,7 @@ function AdminUserList() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/admin/users', {
+      const response = await fetch(api('/api/admin/users'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -372,7 +373,7 @@ function AdminUserList() {
   const changeRole = async (id: string, role: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/users/${id}/role`, {
+      const response = await fetch(api(`/api/admin/users/${id}/role`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -467,7 +468,7 @@ function AdminRouteManager() {
   const fetchRoutes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/routes', {
+      const response = await fetch(api('/api/routes'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -499,7 +500,7 @@ function AdminRouteManager() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/routes', {
+      const response = await fetch(api('/api/routes'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -535,7 +536,7 @@ function AdminRouteManager() {
     if (!confirm(t('admin.confirmarEliminar'))) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/routes/${id}`, {
+      const response = await fetch(api(`/api/routes/${id}`), {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -735,8 +736,8 @@ function AdminLeadsList() {
       }
 
       const url = stageFilter === 'ALL'
-        ? 'http://localhost:5001/api/admin/leads'
-        : `http://localhost:5001/api/admin/leads?stage=${encodeURIComponent(stageFilter)}`;
+        ? api('/api/admin/leads')
+        : api(`/api/admin/leads?stage=${encodeURIComponent(stageFilter)}`);
 
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -767,7 +768,7 @@ function AdminLeadsList() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5001/api/admin/leads/pipeline', {
+      const response = await fetch(api('/api/admin/leads/pipeline'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -801,7 +802,7 @@ function AdminLeadsList() {
   const markAsRead = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/read`, {
+      const response = await fetch(api(`/api/admin/leads/${id}/read`), {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -823,7 +824,7 @@ function AdminLeadsList() {
     if (!confirm(t('admin.confirmarEliminarMsg'))) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}`, {
+      const response = await fetch(api(`/api/admin/leads/${id}`), {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -846,7 +847,7 @@ function AdminLeadsList() {
     try {
       setSaving(s => ({ ...s, [id]: true }));
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/stage`, {
+      const response = await fetch(api(`/api/admin/leads/${id}/stage`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -874,7 +875,7 @@ function AdminLeadsList() {
     try {
       setSaving(s => ({ ...s, [id]: true }));
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/assign`, {
+      const response = await fetch(api(`/api/admin/leads/${id}/assign`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -913,7 +914,7 @@ function AdminLeadsList() {
         return;
       }
       const merged = [...current, tag];
-      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/tags`, {
+      const response = await fetch(api(`/api/admin/leads/${id}/tags`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -944,7 +945,7 @@ function AdminLeadsList() {
     try {
       setSaving(s => ({ ...s, [id]: true }));
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/leads/${id}/notes`, {
+      const response = await fetch(api(`/api/admin/leads/${id}/notes`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1235,7 +1236,7 @@ export default function AdminDashboard() {
       if (!token) return;
 
       // Buscar estatísticas
-      const statsRes = await fetch('http://localhost:5001/api/admin/stats', {
+      const statsRes = await fetch(api('/api/admin/stats'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1257,7 +1258,7 @@ export default function AdminDashboard() {
       }
 
       // Buscar encomendas recentes (últimas 5)
-      const shipmentsRes = await fetch('http://localhost:5001/api/admin/shipments', {
+      const shipmentsRes = await fetch(api('/api/admin/shipments'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

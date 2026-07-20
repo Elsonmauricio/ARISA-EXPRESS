@@ -6,6 +6,7 @@ import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { Link, useNavigate } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
+import { api } from '../lib/api';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export default function Register() {
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/auth/register', {
+      const response = await fetch(api('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

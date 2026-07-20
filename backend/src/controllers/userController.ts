@@ -22,18 +22,45 @@ export const UserController = {
   
   updateProfile: async (req: Request, res: Response) => {
     try {
-      const { name, phone, company } = req.body;
+      const body = req.body || {};
+      const updateData: Record<string, string> = {};
+
+      if (body.name !== undefined) {
+        const name = String(body.name).trim();
+        if (name.length < 2 || name.length > 100) {
+          return res.status(400).json({ error: 'Dados inválidos' });
+        }
+        updateData.name = name;
+      }
+      if (body.phone !== undefined) {
+        const phone = String(body.phone).trim();
+        if (phone.length > 30) {
+          return res.status(400).json({ error: 'Dados inválidos' });
+        }
+        updateData.phone = phone;
+      }
+      if (body.company !== undefined) {
+        const company = String(body.company).trim();
+        if (company.length > 100) {
+          return res.status(400).json({ error: 'Dados inválidos' });
+        }
+        updateData.company = company;
+      }
+
       const userId = (req as any).user.id;
-      await db.collection('users').doc(userId).update({ name, phone, company });
+      await db.collection('users').doc(userId).update(updateData);
       res.json({ success: true, message: 'Perfil atualizado com sucesso' });
     } catch (error) {
       res.status(500).json({ error: 'Erro ao atualizar perfil' });
     }
   },
-  
+
   changePassword: async (req: Request, res: Response) => {
     try {
       const { currentPassword, newPassword } = req.body;
+      if (!newPassword || String(newPassword).length < 10) {
+        return res.status(400).json({ error: 'A nova senha deve ter pelo menos 10 caracteres' });
+      }
       const userId = (req as any).user.id;
       const userDoc = await db.collection('users').doc(userId).get();
       const user = userDoc.data();

@@ -30,3 +30,18 @@ export const createShipmentSchema = z.object({
     serviceType: z.enum(['AIR_EXPRESS', 'AIR_ECONOMY', 'MARITIME', 'BUSINESS'])
   })
 });
+
+export const updateProfileSchema = z.object({
+  body: z.object({
+    name: z.string().min(2).max(100).optional(),
+    phone: z.string().max(30).optional(),
+    company: z.string().max(100).optional()
+  })
+});
+
+export const changePasswordSchema = z.object({
+  body: z.object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(10).max(128)
+  })
+});

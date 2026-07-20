@@ -36,6 +36,20 @@ export const translations: Record<Lang, Dict> = {
     'hero.solicitarOrcamento': 'Solicitar Orçamento',
     'hero.acompanharEncomenda': 'Acompanhar Encomenda',
 
+    // ---- STORY (storytelling 3D — processo logístico) ----
+    'story.ch1.kicker': '📥 Recolha',
+    'story.ch1.title': 'Tudo começa com a sua encomenda.',
+    'story.ch1.body': 'O seu pacote é recolhido, pesado e registado. Nasce um código único de rastreio — e com ele, total transparência desde o primeiro minuto.',
+    'story.ch2.kicker': '✈️ Em trânsito',
+    'story.ch2.title': 'A viagem começa.',
+    'story.ch2.body': 'A encomenda entra na rede de transporte e viaja em tempo real. Cada etapa é atualizada no seu painel, com o estado visível a qualquer hora.',
+    'story.ch3.kicker': '🏢 No escritório',
+    'story.ch3.title': 'Chega à nossa recepção.',
+    'story.ch3.body': 'Quando a encomenda chega, recebemo-la e tratamos de tudo no balcão da nossa recepção — pronta para lhe ser entregue.',
+    'story.ch4.kicker': '📦 Entrega',
+    'story.ch4.title': 'Entregue na recepção.',
+    'story.ch4.body': 'Levantamos tudo consigo no escritório, com confirmação e acompanhamento. Um processo simples, feito para si.',
+
     // ---- ABOUT ----
     'about.eyebrow': 'Sobre Nós',
     'about.title': 'Logística pensada para conectar dois continentes.',
@@ -575,6 +589,20 @@ export const translations: Record<Lang, Dict> = {
     'hero.subtitle': 'International transport solutions for individuals and businesses — door-to-door delivery, real-time tracking and dedicated support.',
     'hero.solicitarOrcamento': 'Request a Quote',
     'hero.acompanharEncomenda': 'Track Shipment',
+
+    // ---- STORY (storytelling 3D — logistics process) ----
+    'story.ch1.kicker': '📥 Collection',
+    'story.ch1.title': 'It all starts with your parcel.',
+    'story.ch1.body': 'Your package is collected, weighed and registered. A unique tracking code is born — and with it, full transparency from minute one.',
+    'story.ch2.kicker': '✈️ In transit',
+    'story.ch2.title': 'The journey begins.',
+    'story.ch2.body': 'The shipment joins the transport network and travels in real time. Every stage updates in your dashboard, with status visible any time.',
+    'story.ch3.kicker': '🏢 At the office',
+    'story.ch3.title': 'It arrives at our reception.',
+    'story.ch3.body': 'When the parcel arrives, we receive it and take care of everything at our front-desk reception — ready to be handed to you.',
+    'story.ch4.kicker': '📦 Delivery',
+    'story.ch4.title': 'Delivered at reception.',
+    'story.ch4.body': 'We hand it over to you at the office, with confirmation and follow-up. A simple process, designed around you.',
 
     // ---- ABOUT ----
     'about.eyebrow': 'About Us',

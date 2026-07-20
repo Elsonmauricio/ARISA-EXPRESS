@@ -172,7 +172,7 @@ export const ShipmentController = {
         return res.status(403).json({ error: 'Acesso negado' });
       }
       res.json({ success: true, data: shipment });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Erro ao buscar encomenda:', error);
       res.status(500).json({ error: 'Erro ao buscar encomenda' });
     }
@@ -181,10 +181,34 @@ export const ShipmentController = {
   updateShipment: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const updates = req.body;
-      await db.collection('shipments').doc(id).update(updates);
+      const user = (req as any).user;
+      const doc = await db.collection('shipments').doc(id).get();
+      if (!doc.exists) {
+        return res.status(404).json({ error: 'Encomenda não encontrada' });
+      }
+      if (doc.data()?.userId !== user.id && user.role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Acesso negado' });
+      }
+
+      const allowedFields = [
+        'status', 'trackingCode', 'origin', 'destination', 'weight',
+        'price', 'serviceType', 'flightDate', 'description',
+        'senderName', 'senderPhone', 'recipientName', 'recipientPhone',
+        'length', 'width', 'height'
+      ];
+      const filteredUpdates: any = {};
+      for (const key of allowedFields) {
+        if (key in req.body) {
+          filteredUpdates[key] = req.body[key];
+        }
+      }
+      if ('weight' in filteredUpdates) {
+        filteredUpdates.weight = parseFloat(filteredUpdates.weight);
+      }
+
+      await db.collection('shipments').doc(id).update(filteredUpdates);
       res.json({ success: true, message: 'Encomenda atualizada' });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Erro ao atualizar encomenda:', error);
       res.status(500).json({ error: 'Erro ao atualizar encomenda' });
     }
@@ -193,9 +217,17 @@ export const ShipmentController = {
   deleteShipment: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
+      const user = (req as any).user;
+      const doc = await db.collection('shipments').doc(id).get();
+      if (!doc.exists) {
+        return res.status(404).json({ error: 'Encomenda não encontrada' });
+      }
+      if (doc.data()?.userId !== user.id && user.role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Acesso negado' });
+      }
       await db.collection('shipments').doc(id).delete();
       res.json({ success: true, message: 'Encomenda removida' });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Erro ao remover encomenda:', error);
       res.status(500).json({ error: 'Erro ao remover encomenda' });
     }
@@ -204,9 +236,13 @@ export const ShipmentController = {
   cancelShipment: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
+      const user = (req as any).user;
       const doc = await db.collection('shipments').doc(id).get();
       if (!doc.exists) {
         return res.status(404).json({ error: 'Encomenda não encontrada' });
+      }
+      if (doc.data()?.userId !== user.id && user.role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Acesso negado' });
       }
 
       const shipment = doc.data() as any;
@@ -229,14 +265,14 @@ export const ShipmentController = {
 
       // Enviar email de cancelamento
       const userDoc = await db.collection('users').doc(shipment.userId).get();
-      const user = userDoc.data();
-      if (user?.email) {
+      const shipmentUser = userDoc.data();
+      if (shipmentUser?.email) {
         await sendEmail({
-          to: user.email,
+          to: shipmentUser.email,
           subject: `❌ Encomenda Cancelada - ${shipment.trackingCode}`,
           template: 'shipment-cancelled',
           data: {
-            name: user.name,
+            name: shipmentUser.name,
             trackingCode: shipment.trackingCode,
             origin: shipment.origin,
             destination: shipment.destination
@@ -245,7 +281,7 @@ export const ShipmentController = {
       }
 
       res.json({ success: true, message: 'Encomenda cancelada' });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Erro ao cancelar encomenda:', error);
       res.status(500).json({ error: 'Erro ao cancelar encomenda' });
     }

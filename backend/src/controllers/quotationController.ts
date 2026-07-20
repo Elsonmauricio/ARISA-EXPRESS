@@ -64,7 +64,18 @@ export const QuotationController = {
   
   approveQuotation: async (req: Request, res: Response) => {
     try {
+      const user = (req as any).user;
       const { id } = req.params;
+      const doc = await db.collection('quotations').doc(id).get();
+
+      if (!doc.exists) {
+        return res.status(404).json({ error: 'Orçamento não encontrado' });
+      }
+
+      if (user.role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Acesso negado' });
+      }
+
       await db.collection('quotations').doc(id).update({ status: 'APPROVED' });
       res.json({ success: true, message: 'Orçamento aprovado' });
     } catch (error) {

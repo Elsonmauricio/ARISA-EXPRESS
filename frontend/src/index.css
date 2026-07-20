@@ -112,6 +112,18 @@
   .font-display { font-family: 'Syne', 'Inter', sans-serif; letter-spacing: -0.02em; }
   .font-data { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em; }
   .scrollbar-hidden::-webkit-scrollbar { display: none; }
+  .will-change-transform { will-change: transform; }
+  .will-change-opacity { will-change: opacity; }
+  .preserve-3d { transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; }
+}
+
+/* Storytelling: cena 3D preenche a secção pinada */
+[data-story-visual] canvas {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* canvas crisp */

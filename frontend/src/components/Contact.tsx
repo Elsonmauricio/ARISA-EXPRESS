@@ -5,6 +5,7 @@ import { GoldButton } from './Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import SectionHeading from './SectionHeading.jsx';
 import { useT } from '../i18n/LanguageContext';
+import { api } from '../lib/api';
 
 export default function Contact() {
   const { t } = useT();
@@ -19,7 +20,7 @@ export default function Contact() {
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:5001/api/contact', {
+      const response = await fetch(api('/api/contact'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

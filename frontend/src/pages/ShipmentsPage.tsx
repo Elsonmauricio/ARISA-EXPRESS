@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
+import { api } from '../lib/api';
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
 
@@ -165,7 +166,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
         serviceType: formData.serviceType
       };
 
-      const response = await fetch('http://localhost:5001/api/shipments', {
+      const response = await fetch(api('/api/shipments'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -423,7 +424,7 @@ function ShipmentList() {
         return;
       }
 
-      const response = await fetch('http://localhost:5001/api/shipments', {
+      const response = await fetch(api('/api/shipments'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -743,7 +744,7 @@ function TrackingForm() {
     setResult(null);
 
     try {
-      const response = await fetch(`http://localhost:5001/api/tracking/${trackingCode}`);
+      const response = await fetch(api(`/api/tracking/${trackingCode}`));
       const json = await response.json();
       if (json.success) {
         setResult(json.data);
@@ -881,7 +882,7 @@ export default function ShipmentsPage() {
 
   const fetchRoutes = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/routes/available');
+      const response = await fetch(api('/api/routes/available'));
       const json = await response.json();
       if (json.success) {
         setRoutes(json.data);

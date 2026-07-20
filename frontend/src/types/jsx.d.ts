@@ -23,4 +23,16 @@ declare module './components/three/LogisticFlow3D' {
   export default component
 }
 
+declare namespace JSX {
+  interface IntrinsicElements {
+    'spline-viewer': React.DetailedHTMLProps<
+      React.HTMLAttributes<HTMLElement> & {
+        url?: string;
+        'loading-anim-type'?: string;
+      },
+      HTMLElement
+    >;
+  }
+}
+
 

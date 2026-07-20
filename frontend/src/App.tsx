@@ -11,6 +11,8 @@ import Layout from './components/Layout';
 import Contact from './components/Contact';
 import Gallery  from './components/Gallery';
 import AeroStripe from './components/AeroStripe';
+import Storytelling from './components/Storytelling';
+import ParallaxLayer from './components/ParallaxLayer';
 import { useLenis } from './hooks/useLenis';
 import { LanguageProvider } from './i18n/LanguageContext';
 import ShipmentsPage from './pages/ShipmentsPage';
@@ -25,16 +27,28 @@ import Privacy from './pages/Privacy';
 function HomePage() {
   return (
     <Layout>
-      <main className="relative">
+      <main className="relative z-10">
         <div id="main-wrapper">
           <Hero />
           <div className="relative z-10 container mx-auto px-4 -mt-4 sm:-mt-8">
             <AeroStripe />
           </div>
-          <Reveal y={80} duration={1}><About /></Reveal>
+
+          {/* Storytelling 3D scroll-driven: a jornada Lisboa -> Luanda */}
+          <Storytelling />
+
+          <Reveal y={80} duration={1}>
+            <ParallaxLayer depth={0.12} className="will-change-transform">
+              <About />
+            </ParallaxLayer>
+          </Reveal>
           <Reveal y={80} duration={1}><Services /></Reveal>
           <Reveal y={80} duration={1}><Stats /></Reveal>
-          <Reveal y={80} duration={1}><Gallery /></Reveal>
+          <Reveal y={80} duration={1}>
+            <ParallaxLayer depth={0.1} className="will-change-transform">
+              <Gallery />
+            </ParallaxLayer>
+          </Reveal>
           <Reveal y={80} duration={1}><Tracking /></Reveal>
           <Reveal y={80} duration={1}><Contact /></Reveal>
           <Reveal y={80} duration={1}><Footer /></Reveal>

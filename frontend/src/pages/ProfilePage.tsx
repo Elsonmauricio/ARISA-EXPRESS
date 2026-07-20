@@ -6,6 +6,7 @@ import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
+import { api } from '../lib/api';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export default function Profile() {
         return;
       }
 
-      const response = await fetch('http://localhost:5001/api/users/profile', {
+      const response = await fetch(api('/api/users/profile'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const json = await response.json();
@@ -61,7 +62,7 @@ export default function Profile() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/users/profile', {
+      const response = await fetch(api('/api/users/profile'), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
