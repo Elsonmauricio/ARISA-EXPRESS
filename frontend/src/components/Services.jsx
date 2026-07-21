@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { Search, ArrowUpRight } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { Float, OrbitControls, Environment } from '@react-three/drei';
-import Forklift3D from './three/Forklift3D.jsx';
-import Mailbox3D from './three/Mailbox3D.jsx';
-import Shopping3D from './three/Shopping3D.jsx';
+import {Forklift3D} from './three/Forklift3D.jsx';
+import {Mailbox3D} from './three/Mailbox3D.jsx';
+import {Shopping3D} from './three/Shopping3D.jsx';
 import { useT } from '../i18n/LanguageContext';
 
 const getServices = (t) => ([
@@ -77,7 +77,7 @@ function ServiceCard({ s, i }) {
               {s.component}
             </Float>
             <Environment preset="city" />
-            <OrbitControls enableZoom={false} enablePan={false} />
+            <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} />
           </Canvas>
         </div>
 

@@ -45,3 +45,7 @@ Thumbs.db
 *.zip
 backend.zip
 frontend.zip
+
+# Ignorar arquivos de chave do Firebase / Google Cloud
+*-firebase-adminsdk-*.json
+*.json.key
