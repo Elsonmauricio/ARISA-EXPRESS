@@ -1,4 +1,4 @@
-declare module '*.jsx' {
+﻿declare module '*.jsx' {
   const component: any
   export default component
 }
@@ -34,5 +34,6 @@ declare namespace JSX {
     >;
   }
 }
+
 
 

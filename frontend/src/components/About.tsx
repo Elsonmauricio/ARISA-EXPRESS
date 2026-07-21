@@ -1,6 +1,6 @@
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Target, Eye, LucideIcon } from 'lucide-react';
+import { Target, Eye } from 'lucide-react';
 import SectionHeading from './SectionHeading.jsx';
 import { useT } from '../i18n/LanguageContext';
 
@@ -10,13 +10,6 @@ interface Pillar {
   text: string;
 }
 
-const LogisticFlow3D = lazy(() => import('./three/LogisticFlow3D.jsx'));
-
-const Loader = () => (
-  <div className="w-full h-full flex items-center justify-center">
-    <div className="w-10 h-10 rounded-full border-2 border-t-gold border-lilac-500/20 animate-spin" />
-  </div>
-);
 
 // Tipagem do componente principal
 const About: React.FC = () => {
@@ -26,16 +19,17 @@ const About: React.FC = () => {
     { title: t('about.visao'),  text: t('about.visaoText') },
   ];
   return (
-    <section id="sobre" className="relative py-28">
+    <section id="sobre" className="relative py-28 overflow-hidden">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,_#7C3AED20,_transparent_70%)]" />
 
-      <div className="container mx-auto grid lg:grid-cols-2 gap-14 items-center">
+      <div className="container mx-auto grid lg:grid-cols-1 gap-14 items-center overflow-x-hidden">
         {/* Coluna 1 — Texto */}
         <motion.div
           initial={{ opacity: 0, x: 100 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: "easeOut" }}
+          style={{ overflowX: 'hidden' }}
         >
           <SectionHeading
             eyebrow={t('about.eyebrow')}

@@ -1,10 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import StorySection, { StoryChapter } from './StorySection';
 import { useT } from '../i18n/LanguageContext';
 
 /**
  * Storytelling do processo logístico (sem cidades específicas).
- * A cena 3D de fundo é a OBJECTO SPLINE global (cena em SplineScene),
  * que reage a este progresso. O texto faz crossfade scroll-driven +
  * profundidade parallax, numa experiência visual de narrativa contínua.
  * As chapters aparecem em sítios diferentes: esquerda -> centro -> direita -> centro.
@@ -56,3 +55,4 @@ export default function Storytelling() {
     />
   );
 }
+

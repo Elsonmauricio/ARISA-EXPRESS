@@ -123,7 +123,7 @@ export default function Navbar() {
       initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className={`fixed top-7 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-7 left-0 right-0 z-50 transition-all duration-500 overflow-x-hidden max-w-full ${
         scrolled ? 'py-3' : 'py-5'
       }`}
     >
@@ -135,7 +135,7 @@ export default function Navbar() {
           <img
             src={ARISAEXPRESStLogo}
              alt={t('nav.logoAlt')}
-            className="h-16 sm:h-20 w-auto drop-shadow-[0_0_14px_rgba(168,85,247,0.5)] brightness-110 group-hover:brightness-125 transition-all duration-300"
+            className="h-12 sm:h-16 md:h-20 w-auto max-w-[60vw] drop-shadow-[0_0_14px_rgba(168,85,247,0.5)] brightness-110 group-hover:brightness-125 transition-all duration-300"
           />
         </Link>
 
@@ -156,7 +156,7 @@ export default function Navbar() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] border border-white/10"
+                  className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/10"
                 >
                   {BRAND_LINKS.map((link) => (
                     <a
@@ -188,7 +188,7 @@ export default function Navbar() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] border border-white/10"
+                  className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/10"
                 >
                   {SHIPMENT_LINKS.map((link) => (
                     <Link
@@ -223,7 +223,7 @@ export default function Navbar() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] border border-white/10"
+                    className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] max-w-[80vw] border border-white/10"
                   >
                     {adminLink && (
                       <>

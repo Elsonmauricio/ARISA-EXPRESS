@@ -116,6 +116,7 @@
   .will-change-opacity { will-change: opacity; }
   .preserve-3d { transform-style: preserve-3d; }
   .backface-hidden { backface-visibility: hidden; }
+  #main-wrapper { overflow-x: clip; }
 }
 
 /* Storytelling: cena 3D preenche a secção pinada */

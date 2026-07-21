@@ -1,4 +1,5 @@
-// src/App.tsx
+﻿// src/App.tsx
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -11,18 +12,30 @@ import Layout from './components/Layout';
 import Contact from './components/Contact';
 import Gallery  from './components/Gallery';
 import AeroStripe from './components/AeroStripe';
+import Seo from './components/Seo';
 import Storytelling from './components/Storytelling';
 import ParallaxLayer from './components/ParallaxLayer';
 import { useLenis } from './hooks/useLenis';
 import { LanguageProvider } from './i18n/LanguageContext';
-import ShipmentsPage from './pages/ShipmentsPage';
-import Login from './pages/LoginPage';
-import Register from './pages/RegisterPage';
-import Profile from './pages/ProfilePage';
-import Settings from './pages/SettingsPage';
-import AdminDashboard from './pages/AdminDashboard';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
+
+// Code-splitting por rota: as páginas pesadas viram chunks separados,
+// reduzindo o bundle inicial e o tempo de carregamento da landing.
+const ShipmentsPage = lazy(() => import('./pages/ShipmentsPage'));
+const Login = lazy(() => import('./pages/LoginPage'));
+const Register = lazy(() => import('./pages/RegisterPage'));
+const Profile = lazy(() => import('./pages/ProfilePage'));
+const Settings = lazy(() => import('./pages/SettingsPage'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-black">
+      <div className="w-10 h-10 rounded-full border-2 border-t-gold border-lilac-500/20 animate-spin" />
+    </div>
+  );
+}
 
 function HomePage() {
   return (
@@ -34,7 +47,7 @@ function HomePage() {
             <AeroStripe />
           </div>
 
-          {/* Storytelling 3D scroll-driven: a jornada Lisboa -> Luanda */}
+          {/* Storytelling 3D scroll-driven: a jornada da encomenda */}
           <Storytelling />
 
           <Reveal y={80} duration={1}>
@@ -62,18 +75,21 @@ const App: React.FC = () => {
   useLenis();
   return (
     <LanguageProvider>
+      <Seo />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/encomendas" element={<ShipmentsPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/registar" element={<Register />} />
-        <Route path="/perfil" element={<Profile />} />
-        <Route path="/definicoes" element={<Settings />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/termos" element={<Terms />} />
-        <Route path="/privacidade" element={<Privacy />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/encomendas" element={<ShipmentsPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/registar" element={<Register />} />
+          <Route path="/perfil" element={<Profile />} />
+          <Route path="/definicoes" element={<Settings />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/termos" element={<Terms />} />
+          <Route path="/privacidade" element={<Privacy />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </LanguageProvider>
   );

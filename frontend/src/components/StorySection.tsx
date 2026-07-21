@@ -102,15 +102,15 @@ export default function StorySection({ chapters, visual, onProgress, className =
           const align = ch.align ?? 'left';
           const posCls =
             align === 'left'
-              ? 'left-0 md:left-[6%] text-left items-start'
+              ? 'left-0 right-auto md:left-[6%] text-left items-start'
               : align === 'right'
-              ? 'right-0 md:right-[6%] text-right items-end'
+              ? 'right-0 left-auto md:right-[6%] text-right items-end'
               : 'left-1/2 -translate-x-1/2 text-center items-center';
           return (
             <div
               key={ch.id}
               ref={(el) => (chapterRefs.current[i] = el)}
-              className={`absolute max-w-xl px-6 flex flex-col ${posCls}`}
+              className={`absolute w-[min(36rem,92vw)] px-6 flex flex-col ${posCls}`}
               style={{ top: '50%', transform: align === 'center' ? 'translate(-50%, -50%)' : 'translateY(-50%)' }}
             >
               <div className="story-inner" style={{ opacity: i === 0 ? 1 : 0 }}>

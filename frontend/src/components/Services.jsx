@@ -64,7 +64,7 @@ function ServiceCard({ s, i }) {
       </div>
 
       {/* Conteúdo */}
-      <div className="relative z-10 p-8 flex flex-col h-full min-h-[420px]">
+       <div className="relative z-10 p-6 sm:p-8 flex flex-col h-full min-h-[360px] sm:min-h-[420px] overflow-hidden">
         {/* Número Dourado Top-Left */}
         <span className="absolute top-6 left-8 font-display text-4xl font-bold text-gold opacity-80">{s.n}</span>
 
@@ -103,12 +103,12 @@ function ServiceCard({ s, i }) {
 export default function Services() {
   const { t } = useT();
   return (
-    <section id="servicos" className="relative py-28">
+    <section id="servicos" className="relative py-28 overflow-hidden">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-lilac-900/10 via-black to-black opacity-60" />
       
       <div className="container mx-auto">
         {/* Apenas o título, sem a barra de pesquisa */}
-        <h2 className="font-display text-5xl md:text-6xl font-bold text-white mb-16">
+         <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-16 break-words">
           {t('services.title')}
         </h2>
 

@@ -1,7 +1,7 @@
-// src/components/Layout.tsx
+﻿// src/components/Layout.tsx
 import React, { useEffect } from 'react';
 import Navbar from './Navbar';
-import SplineScene from './SplineScene';
+import AirplaneBackground from './AirplaneBackground';
 import '../index.css';
 import { useT } from '../i18n/LanguageContext';
 
@@ -26,7 +26,7 @@ export default function Layout({ children, hideNavbar = false }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-transparent text-white antialiased relative">
-      <SplineScene />
+      <AirplaneBackground />
       {!hideNavbar && <Navbar />}
       {children}
     </div>
