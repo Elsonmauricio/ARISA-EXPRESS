@@ -11,12 +11,12 @@ out/
 
 # Variáveis de Ambiente e Segredos (MUITO IMPORTANTE)
 .env
+.env.example
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 *.pem
-*.json
 
 # Logs
 *.log

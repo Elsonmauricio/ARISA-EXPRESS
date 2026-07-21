@@ -2,19 +2,12 @@
 import StorySection, { StoryChapter } from './StorySection';
 import { useT } from '../i18n/LanguageContext';
 
-/**
- * Storytelling do processo logístico (sem cidades específicas).
- * que reage a este progresso. O texto faz crossfade scroll-driven +
- * profundidade parallax, numa experiência visual de narrativa contínua.
- * As chapters aparecem em sítios diferentes: esquerda -> centro -> direita -> centro.
- */
 export default function Storytelling() {
   const { t } = useT();
 
   const chapters: StoryChapter[] = [
     {
       id: 'recolha',
-      kicker: t('story.ch1.kicker'),
       tone: 'gold',
       align: 'left',
       title: t('story.ch1.title'),
@@ -22,7 +15,6 @@ export default function Storytelling() {
     },
     {
       id: 'transito',
-      kicker: t('story.ch2.kicker'),
       tone: 'lilac',
       align: 'center',
       title: t('story.ch2.title'),
@@ -30,7 +22,6 @@ export default function Storytelling() {
     },
     {
       id: 'escritorio',
-      kicker: t('story.ch3.kicker'),
       tone: 'gold',
       align: 'right',
       title: t('story.ch3.title'),
@@ -38,7 +29,6 @@ export default function Storytelling() {
     },
     {
       id: 'entrega',
-      kicker: t('story.ch4.kicker'),
       tone: 'white',
       align: 'center',
       title: t('story.ch4.title'),

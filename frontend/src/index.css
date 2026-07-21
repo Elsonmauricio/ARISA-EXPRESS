@@ -127,6 +127,14 @@
   height: 100% !important;
 }
 
+canvas[data-airplane-bg="true"] {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+}
+
 /* canvas crisp */
 canvas { display: block; outline: none; touch-action: none; }
 

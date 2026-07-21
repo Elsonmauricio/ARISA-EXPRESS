@@ -1,5 +1,6 @@
 ﻿// src/components/Layout.tsx
 import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import AirplaneBackground from './AirplaneBackground';
 import '../index.css';
@@ -12,6 +13,7 @@ interface LayoutProps {
 
 export default function Layout({ children, hideNavbar = false }: LayoutProps) {
   const { t } = useT();
+  const location = useLocation();
   useEffect(() => {
     const verifyCSS = () => {
       const bodyBg = window.getComputedStyle(document.body).backgroundColor;
@@ -26,9 +28,9 @@ export default function Layout({ children, hideNavbar = false }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-transparent text-white antialiased relative">
-      <AirplaneBackground />
       {!hideNavbar && <Navbar />}
       {children}
+      {location.pathname === '/' && <AirplaneBackground />}
     </div>
   );
 }

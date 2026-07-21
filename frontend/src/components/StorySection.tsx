@@ -8,7 +8,6 @@ if (typeof window !== 'undefined') {
 
 export interface StoryChapter {
   id: string;
-  kicker: string;
   title: ReactNode;
   body: ReactNode;
   /** Tom visual do capítulo. */
@@ -114,13 +113,6 @@ export default function StorySection({ chapters, visual, onProgress, className =
               style={{ top: '50%', transform: align === 'center' ? 'translate(-50%, -50%)' : 'translateY(-50%)' }}
             >
               <div className="story-inner" style={{ opacity: i === 0 ? 1 : 0 }}>
-                <span
-                  className={`inline-block text-xs uppercase tracking-[0.35em] mb-5 ${
-                    ch.tone === 'gold' ? 'text-gold' : ch.tone === 'lilac' ? 'text-lilac-300' : 'text-white/60'
-                  }`}
-                >
-                  {ch.kicker}
-                </span>
                 <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-[1.05]">
                   {ch.title}
                 </h2>

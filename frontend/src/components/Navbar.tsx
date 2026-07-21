@@ -123,9 +123,10 @@ export default function Navbar() {
       initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className={`fixed top-7 left-0 right-0 z-50 transition-all duration-500 overflow-x-hidden max-w-full ${
+      className={`fixed top-7 left-0 right-0 z-[9999] transition-all duration-500 max-w-full ${
         scrolled ? 'py-3' : 'py-5'
       }`}
+      style={{ zIndex: 9999, isolation: 'isolate' }}
     >
       <div className={`container mx-auto flex items-center justify-between rounded-2xl px-5 md:px-7 py-3 transition-all duration-500 ${
         scrolled ? 'glass-strong' : 'bg-transparent'
@@ -151,13 +152,14 @@ export default function Navbar() {
               <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.brand ? 'rotate-180' : ''}`} />
             </button>
             <AnimatePresence>
-              {dropdowns.brand && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/10"
-                >
+                  {dropdowns.brand && (
+                 <motion.div
+                   initial={{ opacity: 0, y: -10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, y: -10 }}
+                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/10"
+                   style={{ zIndex: 9999 }}
+                 >
                   {BRAND_LINKS.map((link) => (
                     <a
                       key={link.href}
@@ -183,13 +185,14 @@ export default function Navbar() {
               <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.shipments ? 'rotate-180' : ''}`} />
             </button>
             <AnimatePresence>
-              {dropdowns.shipments && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/10"
-                >
+                  {dropdowns.shipments && (
+                 <motion.div
+                   initial={{ opacity: 0, y: -10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, y: -10 }}
+                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/10"
+                   style={{ zIndex: 9999 }}
+                 >
                   {SHIPMENT_LINKS.map((link) => (
                     <Link
                       key={link.href}
@@ -218,13 +221,14 @@ export default function Navbar() {
                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.profile ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
-                {dropdowns.profile && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] max-w-[80vw] border border-white/10"
-                  >
+                  {dropdowns.profile && (
+                 <motion.div
+                   initial={{ opacity: 0, y: -10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, y: -10 }}
+                   className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] max-w-[80vw] border border-white/10"
+                   style={{ zIndex: 9999 }}
+                 >
                     {adminLink && (
                       <>
                         {adminLink}
@@ -265,12 +269,13 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       <AnimatePresence>
-        {open && (
+         {open && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="md:hidden mx-4 mt-3 glass-strong rounded-2xl p-5 flex flex-col gap-4"
+            style={{ zIndex: 9999 }}
           >
             {BRAND_LINKS.map((link) => (
               <a
