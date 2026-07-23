@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { AeroTag } from "./AeroTag";
+import React from "react";
 
 type AeroTagTone = "lilas" | "gold" | "white";
 
@@ -14,7 +15,7 @@ export function TelemetryCard({
 }: {
   tag: string;
   tagTone?: AeroTagTone;
-  value: string | number;
+  value: React.ReactNode;
   unit?: string;
   title?: string;
   description?: string;

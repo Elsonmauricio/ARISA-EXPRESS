@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { TelemetryCard } from './TelemetryCard'; // Assumindo que TelemetryCard também é .tsx
+import { TelemetryCard } from './TelemetryCard';
 import { useT } from '../i18n/LanguageContext';
 
 if (typeof window !== 'undefined') {
@@ -13,17 +13,17 @@ interface StatItem {
   prefix: string;
   suffix: string;
   label: string;
-  labelTone?: 'lilas' | 'white'; // Adicionado para tipar labelTone, se existir
-  tag?: string; // Adicionado para tipar tag, se existir
-  tagTone?: string; // Adicionado para tipar tagTone, se existir
+  labelTone?: 'lilas' | 'white';
+  tag?: string;
+  tagTone?;
 }
 
-const getStats = (t: (key: string) => string): StatItem[] => ([
-  { value: 10000, prefix: '+', suffix: '',   label: t('stats.1') },
-  { value: 95,    prefix: '+', suffix: '%',  label: t('stats.2') },
-  { value: 48,    prefix: '',  suffix: 'h',  label: t('stats.3'), labelTone: 'lilas' },
-  { value: 24,    prefix: '',  suffix: '/7', label: t('stats.4'), labelTone: 'white' },
-]);
+const getStats = (t: (key: string) => string): StatItem[] => [
+  { value: 10000, prefix: '+', suffix: '', label: t('stats.1') },
+  { value: 95, prefix: '+', suffix: '%', label: t('stats.2') },
+  { value: 48, prefix: '', suffix: 'h', label: t('stats.3'), labelTone: 'lilas' },
+  { value: 24, prefix: '', suffix: '/7', label: t('stats.4'), labelTone: 'white' },
+];
 
 interface CounterProps {
   value: number;
@@ -34,6 +34,7 @@ interface CounterProps {
 
 function Counter({ value, prefix, suffix, delay = 0 }: CounterProps): JSX.Element {
   const ref = useRef<HTMLSpanElement>(null);
+  const [display, setDisplay] = useState(`${prefix}0${suffix}`);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -46,7 +47,7 @@ function Counter({ value, prefix, suffix, delay = 0 }: CounterProps): JSX.Elemen
       delay,
       ease: 'power2.out',
       onUpdate: () => {
-        node.textContent = `${prefix}${Math.floor(obj.v).toLocaleString('pt-PT')}${suffix}`;
+        setDisplay(`${prefix}${Math.floor(obj.v).toLocaleString('pt-PT')}${suffix}`);
       },
       scrollTrigger: {
         trigger: node,
@@ -61,7 +62,7 @@ function Counter({ value, prefix, suffix, delay = 0 }: CounterProps): JSX.Elemen
     };
   }, [value, prefix, suffix, delay]);
 
-  return <span ref={ref}>{`${prefix}0${suffix}`}</span>;
+  return <span ref={ref}>{display}</span>;
 }
 
 export default function Stats(): JSX.Element {
