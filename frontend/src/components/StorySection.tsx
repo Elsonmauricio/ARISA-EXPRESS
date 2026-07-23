@@ -1,4 +1,4 @@
-import { useRef, useEffect, ReactNode } from 'react';
+import { useRef, useEffect, useState, ReactNode } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -36,52 +36,60 @@ export default function StorySection({ chapters, visual, onProgress, className =
   const barRef = useRef<HTMLDivElement>(null);
   const chapterRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stageRef = useRef<HTMLDivElement>(null);
+  const [pinHeight, setPinHeight] = useState(chapters.length * window.innerHeight);
 
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
+      const build = (pin: boolean) => {
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: 'top top',
+            end: `+=${pinHeight}`,
+            scrub: 1,
+            pin,
+            ...(pin ? { anticipatePin: 1 } : {}),
+          },
+        });
+
+        if (barRef.current) {
+          tl.fromTo(barRef.current, { scaleX: 0 }, { scaleX: 1, ease: 'none' }, 0);
+        }
+
+        chapterRefs.current.forEach((el, i) => {
+          if (!el) return;
+          const inner = el.querySelector('.story-inner') as HTMLElement | null;
+          if (!inner) return;
+          const at = i / chapters.length;
+          const out = (i + 1) / chapters.length;
+          tl.fromTo(inner, { opacity: 0, y: 40, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.18 }, at)
+            .to(inner, { opacity: 0, y: -40, filter: 'blur(6px)', duration: 0.18 }, out - 0.16);
+        });
+
+        ScrollTrigger.create({
           trigger: section,
           start: 'top top',
-          end: () => `+=${chapters.length * window.innerHeight}`,
-          scrub: 1,
-          pin: true,
-          anticipatePin: 1,
-        },
-      });
+          end: `+=${pinHeight}`,
+          scrub: true,
+          onUpdate: (self) => {
+            const p = String(self.progress);
+            if (stageRef.current) stageRef.current.style.setProperty('--story-progress', p);
+            onProgress?.(self.progress);
+          },
+        });
+      };
 
-      if (barRef.current) {
-        tl.fromTo(barRef.current, { scaleX: 0 }, { scaleX: 1, ease: 'none' }, 0);
-      }
-
-      chapterRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const inner = el.querySelector('.story-inner') as HTMLElement | null;
-        if (!inner) return;
-        const at = i / chapters.length;
-        const out = (i + 1) / chapters.length;
-        tl.fromTo(inner, { opacity: 0, y: 40, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.18 }, at)
-          .to(inner, { opacity: 0, y: -40, filter: 'blur(6px)', duration: 0.18 }, out - 0.16);
-      });
-
-      ScrollTrigger.create({
-        trigger: section,
-        start: 'top top',
-        end: () => `+=${chapters.length * window.innerHeight}`,
-        scrub: true,
-        onUpdate: (self) => {
-          const p = String(self.progress);
-          if (stageRef.current) stageRef.current.style.setProperty('--story-progress', p);
-          onProgress?.(self.progress);
-        },
+      ScrollTrigger.matchMedia({
+        "(min-width: 768px)": () => build(true),
+        "(max-width: 767px)": () => build(false),
       });
     }, section);
 
     return () => ctx.revert();
-  }, [chapters.length]);
+  }, [chapters.length, pinHeight, onProgress]);
 
   return (
     <section

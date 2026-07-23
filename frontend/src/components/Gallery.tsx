@@ -3,6 +3,11 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useT } from '../i18n/LanguageContext';
+import entradaImg from '../assets/entrada.jpeg';
+import portaImg from '../assets/porta.jpeg';
+import cantoEsperaImg from '../assets/canto de espera.jpeg';
+import cenarioAnaliseImg from '../assets/cenario de analise.jpeg';
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,34 +19,24 @@ interface GalleryImage {
 
 const getGalleryImages = (t) => ([
   {
-    url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop',
-    title: t('gallery.armazem'),
+    url: entradaImg,
+    title: t('gallery.entrada'),
     category: t('gallery.cat.infraestrutura'),
   },
   {
-    url: 'https://images.unsplash.com/photo-1566443280617-35db331c54fb?w=800&h=800&fit=crop',
-    title: t('gallery.aviao'),
-    category: t('gallery.cat.transporte'),
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop',
-    title: t('gallery.centro'),
+    url: portaImg,
+    title: t('gallery.porta'),
     category: t('gallery.cat.infraestrutura'),
   },
   {
-    url: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&h=500&fit=crop',
-    title: t('gallery.equipa'),
-    category: t('gallery.cat.equipa'),
+    url: cantoEsperaImg,
+    title: t('gallery.cantoEspera'),
+    category: t('gallery.cat.infraestrutura'),
   },
   {
-    url: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&h=700&fit=crop',
-    title: t('gallery.gestao'),
-    category: t('gallery.cat.processos'),
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1605732562742-3023a888e56e?w=800&h=600&fit=crop',
-    title: t('gallery.logistica'),
-    category: t('gallery.cat.processos'),
+    url: cenarioAnaliseImg,
+    title: t('gallery.cenarioAnalise'),
+    category: t('gallery.cat.infraestrutura'),
   },
 ]);
 
@@ -86,15 +81,15 @@ export default function Gallery() {
         </div>
 
         <div
-          className="relative overflow-hidden"
+          className="relative"
           onMouseEnter={() => tweenRef.current?.pause()}
           onMouseLeave={() => tweenRef.current?.resume()}
         >
-          <div ref={trackRef} className="flex gap-5 w-max">
+          <div ref={trackRef} className="flex gap-5 w-max overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hidden">
             {[...getGalleryImages(t), ...getGalleryImages(t)].map((image, index) => (
               <div
                 key={index}
-                className="gallery-item group relative overflow-hidden rounded-2xl cursor-pointer flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px]"
+                className="gallery-item group relative overflow-hidden rounded-2xl cursor-pointer flex-shrink-0 w-[calc(100vw-2rem)] sm:w-[320px] md:w-[360px] snap-center"
               >
                 <img
                   src={image.url}
@@ -102,7 +97,7 @@ export default function Gallery() {
                   className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
                   <span className="text-[#D4AF37] text-sm font-semibold mb-2">
                     {image.category}
                   </span>

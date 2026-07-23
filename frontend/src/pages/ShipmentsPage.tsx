@@ -788,7 +788,7 @@ function TrackingForm() {
           <Search className="text-gold" /> {t('ship.rastrearEncomenda')}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               value={code}
@@ -796,7 +796,7 @@ function TrackingForm() {
               placeholder={t('ship.rastrearPlaceholder')}
               className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
             />
-            <GoldButton type="submit" disabled={loading} className="px-6">
+            <GoldButton type="submit" disabled={loading} className="w-full sm:w-auto px-6">
               {loading ? '...' : t('ship.rastrearBotao')}
             </GoldButton>
           </div>

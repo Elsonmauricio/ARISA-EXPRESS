@@ -1,9 +1,12 @@
-// Adicione esta linha no topo do Mailbox3D.jsx
 import { useGLTF } from '@react-three/drei';
+import { GroupProps } from '@react-three/fiber';
 
-export function Mailbox3D(props) {
+interface Mailbox3DProps extends GroupProps {
+  // Adicione quaisquer props específicas do seu componente aqui, se houver
+}
+
+export function Mailbox3D(props: Mailbox3DProps) {
   const { scene } = useGLTF('/models/cardboard_box.glb'); 
-  
 
   return (
     <primitive 

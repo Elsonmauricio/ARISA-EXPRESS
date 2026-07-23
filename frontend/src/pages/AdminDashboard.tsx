@@ -274,7 +274,7 @@ function AdminShipmentList() {
         </button>
       </div>
 
-      <div className="overflow-x-auto -mx-4 sm:mx-0">
+      <div className="overflow-x-auto px-4 sm:px-0">
         <div className="inline-block min-w-full align-middle">
           <table className="min-w-full text-sm">
             <thead className="border-b border-white/10">
@@ -399,7 +399,7 @@ function AdminUserList() {
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
-    <div className="overflow-x-auto -mx-4 sm:mx-0">
+    <div className="overflow-x-auto px-4 sm:px-0">
       <div className="inline-block min-w-full align-middle">
         <table className="min-w-full text-sm">
           <thead className="border-b border-white/10">
@@ -614,7 +614,7 @@ function AdminRouteManager() {
             required
             className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
           />
-          <div className="lg:col-span-6 flex gap-2">
+          <div className="lg:col-span-6 flex flex-col sm:flex-row gap-2">
             <GoldButton type="submit" className="py-2 px-4 text-sm">
               {editingId ? t('admin.atualizar') : t('admin.adicionar')}
             </GoldButton>
@@ -631,7 +631,7 @@ function AdminRouteManager() {
         </form>
       </div>
 
-      <div className="overflow-x-auto -mx-4 sm:mx-0">
+      <div className="overflow-x-auto px-4 sm:px-0">
         <div className="inline-block min-w-full align-middle">
           <table className="min-w-full text-sm">
             <thead className="border-b border-white/10">
@@ -1178,7 +1178,7 @@ function AdminLeadsList() {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2 flex-shrink-0">
+              <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
                 {!lead.read && (
                   <button
                     onClick={() => markAsRead(lead.id)}
@@ -1365,7 +1365,7 @@ export default function AdminDashboard() {
           <div className="md:hidden mb-6">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white"
+              className="w-full flex items-center justify-between min-h-[48px] px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white"
             >
               <span className="flex items-center gap-2">
                 {currentTab && <currentTab.icon className="w-4 h-4" />}
@@ -1379,7 +1379,7 @@ export default function AdminDashboard() {
                   <button
                     key={tab.id}
                     onClick={() => { setActiveTab(tab.id as any); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center gap-2 px-4 py-3 text-sm transition-colors ${
+                    className={`w-full flex items-center gap-2 min-h-[48px] px-4 py-3 text-sm transition-colors ${
                       activeTab === tab.id
                         ? 'bg-gold/20 text-gold'
                         : 'text-white/60 hover:bg-white/5'

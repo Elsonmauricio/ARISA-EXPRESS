@@ -115,7 +115,7 @@ function Airplane() {
   );
 }
 
-function Scene() {
+function Scene({ isMobile }: { isMobile: boolean }) {
   return (
     <>
       <color attach="background" args={['#050509']} />
@@ -127,8 +127,8 @@ function Scene() {
       <pointLight position={[0, 3, -6]} color="#A78BFA" intensity={50} distance={12} decay={2} />
       <Suspense fallback={null}>
         <Airplane />
-        <Stars radius={90} depth={50} count={2500} factor={3} saturation={0} fade speed={0.6} />
-        <ContactShadows position={[0, -1.5, 0]} opacity={0.35} scale={10} blur={2.5} far={4} color="#7C3AED" />
+        <Stars radius={90} depth={50} count={isMobile ? 500 : 2500} factor={3} saturation={0} fade speed={0.6} />
+        <ContactShadows position={[0, -1.5, 0]} opacity={isMobile ? 0.1 : 0.35} scale={isMobile ? undefined : 10} blur={isMobile ? 5 : 2.5} far={4} color="#7C3AED" />
       </Suspense>
     </>
   );
@@ -139,6 +139,15 @@ export default function AirplaneBackground() {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const r3fSceneRef = useRef<THREE.Scene | null>(null);
   const canvasDomRef = useRef<HTMLCanvasElement | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleCreated = (state: any) => {
     if (state?.gl) {
@@ -236,11 +245,11 @@ export default function AirplaneBackground() {
     <div ref={wrapRef} id="airplane-background" className="fixed inset-0 z-0 overflow-hidden pointer-events-none will-change-transform">
       <ErrorBoundary fallback={null}>
         <Canvas 
-          dpr={[1, 1.8]} 
+          dpr={isMobile ? 1 : [1, 1.8]} 
           camera={{ position: [0, 0, 6], fov: 45 }}
           onCreated={handleCreated}
         >
-          <Scene />
+          <Scene isMobile={isMobile} />
         </Canvas>
       </ErrorBoundary>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_30%,_rgba(0,0,0,0.55)_100%)]" />

@@ -1,9 +1,18 @@
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
+}
+
+interface RevealProps {
+  children: React.ReactNode;
+  y?: number;
+  delay?: number;
+  duration?: number;
+  start?: string;
+  className?: string;
 }
 
 export default function Reveal({
@@ -13,8 +22,8 @@ export default function Reveal({
   duration = 1,
   start = 'top 85%',
   className = '',
-}) {
-  const ref = useRef(null);
+}: RevealProps): JSX.Element {
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!ref.current) return;

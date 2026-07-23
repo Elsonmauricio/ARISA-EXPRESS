@@ -133,10 +133,11 @@ canvas[data-airplane-bg="true"] {
   left: 0 !important;
   z-index: -1 !important;
   pointer-events: none !important;
+  touch-action: none !important;
 }
 
 /* canvas crisp */
-canvas { display: block; outline: none; touch-action: none; }
+canvas { display: block; outline: none; touch-action: pan-x pan-y pinch-zoom; }
 
 /* Lenis smooth scroll recommended styles */
 html.lenis, html.lenis body { height: auto; }

@@ -3,10 +3,11 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Float, ContactShadows, Environment, Stars } from '@react-three/drei';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import type { Camera } from 'three'; // Importar o tipo Camera do three
 
 gsap.registerPlugin(ScrollTrigger);
 
-function SceneContent() {
+function SceneContent(): JSX.Element {
   const { camera } = useThree();
 
   useLayoutEffect(() => {
@@ -20,23 +21,25 @@ function SceneContent() {
       }
     });
 
-    tl.to(camera.position, { x: -3, y: 1.5, z: 7, ease: "power2.inOut" }, "about")
-      .to(camera.rotation, { y: 0.5, ease: "power2.inOut" }, "about")
-      .to(camera.position, { x: 0, y: 0, z: 3, ease: "expo.inOut" }, "tracking");
+    tl.to((camera as Camera).position, { x: -3, y: 1.5, z: 7, ease: "power2.inOut" }, "about")
+      .to((camera as Camera).rotation, { y: 0.5, ease: "power2.inOut" }, "about")
+      .to((camera as Camera).position, { x: 0, y: 0, z: 3, ease: "expo.inOut" }, "tracking");
 
     return () => {
-      if (ScrollTrigger.getById("main-trigger")) ScrollTrigger.getById("main-trigger").kill();
+      if (ScrollTrigger.getById("main-trigger")) {
+        ScrollTrigger.getById("main-trigger")?.kill();
+      }
     };
   }, [camera]);
 
   return null;
 }
 
-export default function LogisticFlow3D() {
+export default function LogisticFlow3D(): JSX.Element {
   return (
     <Canvas shadows camera={{ position: [0, 0, 5], fov: 45 }}>
       <color attach="background" args={['#000000']} />
-      
+
       <ambientLight intensity={0.2} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1.5} castShadow color="#F6EBBF" />
       <pointLight position={[-10, -10, -10]} color="#7C3AED" intensity={1} />

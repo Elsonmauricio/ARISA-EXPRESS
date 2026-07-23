@@ -1,23 +1,39 @@
-// src/components/Stats.jsx
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { TelemetryCard } from './TelemetryCard';
+import { TelemetryCard } from './TelemetryCard'; // Assumindo que TelemetryCard também é .tsx
 import { useT } from '../i18n/LanguageContext';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const getStats = (t) => ([
+interface StatItem {
+  value: number;
+  prefix: string;
+  suffix: string;
+  label: string;
+  labelTone?: 'lilas' | 'white'; // Adicionado para tipar labelTone, se existir
+  tag?: string; // Adicionado para tipar tag, se existir
+  tagTone?: string; // Adicionado para tipar tagTone, se existir
+}
+
+const getStats = (t: (key: string) => string): StatItem[] => ([
   { value: 10000, prefix: '+', suffix: '',   label: t('stats.1') },
   { value: 95,    prefix: '+', suffix: '%',  label: t('stats.2') },
   { value: 48,    prefix: '',  suffix: 'h',  label: t('stats.3'), labelTone: 'lilas' },
   { value: 24,    prefix: '',  suffix: '/7', label: t('stats.4'), labelTone: 'white' },
 ]);
 
-function Counter({ value, prefix, suffix, delay = 0 }) {
-  const ref = useRef(null);
+interface CounterProps {
+  value: number;
+  prefix: string;
+  suffix: string;
+  delay?: number;
+}
+
+function Counter({ value, prefix, suffix, delay = 0 }: CounterProps): JSX.Element {
+  const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -48,9 +64,9 @@ function Counter({ value, prefix, suffix, delay = 0 }) {
   return <span ref={ref}>{`${prefix}0${suffix}`}</span>;
 }
 
-export default function Stats() {
+export default function Stats(): JSX.Element {
   const { t } = useT();
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;

@@ -1,14 +1,23 @@
-'use client';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Search, ArrowUpRight } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { Float, OrbitControls, Environment } from '@react-three/drei';
-import {Forklift3D} from './three/Forklift3D.jsx';
-import {Mailbox3D} from './three/Mailbox3D.jsx';
-import {Shopping3D} from './three/Shopping3D.jsx';
+import { Forklift3D } from './three/Forklift3D'; // Assumindo que agora são .tsx
+import { Mailbox3D } from './three/Mailbox3D'; // Assumindo que agora são .tsx
+import { Shopping3D } from './three/Shopping3D'; // Assumindo que agora são .tsx
 import { useT } from '../i18n/LanguageContext';
 
-const getServices = (t) => ([
+interface Service {
+  n: string;
+  component: JSX.Element;
+  title: string;
+  desc: string;
+  accent: string;
+  iconBg: string;
+}
+
+const getServices = (t: (key: string) => string): Service[] => ([
   {
     n: '1',
     component: <Forklift3D />,
@@ -37,12 +46,17 @@ const getServices = (t) => ([
 
 const WHATSAPP_NUMBER = '351934292082';
 
-const openWhatsApp = (message) => {
-  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+const openWhatsApp = (message: string): void => {
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message )}`;
   window.open(url, '_blank', 'noopener,noreferrer');
 };
 
-function ServiceCard({ s, i }) {
+interface ServiceCardProps {
+  s: Service;
+  i: number;
+}
+
+function ServiceCard({ s, i }: ServiceCardProps): JSX.Element {
   const { t } = useT();
   const waMessage = t('services.waMsg', { title: s.title });
   return (
@@ -100,7 +114,7 @@ function ServiceCard({ s, i }) {
   );
 }
 
-export default function Services() {
+export default function Services(): JSX.Element {
   const { t } = useT();
   return (
     <section id="servicos" className="relative py-28 overflow-hidden">
