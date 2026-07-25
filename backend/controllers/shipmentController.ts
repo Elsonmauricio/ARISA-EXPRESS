@@ -4,7 +4,6 @@ import { db } from '../config/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { generateTrackingCode } from '../utils/trackingCode';
 import { sendEmail } from '../services/emailService';
-import { io } from '../server';
 import { logger } from '../utils/logger';
 
 export const ShipmentController = {
@@ -252,14 +251,6 @@ export const ShipmentController = {
       if (shipment.routeId) {
         await db.collection('routes').doc(shipment.routeId).update({
           reserved: FieldValue.increment(-shipment.weight)
-        });
-      }
-
-      // Notificar via WebSocket
-      if (io) {
-        io.to(`shipment:${shipment.trackingCode}`).emit('tracking-update', {
-          trackingCode: shipment.trackingCode,
-          status: 'CANCELLED'
         });
       }
 

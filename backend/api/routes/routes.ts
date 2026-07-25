@@ -1,7 +1,7 @@
 // backend/src/routes/routes.ts
 import { Router } from 'express';
-import { RouteController } from '../controllers/routeController';
-import { authenticate, authorize } from '../middleware/auth';
+import { RouteController } from '../../controllers/routeController';
+import { authenticate, authorize } from '../../middleware/auth';
 
 const router = Router();
 

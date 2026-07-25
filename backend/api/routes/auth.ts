@@ -1,9 +1,9 @@
 // backend/src/routes/auth.ts
 import { Router } from 'express';
-import { AuthController } from '../controllers/authController';
-import { validate } from '../middleware/validation';
-import { authLimiter } from '../middleware/rateLimit';
-import { registerSchema, loginSchema } from '../types/validation';
+import { AuthController } from '../../controllers/authController';
+import { validate } from '../../middleware/validation';
+import { authLimiter } from '../../middleware/rateLimit';
+import { registerSchema, loginSchema } from '../../types/validation';
 
 const router = Router();
 

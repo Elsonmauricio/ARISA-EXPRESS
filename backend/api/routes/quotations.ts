@@ -1,7 +1,7 @@
 // backend/src/routes/quotations.ts
 import { Router } from 'express';
-import { QuotationController } from '../controllers/quotationController';
-import { authenticate } from '../middleware/auth';
+import { QuotationController } from '../../controllers/quotationController';
+import { authenticate } from '../../middleware/auth';
 
 const router = Router();
 

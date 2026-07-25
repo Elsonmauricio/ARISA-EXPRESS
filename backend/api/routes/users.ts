@@ -1,9 +1,9 @@
 // backend/src/routes/users.ts
 import { Router } from 'express';
-import { UserController } from '../controllers/userController';
-import { authenticate } from '../middleware/auth';
-import { validate } from '../middleware/validation';
-import { updateProfileSchema, changePasswordSchema } from '../types/validation';
+import { UserController } from '../../controllers/userController';
+import { authenticate } from '../../middleware/auth';
+import { validate } from '../../middleware/validation';
+import { updateProfileSchema, changePasswordSchema } from '../../types/validation';
 
 const router = Router();
 

@@ -1,8 +1,8 @@
 // backend/src/routes/admin.ts
 import { Router } from 'express';
-import { AdminController } from '../controllers/adminController';
-import { LeadController } from '../controllers/leadController';
-import { authenticate, authorize } from '../middleware/auth';
+import { AdminController } from '../../controllers/adminController';
+import { LeadController } from '../../controllers/leadController';
+import { authenticate, authorize } from '../../middleware/auth';
 
 const router = Router();
 

@@ -49,3 +49,6 @@ frontend.zip
 # Ignorar arquivos de chave do Firebase / Google Cloud
 *-firebase-adminsdk-*.json
 *.json.key
+
+package-lock.json
+package.json

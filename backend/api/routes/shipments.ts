@@ -1,9 +1,9 @@
 // backend/src/routes/shipments.ts
 import { Router } from 'express';
-import { ShipmentController } from '../controllers/shipmentController';
-import { authenticate } from '../middleware/auth';
-import { validate } from '../middleware/validation';
-import { createShipmentSchema } from '../types/validation';
+import { ShipmentController } from '../../controllers/shipmentController';
+import { authenticate } from '../../middleware/auth';
+import { validate } from '../../middleware/validation';
+import { createShipmentSchema } from '../../types/validation';
 
 const router = Router();
 

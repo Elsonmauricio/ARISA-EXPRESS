@@ -1,3 +1,13 @@
 # Ignorar arquivos de chave do Firebase / Google Cloud
 *-firebase-adminsdk-*.json
 *.json.key
+
+.env
+# Ignorar arquivos de log
+*.log
+
+package-lock.json
+package.json
+ node_modules/
+ dist/
+ 

@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import { db } from '../config/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
-import { io } from '../server';
 import { logger } from '../utils/logger';
 
 // ============================
@@ -118,17 +117,6 @@ export const AdminController = {
         description: description || `Status atualizado para ${status}`,
         timestamp: FieldValue.serverTimestamp()
       });
-
-      // Notificar via WebSocket (se houver cliente conectado)
-      if (io) {
-        io.to(`shipment:${trackingCode}`).emit('tracking-update', {
-          trackingCode,
-          status,
-          location: location || shipment.destination,
-          description: description || `Status atualizado para ${status}`,
-          timestamp: new Date()
-        });
-      }
 
       // Enviar email de notificação ao cliente
       if (shipment.userId) {
