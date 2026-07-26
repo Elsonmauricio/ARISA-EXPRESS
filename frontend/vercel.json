@@ -21,8 +21,5 @@
         "Cache-Control": "public, max-age=0, must-revalidate"
       }
     }
-  ],
-  "env": {
-    "VITE_API_URL": "@arisa_api_url"
-  }
+  ]
 }
