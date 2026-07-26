@@ -12,6 +12,8 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(undefine
 
 const STORAGE_KEY = 'arisa_lang';
 
+let cachedInitialLang: Lang = 'pt';
+
 function interpolate(template: string, vars?: Record<string, string | number>): string {
   if (!vars) return template;
   return template.replace(/\{(\w+)\}/g, (_, name: string) =>
@@ -19,11 +21,19 @@ function interpolate(template: string, vars?: Record<string, string | number>): 
   );
 }
 
+if (typeof window !== 'undefined') {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'en' || stored === 'pt') {
+      cachedInitialLang = stored;
+    }
+  } catch {
+    // localStorage unavailable
+  }
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
-    return stored === 'en' || stored === 'pt' ? stored : 'pt';
-  });
+  const [lang, setLangState] = useState<Lang>(cachedInitialLang);
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next);
@@ -52,7 +62,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 export function useT() {
   const ctx = useContext(LanguageContext);
   if (!ctx) {
-    // Fallback seguro caso usado fora do provider.
     return {
       lang: 'pt' as Lang,
       setLang: () => {},

@@ -1,6 +1,6 @@
 ﻿// src/App.tsx
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Hero from './components/Hero';
 import About from './components/About';
 import Services from './components/Services';
@@ -15,19 +15,9 @@ import AeroStripe from './components/AeroStripe';
 import Seo from './components/Seo';
 import Storytelling from './components/Storytelling';
 import ParallaxLayer from './components/ParallaxLayer';
+import { AnimatePresence } from 'framer-motion';
 import { useLenis } from './hooks/useLenis';
-import { LanguageProvider } from './i18n/LanguageContext';
-
-// Code-splitting por rota: as páginas pesadas viram chunks separados,
-// reduzindo o bundle inicial e o tempo de carregamento da landing.
-const ShipmentsPage = lazy(() => import('./pages/ShipmentsPage'));
-const Login = lazy(() => import('./pages/LoginPage'));
-const Register = lazy(() => import('./pages/RegisterPage'));
-const Profile = lazy(() => import('./pages/ProfilePage'));
-const Settings = lazy(() => import('./pages/SettingsPage'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const Terms = lazy(() => import('./pages/Terms'));
-const Privacy = lazy(() => import('./pages/Privacy'));
+import { LanguageProvider, useT } from './i18n/LanguageContext';
 
 function PageLoader() {
   return (
@@ -37,17 +27,27 @@ function PageLoader() {
   );
 }
 
+const ShipmentsPage = lazy(() => import('./pages/ShipmentsPage'));
+const Login = lazy(() => import('./pages/LoginPage'));
+const Register = lazy(() => import('./pages/RegisterPage'));
+const Profile = lazy(() => import('./pages/ProfilePage'));
+const Settings = lazy(() => import('./pages/SettingsPage'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+
 function HomePage() {
+  const { lang } = useT();
+
   return (
     <Layout>
       <main className="relative z-10">
         <div id="main-wrapper">
-          <Hero />
+          <Hero key={lang} />
           <div className="relative z-10 container mx-auto px-4 -mt-4 sm:-mt-8">
             <AeroStripe />
           </div>
 
-          {/* Storytelling 3D scroll-driven: a jornada da encomenda */}
           <Storytelling />
 
           <Reveal y={80} duration={1}>
@@ -71,6 +71,26 @@ function HomePage() {
   );
 }
 
+function AppRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/encomendas" element={<ShipmentsPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/registar" element={<Register />} />
+        <Route path="/perfil" element={<Profile />} />
+        <Route path="/definicoes" element={<Settings />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/termos" element={<Terms />} />
+        <Route path="/privacidade" element={<Privacy />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 const App: React.FC = () => {
   useLenis();
   return (
@@ -78,17 +98,7 @@ const App: React.FC = () => {
       <Seo />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Suspense fallback={<PageLoader />}>
-          <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/encomendas" element={<ShipmentsPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/registar" element={<Register />} />
-          <Route path="/perfil" element={<Profile />} />
-          <Route path="/definicoes" element={<Settings />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/termos" element={<Terms />} />
-          <Route path="/privacidade" element={<Privacy />} />
-          </Routes>
+          <AppRoutes />
         </Suspense>
       </BrowserRouter>
     </LanguageProvider>

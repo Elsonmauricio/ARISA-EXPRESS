@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Target, Eye } from 'lucide-react';
-import SectionHeading from './SectionHeading.jsx';
+import SectionHeading from './SectionHeading';
 import { useT } from '../i18n/LanguageContext';
 
 // Definição de tipos para os pilares

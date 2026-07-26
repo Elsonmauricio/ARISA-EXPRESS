@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Search, ArrowUpRight } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
@@ -87,9 +87,11 @@ function ServiceCard({ s, i }: ServiceCardProps): JSX.Element {
           <Canvas camera={{ position: [0, 0, 4], fov: 40 }}>
             <ambientLight intensity={0.8} />
             <pointLight position={[10, 10, 10]} intensity={1} />
-            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-              {s.component}
-            </Float>
+            <Suspense fallback={null}>
+              <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+                {s.component}
+              </Float>
+            </Suspense>
             <Environment preset="city" />
             <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} />
           </Canvas>

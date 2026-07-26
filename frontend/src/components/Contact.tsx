@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { GoldButton } from './Button';
 import { motion, AnimatePresence } from 'framer-motion';
-import SectionHeading from './SectionHeading.jsx';
+import SectionHeading from './SectionHeading';
 import { useT } from '../i18n/LanguageContext';
 import { api } from '../lib/api';
 
