@@ -13,7 +13,7 @@
   "routes": [
     {
       "src": "/api/health",
-      "dest": "/api/index.ts",
+      "dest": "/api/index.ts"
     },
     {
       "src": "/(.*)",
