@@ -23,8 +23,8 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 z-[1]" />
 
       {/* Content overlay */}
-      <div className="relative z-10 container mx-auto min-h-screen flex items-start justify-end pt-40 pb-20">
-        <div className="max-w-2xl text-right flex flex-col items-end px-4 sm:px-0">
+      <div className="relative z-10 container mx-auto min-h-screen flex items-center justify-center sm:items-start sm:justify-end pt-32 sm:pt-40 pb-20 px-4">
+        <div className="max-w-2xl text-center sm:text-right flex flex-col items-center sm:items-end">
 
           <motion.h1
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }}

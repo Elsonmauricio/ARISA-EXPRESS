@@ -80,10 +80,10 @@ function ServiceCard({ s, i }: ServiceCardProps): JSX.Element {
       {/* Conteúdo */}
        <div className="relative z-10 p-6 sm:p-8 flex flex-col h-full min-h-[360px] sm:min-h-[420px] overflow-hidden">
         {/* Número Dourado Top-Left */}
-        <span className="absolute top-6 left-8 font-display text-4xl font-bold text-gold opacity-80">{s.n}</span>
+        <span className="absolute top-4 sm:top-6 left-4 sm:left-8 font-display text-3xl sm:text-4xl font-bold text-gold opacity-80">{s.n}</span>
 
         {/* Figura 3D Canvas */}
-        <div className="w-full h-48 mt-4">
+        <div className="w-full h-40 sm:h-48 mt-4">
           <Canvas camera={{ position: [0, 0, 4], fov: 40 }}>
             <ambientLight intensity={0.8} />
             <pointLight position={[10, 10, 10]} intensity={1} />
@@ -97,7 +97,7 @@ function ServiceCard({ s, i }: ServiceCardProps): JSX.Element {
           </Canvas>
         </div>
 
-        <h3 className="font-display text-2xl font-semibold leading-tight text-white mt-6">
+        <h3 className="font-display text-xl sm:text-2xl font-semibold leading-tight text-white mt-4 sm:mt-6">
           {s.title}
         </h3>
         <p className="mt-3 text-sm text-white/50 leading-relaxed flex-1">

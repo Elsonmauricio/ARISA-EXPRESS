@@ -85,6 +85,7 @@ export const translations: Record<Lang, Dict> = {
     'gallery.cat.analise': 'Análise',
     'gallery.cat.servico': 'Serviço',
     'gallery.cat.servicos': 'Serviço',
+    'gallery.cat.infraestrutura': 'Infraestrutura',
     'gallery.gestao': 'Gestão de Encomendas',
     'gallery.logistica': 'Logística Moderna',
 
@@ -656,6 +657,7 @@ export const translations: Record<Lang, Dict> = {
     'gallery.cat.analise': 'Analysis',
     'gallery.cat.servico': 'Service',
     'gallery.cat.servicos': 'Service',
+    'gallery.cat.infraestrutura': 'Infrastructure',
     'gallery.gestao': 'Shipment Management',
     'gallery.logistica': 'Modern Logistics',
 

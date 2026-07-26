@@ -21,22 +21,22 @@ const getGalleryImages = (t) => ([
   {
     url: entradaImg,
     title: t('gallery.entrada'),
-    category: t('gallery.cat.infraestrutura'),
+    category: t('gallery.cat.facilities'),
   },
   {
     url: portaImg,
     title: t('gallery.porta'),
-    category: t('gallery.cat.infraestrutura'),
+    category: t('gallery.cat.facilities'),
   },
   {
     url: cantoEsperaImg,
     title: t('gallery.cantoEspera'),
-    category: t('gallery.cat.infraestrutura'),
+    category: t('gallery.cat.conforto'),
   },
   {
     url: cenarioAnaliseImg,
     title: t('gallery.cenarioAnalise'),
-    category: t('gallery.cat.infraestrutura'),
+    category: t('gallery.cat.analise'),
   },
 ]);
 
@@ -72,10 +72,10 @@ export default function Gallery() {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-[#9b59b6] to-[#D4AF37] bg-clip-text text-transparent">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#9b59b6] to-[#D4AF37] bg-clip-text text-transparent">
             {t('gallery.title')}
           </h2>
-          <p className="text-gray-300 text-xl max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
             {t('gallery.subtitle')}
           </p>
         </div>

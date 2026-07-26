@@ -430,11 +430,11 @@ function AdminUserList() {
                   </span>
                 </td>
                 <td className="py-3 px-2 sm:px-4">
-                  <select
-                    value={u.role}
-                    onChange={(e) => changeRole(u.id, e.target.value)}
-                    className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none"
-                  >
+                   <select
+                     value={u.role}
+                     onChange={(e) => changeRole(u.id, e.target.value)}
+                     className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
+                   >
                     <option value="CLIENT">{t('admin.cliente')}</option>
                     <option value="OPERATOR">{t('admin.operador')}</option>
                     <option value="ADMIN">{t('admin.admin')}</option>
@@ -607,7 +607,7 @@ function AdminRouteManager() {
             value={newRoute.origin}
             onChange={(e) => setNewRoute({ ...newRoute, origin: e.target.value })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
+            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
           />
           <input
             type="text"
@@ -615,7 +615,7 @@ function AdminRouteManager() {
             value={newRoute.destination}
             onChange={(e) => setNewRoute({ ...newRoute, destination: e.target.value })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
+            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
           />
           <input
             type="number"
@@ -623,14 +623,14 @@ function AdminRouteManager() {
             value={newRoute.pricePerKg || ''}
             onChange={(e) => setNewRoute({ ...newRoute, pricePerKg: parseFloat(e.target.value) || 0 })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
+            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
           />
           <input
             type="date"
             value={newRoute.flightDate}
             onChange={(e) => setNewRoute({ ...newRoute, flightDate: e.target.value })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
+            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
           />
           <input
             type="number"
@@ -638,7 +638,7 @@ function AdminRouteManager() {
             value={newRoute.capacity || ''}
             onChange={(e) => setNewRoute({ ...newRoute, capacity: parseFloat(e.target.value) || 0 })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
+            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
           />
           <div className="lg:col-span-6 flex flex-col sm:flex-row gap-2">
             <GoldButton type="submit" className="py-2 px-4 text-sm">
@@ -699,7 +699,7 @@ function AdminRouteManager() {
                         value={r.status || 'SCHEDULED'}
                         onChange={(e) => updateRouteStatus(r.id, e.target.value)}
                         disabled={savingRouteId === r.id}
-                        className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none"
+                        className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
                       >
                         <option value="SCHEDULED">{t('admin.rotaAgendada')}</option>
                         <option value="DEPARTED">{t('admin.rotaPartiu')}</option>
@@ -1122,7 +1122,7 @@ function AdminLeadsList() {
                     value={stage}
                     disabled={isSaving}
                     onChange={(e) => changeStage(lead.id, e.target.value)}
-                    className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none"
+                    className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
                   >
                     {LEAD_STAGES.map(s => (
                       <option key={s} value={s}>{t(STAGE_LABELS[s])}</option>
@@ -1357,7 +1357,7 @@ export default function AdminDashboard() {
   return (
     <Layout>
       <div className="min-h-screen bg-black pt-24 sm:pt-28 pb-20 px-4">
-        <div className="container mx-auto max-w-7xl">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

@@ -8,7 +8,7 @@ export default function Privacy() {
     <Layout>
       <div className="min-h-screen bg-black pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-4xl">
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-8">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-8">
             <span className="text-gradient-gold">{t('privacy.titulo')}</span>
           </h1>
           <div className="glass-strong border-gradient p-8 rounded-2xl text-white/80 space-y-6">

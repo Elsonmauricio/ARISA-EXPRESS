@@ -899,13 +899,13 @@ export default function ShipmentsPage() {
   return (
     <Layout>
       <div className="min-h-screen bg-black pt-28 pb-20 px-4">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-white">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-white">
               <span className="text-gradient-gold">{t('ship.titulo')}</span>
             </h1>
             <p className="text-white/60 mt-2">{t('ship.subtitle')}</p>

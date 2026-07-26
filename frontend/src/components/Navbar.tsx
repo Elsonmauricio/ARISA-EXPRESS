@@ -136,7 +136,7 @@ export default function Navbar() {
           <img
             src={ARISAEXPRESStLogo}
              alt={t('nav.logoAlt')}
-            className="h-12 sm:h-16 md:h-20 w-auto max-w-[60vw] drop-shadow-[0_0_14px_rgba(168,85,247,0.5)] brightness-110 group-hover:brightness-125 transition-all duration-300"
+              className="h-10 sm:h-14 md:h-16 lg:h-20 w-auto max-w-[70vw] sm:max-w-[50vw] drop-shadow-[0_0_14px_rgba(168,85,247,0.5)] brightness-110 group-hover:brightness-125 transition-all duration-300"
           />
         </Link>
 

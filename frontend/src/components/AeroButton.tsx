@@ -29,7 +29,7 @@ export function AeroButton({
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`aero-chamfer inline-flex items-center gap-3 px-7 py-3.5 font-data text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ${variantClasses} ${className}`}
+      className={`aero-chamfer inline-flex items-center gap-2 sm:gap-3 px-5 sm:px-7 py-3 sm:py-3.5 font-data text-[11px] sm:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ${variantClasses} ${className}`}
     >
       <span className="sq inline-block w-1.5 h-1.5 bg-current" />
       {children}

@@ -145,3 +145,60 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
 .lenis.lenis-smooth iframe { pointer-events: none; }
+
+/* ============================================================
+   RESPONSIVE BASE
+   ============================================================ */
+@media (max-width: 640px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* Evita overflow horizontal acidental */
+  #main-wrapper,
+  .container,
+  section,
+  header,
+  footer {
+    max-width: 100%;
+  }
+}
+
+/* Garante que inputs, selects e botões tenham tamanho mínimo tátil em mobile */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea,
+  button {
+    min-height: 44px;
+  }
+  /* Ajusta tipografia geral em mobile */
+  h1 { font-size: clamp(1.75rem, 5vw, 3rem); }
+  h2 { font-size: clamp(1.5rem, 4.5vw, 2.5rem); }
+  h3 { font-size: clamp(1.25rem, 4vw, 1.875rem); }
+  p  { font-size: clamp(0.95rem, 2.5vw, 1.125rem); }
+}
+
+/* Melhora scroll horizontal de tabelas em mobile */
+@media (max-width: 768px) {
+  .overflow-x-auto table {
+    font-size: 0.8rem;
+  }
+  .overflow-x-auto th,
+  .overflow-x-auto td {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    white-space: nowrap;
+  }
+}
+
+/* Ajuste seguro para canvas 3D em telas pequenas */
+@media (max-width: 640px) {
+  canvas {
+    max-width: 100%;
+    height: auto !important;
+  }
+}

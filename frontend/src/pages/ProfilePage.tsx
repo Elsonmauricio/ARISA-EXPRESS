@@ -104,7 +104,7 @@ export default function Profile() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="font-display text-4xl font-bold text-white mb-2">
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">
               <span className="text-gradient-gold">{t('profile.titulo')}</span>
             </h1>
               <p className="text-white/60 mb-8">{t('profile.subtitle')}</p>
