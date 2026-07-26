@@ -6,9 +6,9 @@ export function calculatePrice(
   destination: string
 ): number {
   const baseRates: Record<string, number> = {
-    AIR_EXPRESS: 25,
-    AIR_ECONOMY: 15,
-    MARITIME: 5,
+    REDIRECT: 25,
+    COURIER: 15,
+    PERSONAL_SHOPPER: 5,
     BUSINESS: 35
   };
   
@@ -17,9 +17,9 @@ export function calculatePrice(
   
   // Minimum price
   const minPrices: Record<string, number> = {
-    AIR_EXPRESS: 50,
-    AIR_ECONOMY: 35,
-    MARITIME: 20,
+    REDIRECT: 50,
+    COURIER: 35,
+    PERSONAL_SHOPPER: 20,
     BUSINESS: 100
   };
   

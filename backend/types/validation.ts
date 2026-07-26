@@ -27,7 +27,7 @@ export const createShipmentSchema = z.object({
     receiverName: z.string().min(2),
     receiverPhone: z.string(),
     weight: z.number().positive(),
-    serviceType: z.enum(['AIR_EXPRESS', 'AIR_ECONOMY', 'MARITIME', 'BUSINESS'])
+    serviceType: z.enum(['REDIRECT', 'COURIER', 'PERSONAL_SHOPPER', 'BUSINESS'])
   })
 });
 

@@ -19,7 +19,7 @@ interface Route {
   destination: string;
   pricePerKg: number;
   flightDate: string;
-  serviceType: 'AIR_EXPRESS' | 'AIR_ECONOMY' | 'MARITIME' | 'BUSINESS';
+  serviceType: 'REDIRECT' | 'COURIER' | 'PERSONAL_SHOPPER' | 'BUSINESS';
   capacity: number;
   reserved: number;
   available: number;
@@ -83,7 +83,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
     width: 0,
     height: 0,
     description: '',
-    serviceType: 'AIR_EXPRESS'
+    serviceType: 'REDIRECT'
   });
 
   useEffect(() => {
@@ -203,7 +203,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
           setFormData({
             origin: '', destination: '', senderName: '', senderPhone: '',
             receiverName: '', receiverPhone: '', weight: 1,
-            length: 0, width: 0, height: 0, description: '', serviceType: 'AIR_EXPRESS'
+             length: 0, width: 0, height: 0, description: '', serviceType: 'REDIRECT'
           });
         }}>
           {t('ship.novaReserva')}

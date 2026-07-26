@@ -12,6 +12,7 @@ router.get('/available', RouteController.getAvailableRoutes);
 router.get('/', authenticate, authorize('ADMIN', 'OPERATOR'), RouteController.getRoutes);
 router.post('/', authenticate, authorize('ADMIN', 'OPERATOR'), RouteController.upsertRoute);
 router.delete('/:id', authenticate, authorize('ADMIN', 'OPERATOR'), RouteController.deleteRoute);
+router.patch('/:id/status', authenticate, authorize('ADMIN', 'OPERATOR'), RouteController.updateRouteStatus);
 router.post('/init', authenticate, authorize('ADMIN'), RouteController.initRoutes);
 
 export default router;

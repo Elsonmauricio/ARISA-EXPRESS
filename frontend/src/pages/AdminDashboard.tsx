@@ -49,6 +49,7 @@ interface Route {
   capacity: number;
   reserved: number;
   available: number;
+  status: string;
 }
 
 interface Lead {
@@ -456,12 +457,12 @@ function AdminRouteManager() {
   const [newRoute, setNewRoute] = useState({
     origin: '',
     destination: '',
-    serviceType: 'AIR_EXPRESS',
     pricePerKg: 0,
     flightDate: '',
     capacity: 0
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [savingRouteId, setSavingRouteId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { t } = useT();
 
@@ -496,6 +497,39 @@ function AdminRouteManager() {
     fetchRoutes();
   }, []);
 
+  const updateRouteStatus = async (id: string, status: string) => {
+    try {
+      setSavingRouteId(id);
+      const token = localStorage.getItem('token');
+      const response = await fetch(api(`/api/routes/${id}/status`), {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      const json = await response.json();
+      if (json.success) {
+        fetchRoutes();
+      } else {
+        alert(json.error || t('admin.erroStatusRota'));
+      }
+    } catch (err) {
+      alert(t('admin.erroConexao'));
+    } finally {
+      setSavingRouteId(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -508,6 +542,7 @@ function AdminRouteManager() {
         },
         body: JSON.stringify({
           id: editingId || undefined,
+          serviceType: 'REDIRECT',
           ...newRoute
         })
       });
@@ -522,7 +557,7 @@ function AdminRouteManager() {
       const json = await response.json();
       if (json.success) {
         fetchRoutes();
-        setNewRoute({ origin: '', destination: '', serviceType: 'AIR_EXPRESS', pricePerKg: 0, flightDate: '', capacity: 0 });
+        setNewRoute({ origin: '', destination: '', pricePerKg: 0, flightDate: '', capacity: 0 });
         setEditingId(null);
       } else {
         alert(json.error || t('admin.erroGuardar'));
@@ -582,15 +617,6 @@ function AdminRouteManager() {
             required
             className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
           />
-          <select
-            value={newRoute.serviceType}
-            onChange={(e) => setNewRoute({ ...newRoute, serviceType: e.target.value })}
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none"
-          >
-            <option value="AIR_EXPRESS">{t('admin.airExpress')}</option>
-            <option value="AIR_ECONOMY">{t('admin.airEconomy')}</option>
-            <option value="MARITIME">{t('admin.maritimo')}</option>
-          </select>
           <input
             type="number"
             placeholder={t('admin.euKg')}
@@ -621,7 +647,7 @@ function AdminRouteManager() {
             {editingId && (
               <button
                 type="button"
-                onClick={() => { setEditingId(null); setNewRoute({ origin: '', destination: '', serviceType: 'AIR_EXPRESS', pricePerKg: 0, flightDate: '', capacity: 0 }); }}
+                onClick={() => { setEditingId(null); setNewRoute({ origin: '', destination: '', pricePerKg: 0, flightDate: '', capacity: 0 }); }}
                 className="px-4 py-2 rounded-lg bg-white/5 text-white/60 hover:bg-white/10 text-sm"
                 >
                   {t('admin.cancelar')}
@@ -644,6 +670,7 @@ function AdminRouteManager() {
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.capacidade')}</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.reservado')}</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.disponivel')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.statusRota')}</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
               </tr>
             </thead>
@@ -667,6 +694,19 @@ function AdminRouteManager() {
                           {r.available} {t('ship.kg')}
                       </span>
                     </td>
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
+                      <select
+                        value={r.status || 'SCHEDULED'}
+                        onChange={(e) => updateRouteStatus(r.id, e.target.value)}
+                        disabled={savingRouteId === r.id}
+                        className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none"
+                      >
+                        <option value="SCHEDULED">{t('admin.rotaAgendada')}</option>
+                        <option value="DEPARTED">{t('admin.rotaPartiu')}</option>
+                        <option value="ARRIVED">{t('admin.rotaChegou')}</option>
+                        <option value="CANCELLED">{t('admin.rotaCancelada')}</option>
+                      </select>
+                    </td>
                     <td className="py-3 px-2 sm:px-4">
                       <div className="flex gap-1">
                         <button
@@ -675,7 +715,6 @@ function AdminRouteManager() {
                             setNewRoute({
                               origin: r.origin,
                               destination: r.destination,
-                              serviceType: r.serviceType,
                               pricePerKg: r.pricePerKg,
                               flightDate: r.flightDate ? r.flightDate.split('T')[0] : '',
                               capacity: r.capacity

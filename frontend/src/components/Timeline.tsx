@@ -3,13 +3,13 @@
 
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
-import { Mailbox, Plane, Warehouse, Truck, Check } from 'lucide-react';
+import { Mailbox, Plane, Warehouse, Truck, Check, Package, MapPin, XCircle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useT } from '../i18n/LanguageContext';
 
 export interface StepData {
   id?: string;
-  icon: 'Mailbox' | 'Plane' | 'Warehouse' | 'Truck' | 'Check' | string;
+  icon: 'Mailbox' | 'Plane' | 'Warehouse' | 'Truck' | 'Check' | 'Package' | 'MapPin' | 'XCircle' | string;
   title: string;
   description: string;
   date: string;
@@ -21,6 +21,9 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Warehouse,
   Truck,
   Check,
+  Package,
+  MapPin,
+  XCircle,
 };
 
 const containerVariants: Variants = {

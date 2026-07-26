@@ -100,61 +100,88 @@ export default function Tracking() {
     }
   };
 
-  const getTimelineStep = (data: TrackingData): number => {
-    if (data.progress !== undefined) {
-      if (data.progress >= 100) return 3;
-      if (data.progress >= 70) return 2;
-      if (data.progress >= 40) return 1;
-      return 0;
-    }
-
-    const statusMap: Record<string, number> = {
-      'PENDING': 0,
-      'COLLECTED': 1,
-      'IN_TRANSIT': 2,
-      'CUSTOMS': 2,
-      'IN_PORTUGAL': 3,
-      'IN_ANGOLA': 3,
-      'OUT_FOR_DELIVERY': 3,
-      'DELIVERED': 3,
-      'CANCELLED': 0,
-    };
-    return statusMap[data.status] ?? 0;
+  const getTimelineStep = (steps: StepData[]): number => {
+    return steps.length - 1;
   };
 
   const buildSteps = (data: TrackingData): StepData[] => {
-    const steps: StepData[] = [
-      {
-        id: 'step-1',
-        icon: 'Mailbox',
-        title: t('track.recebido'),
-        description: t('track.hubLisboa'),
-        date: formatDate(data.collectedAt),
-      },
-      {
-        id: 'step-2',
-        icon: 'Plane',
-        title: t('track.emTransito'),
-        description: t('track.vooTap'),
-        date: formatDate(data.inTransitAt),
-      },
-      {
-        id: 'step-3',
-        icon: 'Warehouse',
-        title: t('track.chegadaLuanda'),
-        description: t('track.aeroporto'),
-        date: formatDate(data.arrivedAt),
-      },
-      {
-        id: 'step-4',
-        icon: 'Truck',
-        title: t('track.saidaEntrega'),
-        description: t('track.distribuicao'),
-        date: formatDate(data.outForDeliveryAt),
-      },
-    ];
+    const status = data.status;
+    const steps: StepData[] = [];
 
-    if (data.status === 'DELIVERED' && data.deliveredAt) {
+    if (status === 'CANCELLED') {
+      steps.push({
+        id: 'step-cancelled',
+        icon: 'XCircle',
+        title: t('track.cancelada'),
+        description: t('track.canceladaDesc'),
+        date: formatDate(data.createdAt),
+      });
+      return steps;
+    }
+
+    steps.push({
+      id: 'step-1',
+      icon: 'Mailbox',
+      title: t('track.recebido'),
+      description: t('track.hubLisboa'),
+      date: formatDate(data.createdAt),
+    });
+
+    if (['COLLECTED', 'IN_TRANSIT', 'CUSTOMS', 'IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED'].includes(status)) {
+      steps.push({
+        id: 'step-2',
+        icon: 'Package',
+        title: t('track.recolhido'),
+        description: t('track.recolhidoDesc'),
+        date: formatDate(data.collectedAt),
+      });
+    }
+
+    if (['IN_TRANSIT', 'IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED'].includes(status)) {
+      const transitStatuses: string[] = [];
+      if (status === 'CUSTOMS') {
+        steps.push({
+          id: 'step-3',
+          icon: 'Warehouse',
+          title: t('track.alfandega'),
+          description: t('track.alfandegaDesc'),
+          date: formatDate(data.arrivedAt),
+        });
+      } else {
+        steps.push({
+          id: 'step-3',
+          icon: 'Plane',
+          title: t('track.emTransito'),
+          description: t('track.vooTap'),
+          date: formatDate(data.inTransitAt),
+        });
+      }
+    }
+
+    if (['IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED'].includes(status)) {
+      const isAngola = data.destination?.toLowerCase().includes('angola') || data.destination?.toLowerCase().includes('luanda') || data.destination?.toLowerCase().includes('benguela');
+      const isPortugal = data.destination?.toLowerCase().includes('portugal') || data.destination?.toLowerCase().includes('lisboa') || data.destination?.toLowerCase().includes('porto');
+      const location = isAngola ? 'AO' : isPortugal ? 'PT' : '';
+      if (status === 'OUT_FOR_DELIVERY' || status === 'DELIVERED') {
+        steps.push({
+          id: 'step-4',
+          icon: 'Truck',
+          title: t('track.saidaEntrega'),
+          description: t('track.distribuicao'),
+          date: formatDate(data.outForDeliveryAt),
+        });
+      } else {
+        steps.push({
+          id: 'step-4',
+          icon: 'MapPin',
+          title: location === 'AO' ? t('track.chegadaAngola') : location === 'PT' ? t('track.chegadaPortugal') : t('track.chegadaDestino'),
+          description: location === 'AO' ? t('track.aeroporto') : location === 'PT' ? t('track.hubPortugal') : t('track.destino'),
+          date: formatDate(data.arrivedAt),
+        });
+      }
+    }
+
+    if (status === 'DELIVERED' && data.deliveredAt) {
       steps.push({
         id: 'step-5',
         icon: 'Check',
@@ -270,7 +297,7 @@ export default function Tracking() {
 
               <Timeline
                 steps={buildSteps(result)}
-                currentStep={getTimelineStep(result)}
+                currentStep={getTimelineStep(buildSteps(result))}
               />
 
               {result.trackingUpdates && result.trackingUpdates.length > 0 && (

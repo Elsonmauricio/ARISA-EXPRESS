@@ -84,7 +84,7 @@ export const QuotationController = {
   },
   
   calculatePrice: (weight: number, serviceType: string): number => {
-    const rates: Record<string, number> = { AIR_EXPRESS: 25, AIR_ECONOMY: 15, MARITIME: 5, BUSINESS: 35 };
+    const rates: Record<string, number> = { REDIRECT: 25, COURIER: 15, PERSONAL_SHOPPER: 5, BUSINESS: 35 };
     return Math.round(rates[serviceType] * weight * 100) / 100;
   }
 };

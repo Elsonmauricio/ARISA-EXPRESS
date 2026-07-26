@@ -130,18 +130,125 @@ export const RouteController = {
     }
   },
 
+  // Atualizar status da rota e propagar para encomendas associadas
+  updateRouteStatus: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!id) {
+        return res.status(400).json({ error: 'ID da rota é obrigatório' });
+      }
+
+      if (!['SCHEDULED', 'DEPARTED', 'ARRIVED', 'CANCELLED'].includes(status)) {
+        return res.status(400).json({ error: 'Status inválido. Use: SCHEDULED, DEPARTED, ARRIVED ou CANCELLED' });
+      }
+
+      const routeRef = db.collection('routes').doc(id);
+      const routeDoc = await routeRef.get();
+
+      if (!routeDoc.exists) {
+        return res.status(404).json({ error: 'Rota não encontrada' });
+      }
+
+      await routeRef.update({
+        status,
+        updatedAt: FieldValue.serverTimestamp()
+      });
+
+      const updatedRoute = await routeRef.get();
+      const routeData = updatedRoute.data();
+
+      let affectedShipments = 0;
+
+      if (status === 'DEPARTED') {
+        const snapshot = await db.collection('shipments')
+          .where('routeId', '==', id)
+          .where('status', 'in', ['PENDING', 'COLLECTED'])
+          .get();
+
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => {
+          batch.update(doc.ref, {
+            status: 'IN_TRANSIT',
+            updatedAt: FieldValue.serverTimestamp()
+          });
+          batch.set(doc.ref.collection('trackingUpdates').doc(), {
+            status: 'IN_TRANSIT',
+            location: routeData?.destination || 'N/A',
+            description: 'Rota partiu. Encomenda em trânsito.',
+            timestamp: FieldValue.serverTimestamp()
+          });
+          affectedShipments++;
+        });
+        await batch.commit();
+      }
+
+      if (status === 'ARRIVED') {
+        const snapshot = await db.collection('shipments')
+          .where('routeId', '==', id)
+          .where('status', 'in', ['PENDING', 'COLLECTED', 'IN_TRANSIT', 'CUSTOMS'])
+          .get();
+
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => {
+          batch.update(doc.ref, {
+            status: 'IN_ANGOLA',
+            updatedAt: FieldValue.serverTimestamp()
+          });
+          batch.set(doc.ref.collection('trackingUpdates').doc(), {
+            status: 'IN_ANGOLA',
+            location: routeData?.destination || 'N/A',
+            description: 'Rota chegou ao destino.',
+            timestamp: FieldValue.serverTimestamp()
+          });
+          affectedShipments++;
+        });
+        await batch.commit();
+      }
+
+      if (status === 'CANCELLED') {
+        const snapshot = await db.collection('shipments')
+          .where('routeId', '==', id)
+          .where('status', 'not-in', ['DELIVERED', 'CANCELLED'])
+          .get();
+
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => {
+          batch.update(doc.ref, {
+            status: 'CANCELLED',
+            updatedAt: FieldValue.serverTimestamp()
+          });
+          batch.set(doc.ref.collection('trackingUpdates').doc(), {
+            status: 'CANCELLED',
+            location: routeData?.destination || 'N/A',
+            description: 'Rota cancelada.',
+            timestamp: FieldValue.serverTimestamp()
+          });
+          affectedShipments++;
+        });
+        await batch.commit();
+      }
+
+      res.json({ success: true, data: { id, status, affectedShipments } });
+    } catch (error) {
+      logger.error('Erro ao atualizar status da rota:', error);
+      res.status(500).json({ error: 'Erro ao atualizar status da rota' });
+    }
+  },
+
   // Inicializar rotas padrão (executar uma vez)
   initRoutes: async (req: Request, res: Response) => {
     try {
       const defaultRoutes = [
-        { origin: 'Lisboa', destination: 'Luanda', serviceType: 'AIR_EXPRESS', pricePerKg: 13, flightDate: new Date(Date.now() + 7 * 86400000), capacity: 500 },
-        { origin: 'Lisboa', destination: 'Luanda', serviceType: 'AIR_ECONOMY', pricePerKg: 9, flightDate: new Date(Date.now() + 7 * 86400000), capacity: 300 },
-        { origin: 'Lisboa', destination: 'Luanda', serviceType: 'MARITIME', pricePerKg: 4, flightDate: new Date(Date.now() + 14 * 86400000), capacity: 1000 },
-        { origin: 'Porto', destination: 'Luanda', serviceType: 'AIR_EXPRESS', pricePerKg: 14, flightDate: new Date(Date.now() + 3 * 86400000), capacity: 200 },
-        { origin: 'Porto', destination: 'Luanda', serviceType: 'AIR_ECONOMY', pricePerKg: 10, flightDate: new Date(Date.now() + 3 * 86400000), capacity: 150 },
-        { origin: 'Porto', destination: 'Luanda', serviceType: 'MARITIME', pricePerKg: 5, flightDate: new Date(Date.now() + 10 * 86400000), capacity: 800 },
-        { origin: 'Lisboa', destination: 'Benguela', serviceType: 'AIR_EXPRESS', pricePerKg: 15, flightDate: new Date(Date.now() + 5 * 86400000), capacity: 100 },
-        { origin: 'Lisboa', destination: 'Benguela', serviceType: 'AIR_ECONOMY', pricePerKg: 11, flightDate: new Date(Date.now() + 5 * 86400000), capacity: 80 },
+        { origin: 'Lisboa', destination: 'Luanda', serviceType: 'REDIRECT', pricePerKg: 13, flightDate: new Date(Date.now() + 7 * 86400000), capacity: 500 },
+        { origin: 'Lisboa', destination: 'Luanda', serviceType: 'COURIER', pricePerKg: 9, flightDate: new Date(Date.now() + 7 * 86400000), capacity: 300 },
+        { origin: 'Lisboa', destination: 'Luanda', serviceType: 'PERSONAL_SHOPPER', pricePerKg: 4, flightDate: new Date(Date.now() + 14 * 86400000), capacity: 1000 },
+        { origin: 'Porto', destination: 'Luanda', serviceType: 'REDIRECT', pricePerKg: 14, flightDate: new Date(Date.now() + 3 * 86400000), capacity: 200 },
+        { origin: 'Porto', destination: 'Luanda', serviceType: 'COURIER', pricePerKg: 10, flightDate: new Date(Date.now() + 3 * 86400000), capacity: 150 },
+        { origin: 'Porto', destination: 'Luanda', serviceType: 'PERSONAL_SHOPPER', pricePerKg: 5, flightDate: new Date(Date.now() + 10 * 86400000), capacity: 800 },
+        { origin: 'Lisboa', destination: 'Benguela', serviceType: 'REDIRECT', pricePerKg: 15, flightDate: new Date(Date.now() + 5 * 86400000), capacity: 100 },
+        { origin: 'Lisboa', destination: 'Benguela', serviceType: 'COURIER', pricePerKg: 11, flightDate: new Date(Date.now() + 5 * 86400000), capacity: 80 },
       ];
 
       const batch = db.batch();
