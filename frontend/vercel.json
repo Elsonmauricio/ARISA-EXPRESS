@@ -23,6 +23,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "http://localhost:5001; https://arisa-backend.vercel.app"
+    "VITE_API_URL": " arisa_api_url"
   }
 }
