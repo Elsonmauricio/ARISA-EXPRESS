@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
   Package, Truck, Plane, MapPin, Search,
   AlertCircle, CheckCircle2, Clock, XCircle,
-  Plus, ChevronDown
+  Plus, ChevronDown, ExternalLink
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
@@ -463,16 +463,22 @@ function ShipmentList() {
       IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
       OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
       DELIVERED: 'text-green-400 bg-green-400/10',
-      CANCELLED: 'text-red-400 bg-red-400/10'
+      CANCELLED: 'text-red-400 bg-red-400/10',
+      REGISTERED: 'text-gray-400 bg-gray-400/10',
+      SHIPPED: 'text-blue-400 bg-blue-400/10',
+      IN_CUSTOMS: 'text-orange-400 bg-orange-400/10',
+      READY_FOR_PICKUP: 'text-cyan-400 bg-cyan-400/10',
+      PICKED_UP: 'text-green-400 bg-green-400/10'
     };
     return colors[status] || 'text-white/60 bg-white/10';
   };
 
   const getStatusIcon = (status: string) => {
-    if (status === 'DELIVERED') return <CheckCircle2 className="w-4 h-4" />;
+    if (status === 'DELIVERED' || status === 'PICKED_UP') return <CheckCircle2 className="w-4 h-4" />;
     if (status === 'CANCELLED') return <XCircle className="w-4 h-4" />;
-    if (status === 'OUT_FOR_DELIVERY') return <Truck className="w-4 h-4" />;
-    if (status === 'IN_TRANSIT') return <Plane className="w-4 h-4" />;
+    if (status === 'OUT_FOR_DELIVERY' || status === 'READY_FOR_PICKUP') return <Truck className="w-4 h-4" />;
+    if (status === 'IN_TRANSIT' || status === 'SHIPPED') return <Plane className="w-4 h-4" />;
+    if (status === 'IN_CUSTOMS' || status === 'CUSTOMS') return <AlertCircle className="w-4 h-4" />;
     return <Clock className="w-4 h-4" />;
   };
 
@@ -768,16 +774,22 @@ function TrackingForm() {
       IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
       OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
       DELIVERED: 'text-green-400 bg-green-400/10',
-      CANCELLED: 'text-red-400 bg-red-400/10'
+      CANCELLED: 'text-red-400 bg-red-400/10',
+      REGISTERED: 'text-gray-400 bg-gray-400/10',
+      SHIPPED: 'text-blue-400 bg-blue-400/10',
+      IN_CUSTOMS: 'text-orange-400 bg-orange-400/10',
+      READY_FOR_PICKUP: 'text-cyan-400 bg-cyan-400/10',
+      PICKED_UP: 'text-green-400 bg-green-400/10'
     };
     return colors[status] || 'text-white/60 bg-white/10';
   };
 
   const getStatusIcon = (status: string) => {
-    if (status === 'DELIVERED') return <CheckCircle2 className="w-4 h-4" />;
+    if (status === 'DELIVERED' || status === 'PICKED_UP') return <CheckCircle2 className="w-4 h-4" />;
     if (status === 'CANCELLED') return <XCircle className="w-4 h-4" />;
-    if (status === 'OUT_FOR_DELIVERY') return <Truck className="w-4 h-4" />;
-    if (status === 'IN_TRANSIT') return <Plane className="w-4 h-4" />;
+    if (status === 'OUT_FOR_DELIVERY' || status === 'READY_FOR_PICKUP') return <Truck className="w-4 h-4" />;
+    if (status === 'IN_TRANSIT' || status === 'SHIPPED') return <Plane className="w-4 h-4" />;
+    if (status === 'IN_CUSTOMS' || status === 'CUSTOMS') return <AlertCircle className="w-4 h-4" />;
     return <Clock className="w-4 h-4" />;
   };
 
@@ -809,12 +821,12 @@ function TrackingForm() {
 
         {result && (
           <div className="mt-6 space-y-4">
-            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/10 pb-3 gap-3">
               <div>
                  <div className="text-xs text-white/40">{t('ship.codigo')}</div>
                 <div className="font-mono text-gold">{result.trackingCode}</div>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                  <div className="text-xs text-white/40">{t('ship.status')}</div>
                 <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(result.status)}`}>
                   {getStatusIcon(result.status)}
@@ -822,6 +834,16 @@ function TrackingForm() {
                 </div>
               </div>
             </div>
+            {result.cttLink && (
+              <a
+                href={result.cttLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-gold text-black rounded-lg font-semibold hover:opacity-90 transition-opacity text-sm"
+              >
+                <ExternalLink className="w-4 h-4" /> {t('ship.acompanharCtt')}
+              </a>
+            )}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-white/60">{t('ship.origem')}</span>

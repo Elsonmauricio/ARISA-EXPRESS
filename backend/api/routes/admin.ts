@@ -3,6 +3,8 @@ import { Router } from 'express';
 import { AdminController } from '../../controllers/adminController';
 import { LeadController } from '../../controllers/leadController';
 import { authenticate, authorize } from '../../middleware/auth';
+import { validate } from '../../middleware/validation';
+import { adminCreateShipmentSchema, updateCttSchema } from '../../types/validation';
 
 const router = Router();
 
@@ -13,8 +15,11 @@ router.use(authorize('ADMIN', 'OPERATOR'));
 // Rotas existentes
 router.get('/stats', AdminController.getStats);
 router.get('/shipments', AdminController.getAllShipments);
+router.get('/shipments/search', AdminController.searchShipments);
 router.get('/shipments/:id', AdminController.getShipmentDetails);
+router.post('/shipments', validate(adminCreateShipmentSchema), AdminController.createShipment);
 router.patch('/shipments/:id/status', AdminController.updateShipmentStatus);
+router.patch('/shipments/:id/ctt', validate(updateCttSchema), AdminController.updateCtt);
 router.get('/users', AdminController.getAllUsers);
 router.patch('/users/:id/role', AdminController.changeUserRole);
 router.delete('/users/:id', AdminController.deleteUser);

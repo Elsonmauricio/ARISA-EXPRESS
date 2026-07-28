@@ -25,7 +25,15 @@ interface Shipment {
   status: string;
   createdAt: any;
   senderName: string;
+  senderContact?: string;
   receiverName: string;
+  receiverContact?: string;
+  category?: string;
+  freightValue?: number;
+  paymentStatus?: string;
+  cttCode?: string;
+  cttLink?: string;
+  route?: string;
   userId: string;
 }
 
@@ -135,6 +143,291 @@ function StatsCards({ stats }: { stats: any }) {
   );
 }
 
+// ======================== NOVA ENCOMENDA (ADMIN) ========================
+function NewShipmentForm() {
+  const [form, setForm] = useState({
+    origin: 'Lisboa',
+    destination: 'Luanda',
+    route: 'Lisboa » Luanda',
+    senderName: '',
+    senderContact: '',
+    senderPhone: '',
+    receiverName: '',
+    receiverContact: '',
+    receiverPhone: '',
+    weight: '',
+    category: '',
+    freightValue: '',
+    price: '',
+    paymentStatus: 'PENDING',
+    status: 'REGISTERED',
+    description: '',
+    cttCode: '',
+    cttLink: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { t } = useT();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const payload: any = {
+        ...form,
+        weight: parseFloat(form.weight) || 0,
+        freightValue: form.freightValue ? parseFloat(form.freightValue) : 0,
+        price: form.price ? parseFloat(form.price) : 0,
+        cttLink: form.cttLink || ''
+      };
+
+      const response = await fetch(api('/api/admin/shipments'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await response.json();
+      if (json.success) {
+        setSuccess(t('admin.encomendaCriada'));
+        setForm({
+          origin: 'Lisboa', destination: 'Luanda', route: 'Lisboa » Luanda',
+          senderName: '', senderContact: '', senderPhone: '',
+          receiverName: '', receiverContact: '', receiverPhone: '',
+          weight: '', category: '', freightValue: '', price: '',
+          paymentStatus: 'PENDING', status: 'REGISTERED',
+          description: '', cttCode: '', cttLink: ''
+        });
+      } else {
+        setError(json.error || t('admin.erroCriarEncomenda'));
+      }
+    } catch (err) {
+      setError(t('admin.erroConexao'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
+      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.novaEncomenda')}</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.origem')}</label>
+            <select value={form.origin} onChange={e => setForm({...form, origin: e.target.value, route: `${e.target.value} » ${form.destination}`})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none">
+              <option value="Lisboa">Lisboa</option>
+              <option value="Luanda">Luanda</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.destino')}</label>
+            <select value={form.destination} onChange={e => setForm({...form, destination: e.target.value, route: `${form.origin} » ${e.target.value}`})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none">
+              <option value="Lisboa">Lisboa</option>
+              <option value="Luanda">Luanda</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.status')}</label>
+            <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none">
+              <option value="REGISTERED">{t('status.REGISTERED')}</option>
+              <option value="SHIPPED">{t('status.SHIPPED')}</option>
+              <option value="IN_CUSTOMS">{t('status.IN_CUSTOMS')}</option>
+              <option value="READY_FOR_PICKUP">{t('status.READY_FOR_PICKUP')}</option>
+              <option value="PICKED_UP">{t('status.PICKED_UP')}</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.peso')} (kg)</label>
+            <input type="number" value={form.weight} onChange={e => setForm({...form, weight: e.target.value})} required className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.remetente')}</label>
+            <input type="text" value={form.senderName} onChange={e => setForm({...form, senderName: e.target.value})} required className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('ship.remetenteTel')}</label>
+            <input type="tel" value={form.senderPhone} onChange={e => setForm({...form, senderPhone: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('ship.destinatario')}</label>
+            <input type="text" value={form.receiverName} onChange={e => setForm({...form, receiverName: e.target.value})} required className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('ship.destinatarioTel')}</label>
+            <input type="tel" value={form.receiverPhone} onChange={e => setForm({...form, receiverPhone: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.categoria')}</label>
+            <input type="text" value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder="Ex: Eletrónicos, Roupas..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.valorFrete')}</label>
+            <input type="number" value={form.freightValue} onChange={e => setForm({...form, freightValue: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.preco')}</label>
+            <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.estadoFinanceiro')}</label>
+            <select value={form.paymentStatus} onChange={e => setForm({...form, paymentStatus: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none">
+              <option value="PENDING">{t('admin.pendente')}</option>
+              <option value="PAID">{t('admin.pago')}</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.codigoCtt')}</label>
+            <input type="text" value={form.cttCode} onChange={e => setForm({...form, cttCode: e.target.value})} placeholder="Ex: XX123456789PT" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.linkCtt')}</label>
+            <input type="url" value={form.cttLink} onChange={e => setForm({...form, cttLink: e.target.value})} placeholder="https://www.ctt.pt/..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs text-white/60 mb-1">{t('ship.descricao')}</label>
+          <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none resize-none" />
+        </div>
+
+        {error && <div className="text-red-400 text-sm bg-red-500/10 p-3 rounded-lg">{error}</div>}
+        {success && <div className="text-green-400 text-sm bg-green-500/10 p-3 rounded-lg">{success}</div>}
+
+        <button type="submit" disabled={loading} className="px-6 py-2.5 bg-gold text-black rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm">
+          {loading ? t('admin.aProcessar') : t('admin.registarEncomenda')}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function getStatusColor(status: string) {
+  const colors: Record<string, string> = {
+    PENDING: 'text-yellow-400 bg-yellow-400/10',
+    COLLECTED: 'text-blue-400 bg-blue-400/10',
+    IN_TRANSIT: 'text-lilac-400 bg-lilac-400/10',
+    CUSTOMS: 'text-orange-400 bg-orange-400/10',
+    IN_PORTUGAL: 'text-cyan-400 bg-cyan-400/10',
+    IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
+    OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
+    DELIVERED: 'text-green-400 bg-green-400/10',
+    CANCELLED: 'text-red-400 bg-red-400/10',
+    REGISTERED: 'text-gray-400 bg-gray-400/10',
+    SHIPPED: 'text-blue-400 bg-blue-400/10',
+    IN_CUSTOMS: 'text-orange-400 bg-orange-400/10',
+    READY_FOR_PICKUP: 'text-cyan-400 bg-cyan-400/10',
+    PICKED_UP: 'text-green-400 bg-green-400/10'
+  };
+  return colors[status] || 'text-white/60 bg-white/10';
+}
+
+// ======================== ADMIN SHIPMENT ROW ========================
+function AdminShipmentRow({ s, onUpdateStatus }: { s: Shipment; onUpdateStatus: (id: string, status: string) => void }) {
+  const [editingCtt, setEditingCtt] = useState(false);
+  const [cttCode, setCttCode] = useState(s.cttCode || '');
+  const [cttLink, setCttLink] = useState(s.cttLink || '');
+  const [savingCtt, setSavingCtt] = useState(false);
+  const { t } = useT();
+
+  const saveCtt = async () => {
+    setSavingCtt(true);
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(api(`/api/admin/shipments/${s.id}/ctt`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ cttCode, cttLink })
+      });
+      setEditingCtt(false);
+    } catch (err) {
+      alert(t('admin.erroStatus'));
+    } finally {
+      setSavingCtt(false);
+    }
+  };
+
+  return (
+    <tr className="border-b border-white/5 hover:bg-white/5 transition-colors">
+      <td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
+      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
+      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.receiverName || '—'}</td>
+      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} → {s.destination}</td>
+      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} {t('ship.kg')}</td>
+      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{s.category || '—'}</td>
+      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">€ {s.freightValue?.toFixed(2) || '—'}</td>
+      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.paymentStatus === 'PAID' ? 'text-green-400 bg-green-400/10' : 'text-yellow-400 bg-yellow-400/10'}`}>
+          {s.paymentStatus === 'PAID' ? t('admin.pago') : t('admin.pendente')}
+        </span>
+      </td>
+      <td className="py-3 px-2 sm:px-4">
+        <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(s.status)}`}>
+          {t(`status.${s.status}`)}
+        </span>
+      </td>
+      <td className="py-3 px-2 sm:px-4 text-xs">
+        {!editingCtt ? (
+          <div className="flex items-center gap-1">
+            <span className="text-white/60 truncate max-w-[80px]">{s.cttCode || '—'}</span>
+            <button onClick={() => setEditingCtt(true)} className="text-blue-400 hover:text-blue-300">
+              <Edit className="w-3 h-3" />
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            <input type="text" value={cttCode} onChange={e => setCttCode(e.target.value)} placeholder="Código CTT" className="w-full px-2 py-1 bg-white/5 border border-white/10 rounded text-white text-[10px] focus:border-gold outline-none" />
+            <input type="url" value={cttLink} onChange={e => setCttLink(e.target.value)} placeholder="Link CTT" className="w-full px-2 py-1 bg-white/5 border border-white/10 rounded text-white text-[10px] focus:border-gold outline-none" />
+            <button onClick={saveCtt} disabled={savingCtt} className="text-[10px] text-gold hover:underline">
+              {savingCtt ? t('admin.aProcessar') : t('admin.guardar')}
+            </button>
+          </div>
+        )}
+      </td>
+      <td className="py-3 px-2 sm:px-4">
+        <select
+          value={s.status}
+          onChange={(e) => onUpdateStatus(s.id, e.target.value)}
+          className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none max-w-[100px]"
+        >
+          <option value="REGISTERED">{t('status.REGISTERED')}</option>
+          <option value="SHIPPED">{t('status.SHIPPED')}</option>
+          <option value="IN_CUSTOMS">{t('status.IN_CUSTOMS')}</option>
+          <option value="READY_FOR_PICKUP">{t('status.READY_FOR_PICKUP')}</option>
+          <option value="PICKED_UP">{t('status.PICKED_UP')}</option>
+          <option value="PENDING">{t('status.PENDING')}</option>
+          <option value="COLLECTED">{t('status.COLLECTED')}</option>
+          <option value="IN_TRANSIT">{t('status.IN_TRANSIT')}</option>
+          <option value="CUSTOMS">{t('status.CUSTOMS')}</option>
+          <option value="IN_PORTUGAL">{t('status.IN_PORTUGAL')}</option>
+          <option value="IN_ANGOLA">{t('status.IN_ANGOLA')}</option>
+          <option value="OUT_FOR_DELIVERY">{t('status.OUT_FOR_DELIVERY')}</option>
+          <option value="DELIVERED">{t('status.DELIVERED')}</option>
+          <option value="CANCELLED">{t('status.CANCELLED')}</option>
+        </select>
+      </td>
+    </tr>
+  );
+}
+
 // ======================== ADMIN SHIPMENT LIST ========================
 function AdminShipmentList() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -211,25 +504,11 @@ function AdminShipmentList() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      PENDING: 'text-yellow-400 bg-yellow-400/10',
-      COLLECTED: 'text-blue-400 bg-blue-400/10',
-      IN_TRANSIT: 'text-lilac-400 bg-lilac-400/10',
-      CUSTOMS: 'text-orange-400 bg-orange-400/10',
-      IN_PORTUGAL: 'text-cyan-400 bg-cyan-400/10',
-      IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
-      OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
-      DELIVERED: 'text-green-400 bg-green-400/10',
-      CANCELLED: 'text-red-400 bg-red-400/10'
-    };
-    return colors[status] || 'text-white/60 bg-white/10';
-  };
-
   const filtered = shipments.filter(s => {
     const matchFilter = filter === 'all' || s.status === filter;
     const matchSearch = s.trackingCode.toLowerCase().includes(search.toLowerCase()) ||
-                        s.senderName.toLowerCase().includes(search.toLowerCase());
+                        s.senderName.toLowerCase().includes(search.toLowerCase()) ||
+                        (s.receiverName || '').toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
 
@@ -257,6 +536,11 @@ function AdminShipmentList() {
           className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none"
         >
           <option value="all">{t('admin.todosStatus')}</option>
+          <option value="REGISTERED">{t('status.REGISTERED')}</option>
+          <option value="SHIPPED">{t('status.SHIPPED')}</option>
+          <option value="IN_CUSTOMS">{t('status.IN_CUSTOMS')}</option>
+          <option value="READY_FOR_PICKUP">{t('status.READY_FOR_PICKUP')}</option>
+          <option value="PICKED_UP">{t('status.PICKED_UP')}</option>
           <option value="PENDING">{t('status.PENDING')}</option>
           <option value="COLLECTED">{t('status.COLLECTED')}</option>
           <option value="IN_TRANSIT">{t('status.IN_TRANSIT')}</option>
@@ -278,59 +562,35 @@ function AdminShipmentList() {
       <div className="overflow-x-auto px-4 sm:px-0">
         <div className="inline-block min-w-full align-middle">
           <table className="min-w-full text-sm">
-            <thead className="border-b border-white/10">
-              <tr>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.codigo')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.remetente')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.rota')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.peso')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.preco')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.status')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((s) => (
-                <tr key={s.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                  <td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} → {s.destination}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} {t('ship.kg')}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">€ {s.price?.toFixed(2) || '—'}</td>
-                  <td className="py-3 px-2 sm:px-4">
-                    <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(s.status)}`}>
-                      {t(`status.${s.status}`)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-2 sm:px-4">
-                    <select
-                      value={s.status}
-                      onChange={(e) => updateStatus(s.id, e.target.value)}
-                      className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none max-w-[100px]"
-                    >
-                      <option value="PENDING">{t('status.PENDING')}</option>
-                      <option value="COLLECTED">{t('status.COLLECTED')}</option>
-                      <option value="IN_TRANSIT">{t('status.IN_TRANSIT')}</option>
-                      <option value="CUSTOMS">{t('status.CUSTOMS')}</option>
-                      <option value="IN_PORTUGAL">{t('status.IN_PORTUGAL')}</option>
-                      <option value="IN_ANGOLA">{t('status.IN_ANGOLA')}</option>
-                      <option value="OUT_FOR_DELIVERY">{t('status.OUT_FOR_DELIVERY')}</option>
-                      <option value="DELIVERED">{t('status.DELIVERED')}</option>
-                      <option value="CANCELLED">{t('status.CANCELLED')}</option>
-                    </select>
-                  </td>
+              <thead className="border-b border-white/10">
+                <tr>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.codigo')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.remetente')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.destinatario')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.rota')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.peso')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.categoria')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.valorFrete')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.estadoFinanceiro')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.status')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.ctt')}</th>
+                  <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+               </thead>
+              <tbody>
+                {filtered.map((s) => (
+                  <AdminShipmentRow key={s.id} s={s} onUpdateStatus={updateStatus} />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+        {filtered.length === 0 && (
+          <div className="text-center py-8 text-white/40">{t('admin.nenhumaEncomenda')}</div>
+        )}
       </div>
-      {filtered.length === 0 && (
-        <div className="text-center py-8 text-white/40">{t('admin.nenhumaEncomenda')}</div>
-      )}
-    </div>
-  );
-}
+    );
+  }
 
 // ======================== ADMIN USER LIST ========================
 function AdminUserList() {
@@ -1245,7 +1505,7 @@ function AdminLeadsList() {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { t } = useT();
-  const [activeTab, setActiveTab] = useState<'overview' | 'shipments' | 'users' | 'routes' | 'messages'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'newShipment' | 'shipments' | 'users' | 'routes' | 'messages'>('overview');
   const [stats, setStats] = useState({ totalShipments: 0, activeShipments: 0, deliveredToday: 0, totalUsers: 0 });
   const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
   const [statusDistribution, setStatusDistribution] = useState<Record<string, number>>({});
@@ -1346,6 +1606,7 @@ export default function AdminDashboard() {
 
   const tabs = [
     { id: 'overview', label: t('admin.tabVisao'), icon: TrendingUp },
+    { id: 'newShipment', label: t('admin.tabNovaEncomenda'), icon: Plus },
     { id: 'shipments', label: t('admin.tabEncomendas'), icon: Package },
     { id: 'users', label: t('admin.tabUtilizadores'), icon: Users },
     { id: 'routes', label: t('admin.tabRotas'), icon: MapPin },
@@ -1484,6 +1745,7 @@ export default function AdminDashboard() {
               </>
             )}
 
+            {activeTab === 'newShipment' && <NewShipmentForm />}
             {activeTab === 'shipments' && <AdminShipmentList />}
             {activeTab === 'users' && <AdminUserList />}
             {activeTab === 'routes' && <AdminRouteManager />}
