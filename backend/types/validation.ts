@@ -31,6 +31,38 @@ export const createShipmentSchema = z.object({
   })
 });
 
+export const adminCreateShipmentSchema = z.object({
+  body: z.object({
+    trackingCode: z.string().min(3).optional(),
+    origin: z.string().min(2),
+    destination: z.string().min(2),
+    route: z.string().min(2).optional(),
+    senderName: z.string().min(2),
+    senderContact: z.string().optional(),
+    senderPhone: z.string().optional(),
+    receiverName: z.string().min(2),
+    receiverContact: z.string().optional(),
+    receiverPhone: z.string().optional(),
+    weight: z.number().positive(),
+    category: z.string().optional(),
+    freightValue: z.number().nonnegative().optional(),
+    price: z.number().nonnegative().optional(),
+    paymentStatus: z.enum(['PAID', 'PENDING']).optional(),
+    serviceType: z.enum(['REDIRECT', 'COURIER', 'PERSONAL_SHOPPER', 'BUSINESS']).optional(),
+    status: z.enum(['REGISTERED', 'SHIPPED', 'IN_CUSTOMS', 'READY_FOR_PICKUP', 'PICKED_UP', 'PENDING', 'COLLECTED', 'IN_TRANSIT', 'CUSTOMS', 'IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']).optional(),
+    description: z.string().optional(),
+    cttCode: z.string().optional(),
+    cttLink: z.string().url().optional().or(z.literal(''))
+  })
+});
+
+export const updateCttSchema = z.object({
+  body: z.object({
+    cttCode: z.string().optional(),
+    cttLink: z.string().url().optional().or(z.literal(''))
+  })
+});
+
 export const updateProfileSchema = z.object({
   body: z.object({
     name: z.string().min(2).max(100).optional(),

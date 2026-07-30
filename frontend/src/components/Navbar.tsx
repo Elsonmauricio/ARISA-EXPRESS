@@ -9,13 +9,21 @@ import { scrollToAnchor } from '../lib/scroll';
 import { useT } from '../i18n/LanguageContext';
 import { api } from '../lib/api';
 
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  phone?: string;
+  company?: string;
+}
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<null | any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [dropdowns, setDropdowns] = useState({
     brand: false,
     shipments: false,

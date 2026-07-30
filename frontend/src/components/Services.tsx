@@ -1,62 +1,55 @@
 import React, { Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { Search, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { Float, OrbitControls, Environment } from '@react-three/drei';
-import { Forklift3D } from './three/Forklift3D'; // Assumindo que agora são .tsx
-import { Mailbox3D } from './three/Mailbox3D'; // Assumindo que agora são .tsx
-import { Shopping3D } from './three/Shopping3D'; // Assumindo que agora são .tsx
+import { Forklift3D } from './three/Forklift3D';
+import { Mailbox3D } from './three/Mailbox3D';
+import { Shopping3D } from './three/Shopping3D';
 import { useT } from '../i18n/LanguageContext';
+import { whatsappUrl } from '../lib/utils';
 
 interface Service {
-  n: string;
+  id: string;
   component: JSX.Element;
   title: string;
-  desc: string;
+  description: string;
   accent: string;
   iconBg: string;
 }
 
 const getServices = (t: (key: string) => string): Service[] => ([
   {
-    n: '1',
+    id: '1',
     component: <Forklift3D />,
     title: t('services.1.title'),
-    desc: t('services.1.desc'),
+    description: t('services.1.desc'),
     accent: 'from-lilac-500/40 to-lilac-700/5',
     iconBg: 'bg-lilac-500/10',
   },
   {
-    n: '2',
+    id: '2',
     component: <Mailbox3D />,
     title: t('services.2.title'),
-    desc: t('services.2.desc'),
+    description: t('services.2.desc'),
     accent: 'from-gold/40 to-gold/0',
     iconBg: 'bg-gold/10',
   },
   {
-    n: '3',
+    id: '3',
     component: <Shopping3D />,
     title: t('services.3.title'),
-    desc: t('services.3.desc'),
+    description: t('services.3.desc'),
     accent: 'from-lilac-400/40 to-gold/10',
     iconBg: 'bg-lilac-400/10',
   },
 ]);
 
-const WHATSAPP_NUMBER = '351934292082';
-
 const openWhatsApp = (message: string): void => {
-  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message )}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
+  window.open(whatsappUrl(message), '_blank', 'noopener,noreferrer');
 };
 
-interface ServiceCardProps {
-  s: Service;
-  i: number;
-}
-
-function ServiceCard({ s, i }: ServiceCardProps): JSX.Element {
+function ServiceCard({ s, i }: { s: Service; i: number }): JSX.Element {
   const { t } = useT();
   const waMessage = t('services.waMsg', { title: s.title });
   return (
@@ -79,8 +72,8 @@ function ServiceCard({ s, i }: ServiceCardProps): JSX.Element {
 
       {/* Conteúdo */}
        <div className="relative z-10 p-6 sm:p-8 flex flex-col h-full min-h-[360px] sm:min-h-[420px] overflow-hidden">
-        {/* Número Dourado Top-Left */}
-        <span className="absolute top-4 sm:top-6 left-4 sm:left-8 font-display text-3xl sm:text-4xl font-bold text-gold opacity-80">{s.n}</span>
+         {/* Número Dourado Top-Left */}
+         <span className="absolute top-4 sm:top-6 left-4 sm:left-8 font-display text-3xl sm:text-4xl font-bold text-gold opacity-80">{s.id}</span>
 
         {/* Figura 3D Canvas */}
         <div className="w-full h-40 sm:h-48 mt-4">
@@ -101,7 +94,7 @@ function ServiceCard({ s, i }: ServiceCardProps): JSX.Element {
           {s.title}
         </h3>
         <p className="mt-3 text-sm text-white/50 leading-relaxed flex-1">
-          {s.desc}
+          {s.description}
         </p>
 
         <div className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-gold/80 group-hover:text-gold transition-all duration-300">
@@ -130,7 +123,7 @@ export default function Services(): JSX.Element {
 
         <div className="grid md:grid-cols-3 gap-6">
           {getServices(t).map((s, i) => (
-            <ServiceCard key={s.n} s={s} i={i} />
+            <ServiceCard key={s.id} s={s} i={i} />
           ))}
         </div>
       </div>

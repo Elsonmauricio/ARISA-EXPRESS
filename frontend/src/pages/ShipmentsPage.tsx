@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
   Package, Truck, Plane, MapPin, Search,
   AlertCircle, CheckCircle2, Clock, XCircle,
-  Plus, ChevronDown
+  Plus, ChevronDown, ExternalLink
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
@@ -33,10 +33,12 @@ interface Shipment {
   weight: number;
   price: number;
   status: string;
-  createdAt: any; // Pode ser Timestamp do Firestore, string ISO ou Date
+  createdAt: any;
   senderName: string;
   receiverName: string;
-  flightDate?: any; // Opcional, para mostrar na lista se existir
+  flightDate?: any;
+  cttCode?: string;
+  cttLink?: string;
 }
 
 // ======================== FUNÇÃO AUXILIAR PARA FORMATAR DATAS ========================
@@ -768,7 +770,9 @@ function TrackingForm() {
       IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
       OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
       DELIVERED: 'text-green-400 bg-green-400/10',
-      CANCELLED: 'text-red-400 bg-red-400/10'
+      CANCELLED: 'text-red-400 bg-red-400/10',
+      READY_FOR_PICKUP: 'text-emerald-300 bg-emerald-300/10',
+      PICKED_UP: 'text-gray-400 bg-gray-400/10'
     };
     return colors[status] || 'text-white/60 bg-white/10';
   };
@@ -778,6 +782,8 @@ function TrackingForm() {
     if (status === 'CANCELLED') return <XCircle className="w-4 h-4" />;
     if (status === 'OUT_FOR_DELIVERY') return <Truck className="w-4 h-4" />;
     if (status === 'IN_TRANSIT') return <Plane className="w-4 h-4" />;
+    if (status === 'READY_FOR_PICKUP') return <Package className="w-4 h-4" />;
+    if (status === 'PICKED_UP') return <CheckCircle2 className="w-4 h-4" />;
     return <Clock className="w-4 h-4" />;
   };
 
@@ -807,22 +813,36 @@ function TrackingForm() {
           )}
         </form>
 
-        {result && (
-          <div className="mt-6 space-y-4">
-            <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <div>
-                 <div className="text-xs text-white/40">{t('ship.codigo')}</div>
-                <div className="font-mono text-gold">{result.trackingCode}</div>
-              </div>
-              <div className="text-right">
-                 <div className="text-xs text-white/40">{t('ship.status')}</div>
-                <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(result.status)}`}>
-                  {getStatusIcon(result.status)}
-                  {result.status.replace('_', ' ')}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm">
+         {result && (
+           <div className="mt-6 space-y-4">
+             <div className="flex justify-between items-center border-b border-white/10 pb-3">
+               <div>
+                  <div className="text-xs text-white/40">{t('ship.codigo')}</div>
+                 <div className="font-mono text-gold">{result.trackingCode}</div>
+               </div>
+               <div className="text-right">
+                  <div className="text-xs text-white/40">{t('ship.status')}</div>
+                 <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(result.status)}`}>
+                   {getStatusIcon(result.status)}
+                   {t(`status.${result.status}`)}
+                 </div>
+               </div>
+             </div>
+
+             {result.cttLink && (
+               <div>
+                 <a
+                   href={result.cttLink}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="inline-flex items-center gap-2 px-4 py-2 bg-gold text-black rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
+                 >
+                   <ExternalLink className="w-4 h-4" /> {t('track.acompanharCtt')}
+                 </a>
+               </div>
+             )}
+
+             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-white/60">{t('ship.origem')}</span>
                 <span className="text-white">{result.origin}</span>

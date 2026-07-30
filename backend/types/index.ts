@@ -11,11 +11,18 @@ export interface User {
 export interface Shipment {
   id: string;
   trackingCode: string;
-  status: 'PENDING' | 'COLLECTED' | 'IN_TRANSIT' | 'CUSTOMS' | 'IN_PORTUGAL' |'IN_ANGOLA'| 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED';
+  status: 'PENDING' | 'COLLECTED' | 'IN_TRANSIT' | 'CUSTOMS' | 'IN_PORTUGAL' |'IN_ANGOLA'| 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'READY_FOR_PICKUP' | 'PICKED_UP';
   origin: string;
   destination: string;
   weight: number;
   price?: number;
+  readyForPickupAt?: Date;
+  pickupDeadline?: Date;
+  calculatedFine?: number;
+  daysUntilDeadline?: number;
+  senderName?: string;
+  receiverName?: string;
+  receiverPhone?: string;
 }
 
 export interface TrackingUpdate {

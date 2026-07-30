@@ -13,7 +13,7 @@ export function TelemetryCard({
   description,
   className = "",
 }: {
-  tag: string;
+  tag?: string;
   tagTone?: AeroTagTone;
   value: React.ReactNode;
   unit?: string;

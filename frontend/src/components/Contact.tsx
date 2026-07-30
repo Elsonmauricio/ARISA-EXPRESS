@@ -6,13 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SectionHeading from './SectionHeading';
 import { useT } from '../i18n/LanguageContext';
 import { api } from '../lib/api';
+import { whatsappUrl } from '../lib/utils';
 
 export default function Contact() {
   const { t } = useT();
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const whatsappUrl = 'https://wa.me/351934292082';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,7 +181,7 @@ export default function Contact() {
             <div className="glass-strong border-gradient p-6 text-center rounded-3xl">
               <h3 className="font-bold mb-2">{t('contact.whatsappTitle')}</h3>
               <a
-                href={whatsappUrl}
+                href={whatsappUrl(t('contact.whatsapp'))}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block bg-green-600 text-white w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"

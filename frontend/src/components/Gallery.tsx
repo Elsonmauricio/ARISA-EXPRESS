@@ -17,7 +17,7 @@ interface GalleryImage {
   category: string;
 }
 
-const getGalleryImages = (t) => ([
+const getGalleryImages = (t: (key: string) => string): GalleryImage[] => ([
   {
     url: entradaImg,
     title: t('gallery.entrada'),

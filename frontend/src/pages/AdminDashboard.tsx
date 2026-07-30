@@ -1,5 +1,5 @@
 // src/pages/AdminDashboard.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Package, Truck, Users, TrendingUp,
@@ -27,6 +27,13 @@ interface Shipment {
   senderName: string;
   receiverName: string;
   userId: string;
+  readyForPickupAt?: any;
+  pickupDeadline?: any;
+  calculatedFine?: number;
+  daysUntilDeadline?: number;
+  receiverPhone?: string;
+  cttCode?: string;
+  cttLink?: string;
 }
 
 interface User {
@@ -142,10 +149,12 @@ function AdminShipmentList() {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [editingCttId, setEditingCttId] = useState<string | null>(null);
+  const [cttForm, setCttForm] = useState<Record<string, { code: string; link: string }>>({});
   const navigate = useNavigate();
   const { t } = useT();
 
-  const fetchShipments = async () => {
+  const fetchShipments = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -154,7 +163,11 @@ function AdminShipmentList() {
         return;
       }
 
-      const response = await fetch(api('/api/admin/shipments'), {
+      const endpoint = filter === 'READY_FOR_PICKUP'
+        ? api('/api/admin/shipments/ready-for-pickup')
+        : api('/api/admin/shipments');
+
+      const response = await fetch(endpoint, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -177,11 +190,11 @@ function AdminShipmentList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, t, navigate, api]);
 
   useEffect(() => {
     fetchShipments();
-  }, []);
+  }, [fetchShipments]);
 
   const updateStatus = async (id: string, status: string) => {
     try {
@@ -204,10 +217,70 @@ function AdminShipmentList() {
 
       const json = await response.json();
       if (json.success) {
+        if (status === 'READY_FOR_PICKUP') {
+          const current = shipments.find(x => x.id === id);
+          if (current) {
+            await sendWhatsApp(current);
+          }
+        }
         fetchShipments();
       }
     } catch (err) {
       alert(t('admin.erroStatus'));
+    }
+  };
+
+  const sendWhatsApp = async (shipment: Shipment) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(api(`/api/admin/shipments/${shipment.id}/whatsapp`), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const json = await response.json();
+      if (json.success && json.data?.link) {
+        window.open(json.data.link, '_blank');
+      } else {
+        alert(json.error || t('admin.erroWhatsapp'));
+      }
+    } catch {
+      alert(t('admin.erroWhatsapp'));
+    }
+  };
+
+  const updateCtt = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const form = cttForm[id] || { code: '', link: '' };
+      const response = await fetch(api(`/api/admin/shipments/${id}/ctt`), {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ cttCode: form.code, cttLink: form.link })
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      const json = await response.json();
+      if (json.success) {
+        setEditingCttId(null);
+        setCttForm(prev => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+        fetchShipments();
+      } else {
+        alert(json.error || t('admin.erroWhatsapp'));
+      }
+    } catch (err) {
+      alert(t('admin.erroWhatsapp'));
     }
   };
 
@@ -221,7 +294,9 @@ function AdminShipmentList() {
       IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
       OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
       DELIVERED: 'text-green-400 bg-green-400/10',
-      CANCELLED: 'text-red-400 bg-red-400/10'
+      CANCELLED: 'text-red-400 bg-red-400/10',
+      READY_FOR_PICKUP: 'text-emerald-300 bg-emerald-300/10',
+      PICKED_UP: 'text-gray-400 bg-gray-400/10'
     };
     return colors[status] || 'text-white/60 bg-white/10';
   };
@@ -266,6 +341,8 @@ function AdminShipmentList() {
           <option value="OUT_FOR_DELIVERY">{t('status.OUT_FOR_DELIVERY')}</option>
           <option value="DELIVERED">{t('status.DELIVERED')}</option>
           <option value="CANCELLED">{t('status.CANCELLED')}</option>
+          <option value="READY_FOR_PICKUP">{t('status.READY_FOR_PICKUP')}</option>
+          <option value="PICKED_UP">{t('status.PICKED_UP')}</option>
         </select>
         <button
           onClick={fetchShipments}
@@ -285,43 +362,119 @@ function AdminShipmentList() {
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.rota')}</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.peso')}</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.preco')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.prazoLimite')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.valorMulta')}</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.status')}</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((s) => (
+                <React.Fragment key={s.id}>
                 <tr key={s.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                   <td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} → {s.destination}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} {t('ship.kg')}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">€ {s.price?.toFixed(2) || '—'}</td>
+                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">
+                    {s.pickupDeadline
+                      ? (typeof s.pickupDeadline === 'object' && s.pickupDeadline.toDate
+                        ? s.pickupDeadline.toDate().toLocaleDateString('pt-PT')
+                        : new Date(s.pickupDeadline).toLocaleDateString('pt-PT'))
+                      : '—'}
+                  </td>
+                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
+                    {s.calculatedFine !== undefined ? `€ ${s.calculatedFine.toFixed(2)}` : '—'}
+                  </td>
                   <td className="py-3 px-2 sm:px-4">
                     <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(s.status)}`}>
                       {t(`status.${s.status}`)}
                     </span>
                   </td>
-                  <td className="py-3 px-2 sm:px-4">
-                    <select
-                      value={s.status}
-                      onChange={(e) => updateStatus(s.id, e.target.value)}
-                      className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none max-w-[100px]"
-                    >
-                      <option value="PENDING">{t('status.PENDING')}</option>
-                      <option value="COLLECTED">{t('status.COLLECTED')}</option>
-                      <option value="IN_TRANSIT">{t('status.IN_TRANSIT')}</option>
-                      <option value="CUSTOMS">{t('status.CUSTOMS')}</option>
-                      <option value="IN_PORTUGAL">{t('status.IN_PORTUGAL')}</option>
-                      <option value="IN_ANGOLA">{t('status.IN_ANGOLA')}</option>
-                      <option value="OUT_FOR_DELIVERY">{t('status.OUT_FOR_DELIVERY')}</option>
-                      <option value="DELIVERED">{t('status.DELIVERED')}</option>
-                      <option value="CANCELLED">{t('status.CANCELLED')}</option>
-                    </select>
-                  </td>
-                </tr>
+                   <td className="py-3 px-2 sm:px-4">
+                     <div className="flex flex-wrap items-center gap-1">
+                       {s.status === 'READY_FOR_PICKUP' && (
+                         <button
+                           onClick={() => sendWhatsApp(s)}
+                           className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded hover:bg-emerald-500/30 transition-colors text-[10px] sm:text-xs whitespace-nowrap"
+                         >
+                           <Send className="w-3 h-3" /> {t('admin.enviarWhatsapp')}
+                         </button>
+                       )}
+                       <button
+                         onClick={() => {
+                           setEditingCttId(editingCttId === s.id ? null : s.id);
+                           setCttForm(prev => ({
+                             ...prev,
+                             [s.id]: prev[s.id] || { code: s.cttCode || '', link: s.cttLink || '' }
+                           }));
+                         }}
+                         className={`flex items-center gap-1 px-2 py-1 rounded transition-colors text-[10px] sm:text-xs whitespace-nowrap ${
+                           editingCttId === s.id
+                             ? 'bg-gold/20 text-gold'
+                             : 'bg-white/5 text-white/60 hover:bg-white/10'
+                         }`}
+                       >
+                         <Edit className="w-3 h-3" /> CTT
+                       </button>
+                       <select
+                        value={s.status}
+                        onChange={(e) => updateStatus(s.id, e.target.value)}
+                        className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none max-w-[100px]"
+                      >
+                        <option value="PENDING">{t('status.PENDING')}</option>
+                        <option value="COLLECTED">{t('status.COLLECTED')}</option>
+                        <option value="IN_TRANSIT">{t('status.IN_TRANSIT')}</option>
+                        <option value="CUSTOMS">{t('status.CUSTOMS')}</option>
+                        <option value="IN_PORTUGAL">{t('status.IN_PORTUGAL')}</option>
+                        <option value="IN_ANGOLA">{t('status.IN_ANGOLA')}</option>
+                        <option value="OUT_FOR_DELIVERY">{t('status.OUT_FOR_DELIVERY')}</option>
+                        <option value="DELIVERED">{t('status.DELIVERED')}</option>
+                        <option value="CANCELLED">{t('status.CANCELLED')}</option>
+                        <option value="READY_FOR_PICKUP">{t('status.READY_FOR_PICKUP')}</option>
+                        <option value="PICKED_UP">{t('status.PICKED_UP')}</option>
+                       </select>
+                     </div>
+                   </td>
+                 </tr>
+                 {editingCttId === s.id && (
+                   <tr key={`${s.id}-ctt`} className="border-b border-white/5 bg-white/[0.02]">
+                     <td colSpan={9} className="py-3 px-2 sm:px-4">
+                       <div className="flex flex-wrap items-center gap-2">
+                         <input
+                           type="text"
+                           placeholder={t('admin.cttCodigo')}
+                           value={cttForm[s.id]?.code || ''}
+                           onChange={(e) => setCttForm(prev => ({ ...prev, [s.id]: { ...(prev[s.id] || { code: '', link: '' }), code: e.target.value } }))}
+                           className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:border-gold outline-none min-h-[32px]"
+                         />
+                         <input
+                           type="text"
+                           placeholder={t('admin.cttLink')}
+                           value={cttForm[s.id]?.link || ''}
+                           onChange={(e) => setCttForm(prev => ({ ...prev, [s.id]: { ...(prev[s.id] || { code: '', link: '' }), link: e.target.value } }))}
+                           className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:border-gold outline-none min-h-[32px] flex-1"
+                         />
+                         <button
+                           onClick={() => updateCtt(s.id)}
+                           className="px-3 py-1 bg-gold text-black rounded text-xs font-medium hover:opacity-90 transition-opacity"
+                         >
+                           {t('admin.salvarCtt')}
+                         </button>
+                         <button
+                           onClick={() => { setEditingCttId(null); setCttForm(prev => { const next = { ...prev }; delete next[s.id]; return next; }); }}
+                           className="px-3 py-1 bg-white/5 text-white/60 rounded text-xs hover:bg-white/10 transition-colors"
+                         >
+                           {t('admin.cancelar')}
+                         </button>
+                       </div>
+                     </td>
+                   </tr>
+                 )}
+               </React.Fragment>
               ))}
-            </tbody>
+             </tbody>
           </table>
         </div>
       </div>

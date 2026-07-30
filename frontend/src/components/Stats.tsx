@@ -15,7 +15,7 @@ interface StatItem {
   label: string;
   labelTone?: 'lilas' | 'white';
   tag?: string;
-  tagTone?;
+  tagTone?: 'lilas' | 'gold' | 'white';
 }
 
 const getStats = (t: (key: string) => string): StatItem[] => [

@@ -1,7 +1,14 @@
-'use client';
+import React from 'react';
 import { motion } from 'framer-motion';
 
-export default function SectionHeading({ eyebrow, title, subtitle, align = 'left' }) {
+interface SectionHeadingProps {
+  eyebrow?: string;
+  title: React.ReactNode;
+  subtitle?: string;
+  align?: 'left' | 'center';
+}
+
+export default function SectionHeading({ eyebrow, title, subtitle, align = 'left' }: SectionHeadingProps) {
   const alignCls = align === 'center' ? 'text-center mx-auto' : 'text-left mr-auto';
   return (
     <div className={`max-w-3xl ${alignCls}`}>

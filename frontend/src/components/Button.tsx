@@ -1,6 +1,4 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-// Verifique se a pasta lib está em src/lib. Se sim, use ../
 import { cn } from '../lib/utils';
 
 interface ButtonProps {

@@ -3,7 +3,7 @@
 
 import { useState, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, AlertCircle } from 'lucide-react';
+import { Search, AlertCircle, ExternalLink } from 'lucide-react';
 import SectionHeading from './SectionHeading';
 import { GoldButton } from './Button';
 import Timeline, { StepData } from './Timeline';
@@ -33,9 +33,12 @@ interface TrackingData {
   arrivedAt?: Date | string | null;
   outForDeliveryAt?: Date | string | null;
   deliveredAt?: Date | string | null;
+  pickedUpAt?: Date | string | null;
   progress?: number;
   senderName?: string;
   receiverName?: string;
+  cttCode?: string;
+  cttLink?: string;
 }
 
 interface ApiResponse {
@@ -100,9 +103,25 @@ export default function Tracking() {
     }
   };
 
-  const getTimelineStep = (steps: StepData[]): number => {
-    return steps.length - 1;
+const getTimelineStep = (steps: StepData[], status: string): number => {
+  if (status === 'CANCELLED') return 0;
+  const currentStepIds: Record<string, number> = {
+    REGISTERED: 0,
+    PENDING: 0,
+    COLLECTED: 1,
+    IN_TRANSIT: 2,
+    CUSTOMS: 2,
+    IN_PORTUGAL: 3,
+    IN_ANGOLA: 3,
+    OUT_FOR_DELIVERY: 3,
+    READY_FOR_PICKUP: 3,
+    PICKED_UP: 4,
+    DELIVERED: 4,
   };
+  const targetIndex = currentStepIds[status];
+  if (targetIndex === undefined || targetIndex >= steps.length) return steps.length - 1;
+  return targetIndex;
+};
 
   const buildSteps = (data: TrackingData): StepData[] => {
     const status = data.status;
@@ -127,7 +146,7 @@ export default function Tracking() {
       date: formatDate(data.createdAt),
     });
 
-    if (['COLLECTED', 'IN_TRANSIT', 'CUSTOMS', 'IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED'].includes(status)) {
+    if (['COLLECTED', 'IN_TRANSIT', 'CUSTOMS', 'IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED', 'READY_FOR_PICKUP', 'PICKED_UP'].includes(status)) {
       steps.push({
         id: 'step-2',
         icon: 'Package',
@@ -137,8 +156,7 @@ export default function Tracking() {
       });
     }
 
-    if (['IN_TRANSIT', 'IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED'].includes(status)) {
-      const transitStatuses: string[] = [];
+    if (['IN_TRANSIT', 'CUSTOMS', 'IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED', 'PICKED_UP'].includes(status)) {
       if (status === 'CUSTOMS') {
         steps.push({
           id: 'step-3',
@@ -158,10 +176,7 @@ export default function Tracking() {
       }
     }
 
-    if (['IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED'].includes(status)) {
-      const isAngola = data.destination?.toLowerCase().includes('angola') || data.destination?.toLowerCase().includes('luanda') || data.destination?.toLowerCase().includes('benguela');
-      const isPortugal = data.destination?.toLowerCase().includes('portugal') || data.destination?.toLowerCase().includes('lisboa') || data.destination?.toLowerCase().includes('porto');
-      const location = isAngola ? 'AO' : isPortugal ? 'PT' : '';
+    if (['IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED', 'READY_FOR_PICKUP', 'PICKED_UP'].includes(status)) {
       if (status === 'OUT_FOR_DELIVERY' || status === 'DELIVERED') {
         steps.push({
           id: 'step-4',
@@ -170,7 +185,18 @@ export default function Tracking() {
           description: t('track.distribuicao'),
           date: formatDate(data.outForDeliveryAt),
         });
+      } else if (status === 'READY_FOR_PICKUP' || status === 'PICKED_UP') {
+        steps.push({
+          id: 'step-4',
+          icon: 'MapPin',
+          title: t('track.disponivelLevantamento'),
+          description: t('track.hubPortugal'),
+          date: formatDate(data.arrivedAt),
+        });
       } else {
+        const isAngola = data.destination?.toLowerCase().includes('angola') || data.destination?.toLowerCase().includes('luanda') || data.destination?.toLowerCase().includes('benguela');
+        const isPortugal = data.destination?.toLowerCase().includes('portugal') || data.destination?.toLowerCase().includes('lisboa') || data.destination?.toLowerCase().includes('porto');
+        const location = isAngola ? 'AO' : isPortugal ? 'PT' : '';
         steps.push({
           id: 'step-4',
           icon: 'MapPin',
@@ -191,8 +217,20 @@ export default function Tracking() {
       });
     }
 
+    if (status === 'PICKED_UP') {
+      steps.push({
+        id: 'step-5',
+        icon: 'Check',
+        title: t('track.levantada'),
+        description: t('track.levantadaDesc') || 'Encomenda levantada pelo destinatário',
+        date: formatDate(data.pickedUpAt || data.arrivedAt),
+      });
+    }
+
     return steps;
   };
+
+  const timelineSteps = result ? buildSteps(result) : [];
 
   return (
     <section id="rastrear" className="relative py-28 min-h-screen flex flex-col justify-center">
@@ -266,15 +304,28 @@ export default function Tracking() {
                     {result.trackingCode}
                   </div>
                 </div>
-                <div className="text-right">
-                   <div className="text-[10px] tracking-[0.3em] uppercase text-white/40 mb-1">
-                     {t('track.labelEstado')}
+                 <div className="text-right">
+                    <div className="text-[10px] tracking-[0.3em] uppercase text-white/40 mb-1">
+                      {t('track.labelEstado')}
+                    </div>
+                   <div className="text-gold font-semibold">
+                     {t(`status.${result.status}`)}
                    </div>
-                  <div className="text-gold font-semibold">
-                    {result.status.replace('_', ' ')}
-                  </div>
-                </div>
-              </div>
+                 </div>
+               </div>
+
+               {result.cttLink && (
+                 <div className="mb-6">
+                   <a
+                     href={result.cttLink}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="inline-flex items-center gap-2 px-4 py-2 bg-gold text-black rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
+                   >
+                     <ExternalLink className="w-4 h-4" /> {t('track.acompanharCtt')}
+                   </a>
+                 </div>
+               )}
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-white/5 rounded-xl">
                  <div>
@@ -293,12 +344,12 @@ export default function Tracking() {
                    <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelPreco')}</div>
                    <div className="text-sm text-white font-medium">{t('track.euro')} {result.price?.toFixed(2) ?? '—'}</div>
                  </div>
-              </div>
+               </div>
 
-              <Timeline
-                steps={buildSteps(result)}
-                currentStep={getTimelineStep(buildSteps(result))}
-              />
+               <Timeline
+                 steps={timelineSteps}
+                 currentStep={getTimelineStep(timelineSteps, result.status)}
+               />
 
               {result.trackingUpdates && result.trackingUpdates.length > 0 && (
                 <div className="mt-6 pt-4 border-t border-white/10">
