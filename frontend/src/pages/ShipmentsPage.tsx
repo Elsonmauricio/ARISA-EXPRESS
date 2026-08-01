@@ -554,10 +554,10 @@ function PriceTable() {
   // Dados estÃ¡ticos baseados nas imagens fornecidas
   const baseItems = [
     { item: t('ship.kg'), euro: '13,00', kz: '16.900,00' },
-    { item: t('ship.alimentos'), euro: t('ship.porKg'), kz: 'â€”' },
-    { item: t('ship.roupas'), euro: t('ship.porKg'), kz: 'â€”' },
-    { item: t('ship.calcados'), euro: t('ship.porKg'), kz: 'â€”' },
-    { item: t('ship.diversos'), euro: t('ship.porKg'), kz: 'â€”' },
+    { item: t('ship.alimentos'), euro: t('ship.porKg'), kz: '-' },
+    { item: t('ship.roupas'), euro: t('ship.porKg'), kz: '-' },
+    { item: t('ship.calcados'), euro: t('ship.porKg'), kz: '-' },
+    { item: t('ship.diversos'), euro: t('ship.porKg'), kz: '-' },
   ];
 
   const malas = [
@@ -648,7 +648,7 @@ function PriceTable() {
           {t('ship.notaAlfandega')}
         </p>
 
-        {/* EletrÃ³nicos */}
+        {/* Eletrónicos */}
         <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.eletronicos')}</h4>
         <table className="w-full text-sm">
           <thead>
@@ -690,7 +690,7 @@ function PriceTable() {
           </tbody>
         </table>
 
-        {/* Itens AlfÃ¢ndega */}
+        {/* Itens Alfandega */}
         <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.alfandega')}</h4>
         <table className="w-full text-sm">
           <thead>
@@ -715,8 +715,8 @@ function PriceTable() {
         <div className="mt-8 pt-4 border-t border-white/20 text-center">
           <p className="text-sm text-white/60">{t('ship.maisInfo')}</p>
           <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm text-white/80">
-            <span>ðŸ“ž (+244) 948 440 920</span>
-            <span>ðŸ“ž (+351) 934 292 082</span>
+            <span>📞 (+244) 948 440 920</span>
+            <span>📞 (+351) 934 292 082</span>
           </div>
         </div>
       </div>
@@ -799,7 +799,7 @@ function TrackingForm() {
               placeholder={t('ship.rastrearPlaceholder')}
               className="flex-1 px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
             />
-            <GoldButton type="submit" disabled={loading} className="w-full sm:w-auto px-6">
+            <GoldButton type="submit" disabled={loading} className="w-full text-black sm:w-auto px-6">
               {loading ? '...' : t('ship.rastrearBotao')}
             </GoldButton>
           </div>

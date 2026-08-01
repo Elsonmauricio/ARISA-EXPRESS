@@ -991,7 +991,7 @@ function AdminRouteManager() {
             className="px-3 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <div className="lg:col-span-6 flex flex-col sm:flex-row gap-2">
-            <GoldButton type="submit" className="py-2 px-4 text-sm">
+            <GoldButton type="submit" className="py-2 px-4 text-black">
               {editingId ? t('admin.atualizar') : t('admin.adicionar')}
             </GoldButton>
             {editingId && (
