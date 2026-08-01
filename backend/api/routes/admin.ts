@@ -14,14 +14,15 @@ router.use(authorize('ADMIN', 'OPERATOR'));
 router.get('/stats', AdminController.getStats);
 router.get('/shipments', AdminController.getAllShipments);
 router.get('/shipments/search', AdminController.searchShipments);
+
 router.get('/shipments/ready-for-pickup', AdminController.getReadyForPickup);
 router.get('/shipments/:id', AdminController.getShipmentDetails);
 router.post('/shipments', validate(adminCreateShipmentSchema), AdminController.createShipment);
 router.patch('/shipments/:id/status', AdminController.updateShipmentStatus);
 router.patch('/shipments/:id/ctt', validate(updateCttSchema), AdminController.updateCtt);
+
 router.get('/shipments/:id/whatsapp', AdminController.generateWhatsAppNotification);
 router.get('/shipments/:id/fine', AdminController.calculateShipmentFine);
-
 router.get('/users', AdminController.getAllUsers);
 router.patch('/users/:id/role', AdminController.changeUserRole);
 router.delete('/users/:id', AdminController.deleteUser);

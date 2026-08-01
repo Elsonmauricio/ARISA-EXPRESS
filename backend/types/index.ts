@@ -11,18 +11,35 @@ export interface User {
 export interface Shipment {
   id: string;
   trackingCode: string;
+
   status: 'PENDING' | 'COLLECTED' | 'IN_TRANSIT' | 'CUSTOMS' | 'IN_PORTUGAL' |'IN_ANGOLA'| 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'READY_FOR_PICKUP' | 'PICKED_UP';
+
   origin: string;
   destination: string;
+  route?: string;
   weight: number;
   price?: number;
-  readyForPickupAt?: Date;
-  pickupDeadline?: Date;
-  calculatedFine?: number;
-  daysUntilDeadline?: number;
-  senderName?: string;
-  receiverName?: string;
+  freightValue?: number;
+  category?: string;
+  paymentStatus?: 'PAID' | 'PENDING';
+  senderName: string;
+  senderContact?: string;
+  senderPhone?: string;
+  receiverName: string;
+  receiverContact?: string;
   receiverPhone?: string;
+  shipmentDate?: any;
+  cttCode?: string;
+  cttLink?: string;
+  userId?: string;
+  routeId?: string;
+  description?: string;
+  serviceType?: string;
+  createdAt?: any;
+  history?: any[];
+  currentLocation?: string;
+  progress?: number;
+
 }
 
 export interface TrackingUpdate {

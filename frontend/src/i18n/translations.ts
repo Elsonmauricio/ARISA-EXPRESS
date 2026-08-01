@@ -279,7 +279,7 @@ export const translations: Record<Lang, Dict> = {
     'ship.reservaSucesso': 'A sua encomenda foi registada com sucesso. Em breve receberá um email com o código de rastreio.',
     'ship.novaReserva': 'Nova Reserva',
     'ship.rastrearEncomenda': 'Rastrear Encomenda',
-    'ship.rastrearPlaceholder': 'Ex: ARISA-1A2B-3C4D',
+    'ship.rastrearPlaceholder': 'Ex: AE-2026-1A2B',
     'ship.rastrearBotao': 'Rastrear',
     'ship.codigo': 'Código',
     'ship.status': 'Status',
@@ -395,7 +395,7 @@ export const translations: Record<Lang, Dict> = {
     'track.title2': 'encomenda',
     'track.title3': '?',
     'track.subtitle': 'Insira o código de rastreio para acompanhar cada etapa da entrega em tempo real.',
-    'track.inputPlaceholder': 'Insira o código (ex. ARISA-1A2B-3C4D)',
+    'track.inputPlaceholder': 'Insira o código (ex. AE-2026-1A2B)',
     'track.buscando': 'A buscar...',
     'track.botao': 'Rastrear',
     'track.labelCodigo': 'Código de Rastreio',
@@ -407,6 +407,7 @@ export const translations: Record<Lang, Dict> = {
     'track.kg': 'kg',
     'track.euro': '€ ',
     'track.historico': 'Histórico de Atualizações',
+    'track.acompanharCtt': 'Acompanhar nos CTT',
 
     // ---- TIMELINE ----
     'timeline.vazio': 'Nenhuma etapa disponível.',
@@ -518,6 +519,7 @@ export const translations: Record<Lang, Dict> = {
     'admin.distribuicao': 'Distribuição por Status',
     'admin.nenhumaEncomenda2': 'Nenhuma encomenda.',
     'admin.tabNovaEncomenda': 'Nova Encomenda',
+
     'admin.tabInventario': 'Inventário em Loja',
     'admin.inventarioTitulo': 'Encomendas em Loja (Disponíveis para Levantamento)',
     'admin.inventarioVazio': 'Nenhuma encomenda disponível para levantamento.',
@@ -549,6 +551,7 @@ export const translations: Record<Lang, Dict> = {
     'admin.registarEncomenda': 'Registar Encomenda',
     'admin.encomendaCriada': 'Encomenda criada com sucesso!',
     'admin.erroCriarEncomenda': 'Erro ao criar encomenda',
+
 
     // ---- TERMS ----
     'terms.titulo': 'Termos & Condições',
@@ -897,7 +900,7 @@ export const translations: Record<Lang, Dict> = {
     'ship.reservaSucesso': 'Your shipment has been registered successfully. You will soon receive an email with the tracking code.',
     'ship.novaReserva': 'New Booking',
     'ship.rastrearEncomenda': 'Track Shipment',
-    'ship.rastrearPlaceholder': 'Ex: ARISA-1A2B-3C4D',
+    'ship.rastrearPlaceholder': 'Ex: AE-2026-1A2B',
     'ship.rastrearBotao': 'Track',
     'ship.codigo': 'Code',
     'ship.status': 'Status',
@@ -1013,7 +1016,7 @@ export const translations: Record<Lang, Dict> = {
     'track.title2': 'shipment',
     'track.title3': '?',
     'track.subtitle': 'Enter the tracking code to follow each step of the delivery in real time.',
-    'track.inputPlaceholder': 'Enter code (ex. ARISA-1A2B-3C4D)',
+    'track.inputPlaceholder': 'Enter code (ex. AE-2026-1A2B)',
     'track.buscando': 'Searching...',
     'track.botao': 'Track',
     'track.labelCodigo': 'Tracking Code',
@@ -1025,6 +1028,7 @@ export const translations: Record<Lang, Dict> = {
     'track.kg': 'kg',
     'track.euro': '€ ',
     'track.historico': 'Update History',
+    'track.acompanharCtt': 'Track on CTT',
 
     // ---- TIMELINE ----
     'timeline.vazio': 'No steps available.',
@@ -1136,6 +1140,7 @@ export const translations: Record<Lang, Dict> = {
     'admin.distribuicao': 'Status Distribution',
     'admin.nenhumaEncomenda2': 'No shipments.',
     'admin.tabNovaEncomenda': 'New Shipment',
+
     'admin.tabInventario': 'Store Inventory',
     'admin.inventarioTitulo': 'Store Inventory (Ready for Pickup)',
     'admin.inventarioVazio': 'No shipments available for pickup.',
@@ -1167,6 +1172,7 @@ export const translations: Record<Lang, Dict> = {
     'admin.registarEncomenda': 'Register Shipment',
     'admin.encomendaCriada': 'Shipment created successfully!',
     'admin.erroCriarEncomenda': 'Error creating shipment',
+
 
     // ---- TERMS ----
     'terms.titulo': 'Terms & Conditions',

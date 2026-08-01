@@ -74,6 +74,8 @@ export const TrackingController = {
         status: shipment.status || 'PENDING',
         createdAt: shipment.createdAt ? shipment.createdAt.toDate() : new Date(),
         shipmentDate: shipment.shipmentDate ? shipment.shipmentDate.toDate() : null,
+
+        // ✅ Datas reais de cada etapa (vindas do Firestore)
         collectedAt: shipment.collectedAt?.toMillis?.() || shipment.collectedAt?.toDate?.()?.getTime?.() || null,
         inTransitAt: shipment.inTransitAt?.toMillis?.() || shipment.inTransitAt?.toDate?.()?.getTime?.() || null,
         arrivedAt: shipment.arrivedAt?.toMillis?.() || shipment.arrivedAt?.toDate?.()?.getTime?.() || null,
@@ -83,6 +85,7 @@ export const TrackingController = {
         cttCode: shipment.cttCode || '',
         cttLink: shipment.cttLink || '',
         fine: fineInfo,
+
         progress: shipment.progress || 0,
       };
 

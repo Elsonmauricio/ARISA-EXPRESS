@@ -462,16 +462,22 @@ function ShipmentList() {
       IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
       OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
       DELIVERED: 'text-green-400 bg-green-400/10',
-      CANCELLED: 'text-red-400 bg-red-400/10'
+      CANCELLED: 'text-red-400 bg-red-400/10',
+      REGISTERED: 'text-gray-400 bg-gray-400/10',
+      SHIPPED: 'text-blue-400 bg-blue-400/10',
+      IN_CUSTOMS: 'text-orange-400 bg-orange-400/10',
+      READY_FOR_PICKUP: 'text-cyan-400 bg-cyan-400/10',
+      PICKED_UP: 'text-green-400 bg-green-400/10'
     };
     return colors[status] || 'text-white/60 bg-white/5';
   };
 
   const getStatusIcon = (status: string) => {
-    if (status === 'DELIVERED') return <CheckCircle2 className="w-4 h-4" />;
+    if (status === 'DELIVERED' || status === 'PICKED_UP') return <CheckCircle2 className="w-4 h-4" />;
     if (status === 'CANCELLED') return <XCircle className="w-4 h-4" />;
-    if (status === 'OUT_FOR_DELIVERY') return <Truck className="w-4 h-4" />;
-    if (status === 'IN_TRANSIT') return <Plane className="w-4 h-4" />;
+    if (status === 'OUT_FOR_DELIVERY' || status === 'READY_FOR_PICKUP') return <Truck className="w-4 h-4" />;
+    if (status === 'IN_TRANSIT' || status === 'SHIPPED') return <Plane className="w-4 h-4" />;
+    if (status === 'IN_CUSTOMS' || status === 'CUSTOMS') return <AlertCircle className="w-4 h-4" />;
     return <Clock className="w-4 h-4" />;
   };
 
@@ -768,14 +774,19 @@ function TrackingForm() {
       OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
       DELIVERED: 'text-green-400 bg-green-400/10',
       CANCELLED: 'text-red-400 bg-red-400/10',
-      READY_FOR_PICKUP: 'text-emerald-300 bg-emerald-300/10',
-      PICKED_UP: 'text-gray-400 bg-gray-400/10'
+
+      REGISTERED: 'text-gray-400 bg-gray-400/10',
+      SHIPPED: 'text-blue-400 bg-blue-400/10',
+      IN_CUSTOMS: 'text-orange-400 bg-orange-400/10',
+      READY_FOR_PICKUP: 'text-cyan-400 bg-cyan-400/10',
+      PICKED_UP: 'text-green-400 bg-green-400/10'
+
     };
     return colors[status] || 'text-white/60 bg-white/5';
   };
 
   const getStatusIcon = (status: string) => {
-    if (status === 'DELIVERED') return <CheckCircle2 className="w-4 h-4" />;
+    if (status === 'DELIVERED' || status === 'PICKED_UP') return <CheckCircle2 className="w-4 h-4" />;
     if (status === 'CANCELLED') return <XCircle className="w-4 h-4" />;
     if (status === 'OUT_FOR_DELIVERY') return <Truck className="w-4 h-4" />;
     if (status === 'IN_TRANSIT') return <Plane className="w-4 h-4" />;
