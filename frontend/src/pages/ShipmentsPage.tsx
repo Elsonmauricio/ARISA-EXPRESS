@@ -475,23 +475,23 @@ function ShipmentList() {
     return <Clock className="w-4 h-4" />;
   };
 
-  // FunÃ§Ã£o para formatar datas do Firestore
+  // Função para formatar datas do Firestore
   const formatDate = (dateValue: any): string => {
-    if (!dateValue) return 'â€”';
+    if (!dateValue) return '—';
     try {
       if (typeof dateValue === 'object' && dateValue.toDate) {
         return dateValue.toDate().toLocaleDateString('pt-PT');
       }
       if (typeof dateValue === 'string') {
         const d = new Date(dateValue);
-        return isNaN(d.getTime()) ? 'â€”' : d.toLocaleDateString('pt-PT');
+        return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-PT');
       }
       if (dateValue instanceof Date) {
         return dateValue.toLocaleDateString('pt-PT');
       }
-      return 'â€”';
+      return '—';
     } catch {
-      return 'â€”';
+      return '—';
     }
   };
 
@@ -522,8 +522,8 @@ function ShipmentList() {
         <div key={s.id} className="glass-strong border-gradient p-4 rounded-xl flex flex-wrap justify-between items-center gap-3">
           <div>
             <div className="font-mono text-sm text-gold">{s.trackingCode}</div>
-            <div className="text-sm text-gold/80">{s.origin} â†’ {s.destination}</div>
-            {/* Data de criaÃ§Ã£o formatada */}
+            <div className="text-sm text-gold/80">{s.origin} → {s.destination}</div>
+            {/* Data de criação formatada */}
             <div className="text-xs text-gold/50">{formatDate(s.createdAt)}</div>
             {/* Opcional: mostrar data do voo se existir */}
             {s.flightDate && (
@@ -532,7 +532,7 @@ function ShipmentList() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="font-semibold">â‚¬ {s.price?.toFixed(2) || 'â€”'}</div>
+              <div className="font-semibold">kg {s.price?.toFixed(2) || '—'}</div>
               <div className="text-xs text-gold/50">{s.weight} kg</div>
             </div>
             <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(s.status)}`}>

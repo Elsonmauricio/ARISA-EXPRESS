@@ -374,18 +374,18 @@ function AdminShipmentList() {
                  <tr className="border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors">
                   <td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} â†’ {s.destination}</td>
+                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} → {s.destination}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} {t('ship.kg')}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">â‚¬ {s.price?.toFixed(2) || 'â€”'}</td>
+                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">€ {s.price?.toFixed(2) || '—'}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">
                     {s.pickupDeadline
                       ? (typeof s.pickupDeadline === 'object' && s.pickupDeadline.toDate
                         ? s.pickupDeadline.toDate().toLocaleDateString('pt-PT')
                         : new Date(s.pickupDeadline).toLocaleDateString('pt-PT'))
-                      : 'â€”'}
+                      : '—'}
                   </td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
-                    {s.calculatedFine !== undefined ? `â‚¬ ${s.calculatedFine.toFixed(2)}` : 'â€”'}
+                    {s.calculatedFine !== undefined ? `€ ${s.calculatedFine.toFixed(2)}` : '€—'}
                   </td>
                   <td className="py-3 px-2 sm:px-4">
                     <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(s.status)}`}>
@@ -571,8 +571,8 @@ function AdminUserList() {
               <tr key={u.id} className="border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors">
                 <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{u.name}</td>
                 <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{u.email}</td>
-                <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{u.phone || 'â€”'}</td>
-                <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{u.company || 'â€”'}</td>
+                <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{u.phone || '—'}</td>
+                <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{u.company || '—'}</td>
                 <td className="py-3 px-2 sm:px-4">
                   <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
                     u.role === 'ADMIN' ? 'text-gold bg-gold/10' :
@@ -835,9 +835,9 @@ function AdminRouteManager() {
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.origin}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.destination}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{t(`admin.${r.serviceType.toLowerCase()}`)}</td>
-                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">â‚¬ {r.pricePerKg}</td>
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">€ {r.pricePerKg}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
-                      {r.flightDate ? new Date(r.flightDate).toLocaleDateString('pt-PT') : 'â€”'}
+                      {r.flightDate ? new Date(r.flightDate).toLocaleDateString('pt-PT') : '—'}
                       {expired && <span className="ml-2 text-red-400 text-[10px]">{t('admin.expirada')}</span>}
                     </td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{r.capacity} {t('ship.kg')}</td>
@@ -1162,9 +1162,9 @@ function AdminLeadsList() {
     }
   };
 
-  // FunÃ§Ã£o para formatar data/hora
+  // Função para formatar data/hora
   const formatDateTime = (dateValue: any): string => {
-    if (!dateValue) return 'â€”';
+    if (!dateValue) return '—';
     try {
       let d;
       if (typeof dateValue === 'object' && dateValue.toDate) {
@@ -1174,12 +1174,12 @@ function AdminLeadsList() {
       } else if (dateValue instanceof Date) {
         d = dateValue;
       } else {
-        return 'â€”';
+        return '—';
       }
-      if (isNaN(d.getTime())) return 'â€”';
+      if (isNaN(d.getTime())) return '€”';
       return d.toLocaleDateString('pt-PT') + ' ' + d.toLocaleTimeString('pt-PT');
     } catch {
-      return 'â€”';
+      return '—';
     }
   };
 
@@ -1249,13 +1249,13 @@ function AdminLeadsList() {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <span className="font-semibold text-gold text-sm sm:text-base truncate">{lead.name}</span>
-                  <span className="text-sm text-gold/40 hidden sm:inline">â€¢</span>
+                  <span className="text-sm text-gold/40 hidden sm:inline">—</span>
                   <a href={`mailto:${lead.email}`} className="text-sm text-gold hover:underline truncate">
                     {lead.email}
                   </a>
                   {lead.phone && (
                     <>
-                      <span className="text-sm text-gold/40 hidden sm:inline">â€¢</span>
+                      <span className="text-sm text-gold/40 hidden sm:inline">—</span>
                       <a href={`tel:${lead.phone}`} className="text-sm text-gold/60 hover:text-gold truncate">
                         {lead.phone}
                       </a>
@@ -1346,7 +1346,7 @@ function AdminLeadsList() {
                         <div key={i} className="text-xs bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg p-2">
                           <div className="text-gold/80 whitespace-pre-wrap break-words">{n.text}</div>
                           <div className="text-gold/40 mt-1">
-                             {n.author ? t('admin.por', { author: n.author }) : 'â€”'} â€¢ {formatDateTime(n.createdAt)}
+                             {n.author ? t('admin.por', { author: n.author }) : '—'} — {formatDateTime(n.createdAt)}
                           </div>
                         </div>
                       ))}
@@ -1406,7 +1406,7 @@ export default function AdminDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Verificar permissÃµes
+  // Verificar permissões
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (!userStr) {
@@ -1427,7 +1427,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      // Buscar estatÃ­sticas
+      // Buscar estatísticas
       const statsRes = await fetch(api('/api/admin/stats'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1449,7 +1449,7 @@ export default function AdminDashboard() {
         });
       }
 
-      // Buscar encomendas recentes (Ãºltimas 5)
+      // Buscar encomendas recentes (últimas 5)
       const shipmentsRes = await fetch(api('/api/admin/shipments'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1472,7 +1472,7 @@ export default function AdminDashboard() {
         });
         setRecentShipments(sorted.slice(0, 5));
 
-        // Calcular distribuiÃ§Ã£o por status
+        // Calcular distribuição por status
         const dist: Record<string, number> = {};
         all.forEach((s: any) => {
           dist[s.status] = (dist[s.status] || 0) + 1;
@@ -1589,13 +1589,13 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* ConteÃºdo */}
+          {/* Conteúdo */}
           <div className="mt-6">
             {activeTab === 'overview' && (
               <>
                 <StatsCards stats={stats} />
                 <div className="grid md:grid-cols-2 gap-6">
-                  {/* Ãšltimas Encomendas */}
+                  {/* Últimas Encomendas */}
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
                      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.ultimasEncomendas')}</h3>
                      <div className="space-y-3">
@@ -1606,11 +1606,11 @@ export default function AdminDashboard() {
                           <div key={s.id} className="flex justify-between items-center border-b border-lilac/10 pb-2 last:border-0">
                             <div>
                               <div className="font-mono text-xs text-gold">{s.trackingCode}</div>
-                              <div className="text-xs text-gold/60">{s.origin} â†’ {s.destination}</div>
+                              <div className="text-xs text-gold/60">{s.origin} - {s.destination}</div>
                               <div className="text-[10px] text-gold/40">{formatDate(s.createdAt)}</div>
                             </div>
                             <div className="text-right">
-                              <div className="text-xs font-semibold">â‚¬ {s.price?.toFixed(2) || 'â€”'}</div>
+                              <div className="text-xs font-semibold">kg {s.price?.toFixed(2) || '€—'}</div>
                               <div className={`text-[10px] px-2 py-0.5 rounded-full ${s.status === 'DELIVERED' ? 'text-green-400 bg-green-400/10' : 'text-yellow-400 bg-yellow-400/10'}`}>
                       {t(`status.${s.status}`)}
                               </div>
@@ -1621,7 +1621,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  {/* DistribuiÃ§Ã£o por Status */}
+                  {/* Distribuição por Status */}
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
                      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.distribuicao')}</h3>
                      {Object.keys(statusDistribution).length === 0 ? (
