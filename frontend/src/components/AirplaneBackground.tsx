@@ -1,6 +1,6 @@
 ﻿import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Environment, Stars, ContactShadows } from '@react-three/drei';
+import { Float, Stars, ContactShadows } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import * as THREE from 'three';
@@ -13,64 +13,48 @@ if (typeof window !== 'undefined') {
 }
 
 const MODEL_URL = '/models/Arisa-express.glb';
+const DRACO_DECODER_PATH = 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/';
+
+// Cache module-level para evitar recarregar o modelo 3D em cada montagem
+let cachedScene: THREE.Group | null = null;
+let cachedLoader: GLTFLoader | null = null;
+let cachedDracoLoader: DRACOLoader | null = null;
 
 function Airplane() {
   const group = useRef<THREE.Group>(null);
   const [gltfScene, setGltfScene] = useState<THREE.Group | null>(null);
   const storyProgress = useRef(0);
   const scrollProgress = useRef(0);
-  const loaderRef = useRef<GLTFLoader | null>(null);
-  const dracoLoaderRef = useRef<DRACOLoader | null>(null);
-  const sceneRef = useRef<THREE.Group | null>(null);
 
   useEffect(() => {
-    const loader = new GLTFLoader();
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
-    loader.setDRACOLoader(dracoLoader);
-    loaderRef.current = loader;
-    dracoLoaderRef.current = dracoLoader;
+    if (cachedScene) {
+      setGltfScene(cachedScene);
+      return;
+    }
+
+    if (!cachedLoader) {
+      cachedLoader = new GLTFLoader();
+      cachedDracoLoader = new DRACOLoader();
+      cachedDracoLoader.setDecoderPath(DRACO_DECODER_PATH);
+      cachedLoader.setDRACOLoader(cachedDracoLoader);
+    }
 
     let cancelled = false;
     fetch(MODEL_URL)
       .then((res) => res.arrayBuffer())
       .then((data) => {
         if (cancelled) return;
-        loader.parse(data, '', 
+        cachedLoader!.parse(data, '',
           (gltf) => {
-            sceneRef.current = gltf.scene;
+            cachedScene = gltf.scene;
             setGltfScene(gltf.scene);
-            console.log('Model loaded successfully:', MODEL_URL);
           },
-          (err) => console.error('Error parsing GLB:', err)
         );
       })
-      .catch((err) => {
-        if (!cancelled) console.error('Error loading model:', err);
-      });
+      .catch(() => {});
 
     return () => {
       cancelled = true;
-      try {
-        if (sceneRef.current) {
-          sceneRef.current.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              child.geometry?.dispose();
-              if (Array.isArray(child.material)) {
-                child.material.forEach((m) => m.dispose());
-              } else {
-                child.material?.dispose();
-              }
-            }
-          });
-        }
-        dracoLoaderRef.current?.dispose?.();
-        loaderRef.current = null;
-        dracoLoaderRef.current = null;
-        sceneRef.current = null;
-      } catch {
-        // ignore cleanup errors
-      }
     };
   }, []);
 
@@ -135,10 +119,6 @@ function Scene({ isMobile }: { isMobile: boolean }) {
 }
 
 export default function AirplaneBackground() {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const r3fSceneRef = useRef<THREE.Scene | null>(null);
-  const canvasDomRef = useRef<HTMLCanvasElement | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -149,24 +129,13 @@ export default function AirplaneBackground() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleCreated = (state: any) => {
-    if (state?.gl) {
-      rendererRef.current = state.gl as THREE.WebGLRenderer;
-      canvasDomRef.current = state.gl.domElement as HTMLCanvasElement;
-    }
-    if (state?.scene) {
-      r3fSceneRef.current = state.scene as THREE.Scene;
-    }
-  };
-
   return (
-    <div ref={wrapRef} id="airplane-background" className="fixed inset-0 z-0 overflow-hidden pointer-events-none will-change-transform">
+    <div id="airplane-background" className="fixed inset-0 z-0 overflow-hidden pointer-events-none will-change-transform">
       <ErrorBoundary fallback={null}>
-        <Canvas 
-          dpr={isMobile ? 1 : [1, 1.8]} 
-          camera={{ position: [0, 0, 6], fov: 45 }}
-          onCreated={handleCreated}
-        >
+         <Canvas 
+           dpr={isMobile ? 1 : [1, 1.8]} 
+           camera={{ position: [0, 0, 6], fov: 45 }}
+         >
           <Scene isMobile={isMobile} />
         </Canvas>
       </ErrorBoundary>

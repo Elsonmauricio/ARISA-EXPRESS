@@ -96,7 +96,6 @@ export default function Tracking() {
         setError(json.error || t('track.naoEncontrada'));
       }
     } catch (err: any) {
-      console.error('Erro ao rastrear:', err);
       setError(t('track.erroServidor'));
     } finally {
       setLoading(false);

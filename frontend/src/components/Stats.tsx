@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TelemetryCard } from './TelemetryCard';
@@ -68,6 +68,7 @@ function Counter({ value, prefix, suffix, delay = 0 }: CounterProps): JSX.Elemen
 export default function Stats(): JSX.Element {
   const { t } = useT();
   const containerRef = useRef<HTMLDivElement>(null);
+  const stats = useMemo(() => getStats(t), [t]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -101,7 +102,7 @@ export default function Stats(): JSX.Element {
           ref={containerRef}
           className="glass-strong border-gradient rounded-3xl p-6 sm:p-10 md:p-14 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mx-auto max-w-5xl"
         >
-          {getStats(t).map((s, i) => (
+          {stats.map((s, i) => (
             <div key={i} className="stat-item">
               <TelemetryCard
                 tag={s.tag}

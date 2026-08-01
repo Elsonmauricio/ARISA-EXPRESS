@@ -16,8 +16,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('[ErrorBoundary]', error, errorInfo.componentStack);
+   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    if (!import.meta.env.PROD) {
+      console.error('[ErrorBoundary]', error, errorInfo.componentStack);
+    }
     try {
       const payload = JSON.stringify({
         error: error.message,

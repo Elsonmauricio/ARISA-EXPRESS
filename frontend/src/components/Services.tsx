@@ -1,4 +1,4 @@
-﻿import React, { Suspense } from 'react';
+﻿import React, { Suspense, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
@@ -111,6 +111,7 @@ function ServiceCard({ s, i }: { s: Service; i: number }): JSX.Element {
 
 export default function Services(): JSX.Element {
   const { t } = useT();
+  const services = useMemo(() => getServices(t), [t]);
   return (
     <section id="servicos" className="relative py-28 overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/60 via-transparent to-[#1a1133]/30 z-[1]" />
@@ -124,7 +125,7 @@ export default function Services(): JSX.Element {
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {getServices(t).map((s, i) => (
+          {services.map((s, i) => (
             <ServiceCard key={s.id} s={s} i={i} />
           ))}
         </div>

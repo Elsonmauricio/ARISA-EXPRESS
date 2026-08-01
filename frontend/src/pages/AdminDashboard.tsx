@@ -370,8 +370,8 @@ function AdminShipmentList() {
             </thead>
             <tbody>
               {filtered.map((s) => (
-                <React.Fragment key={s.id}>
-                <tr key={s.id} className="border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors">
+                 <React.Fragment key={s.id}>
+                 <tr className="border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors">
                   <td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} â†’ {s.destination}</td>
@@ -1480,20 +1480,24 @@ export default function AdminDashboard() {
         setStatusDistribution(dist);
       }
     } catch (err) {
-      console.error('Erro ao carregar dashboard:', err);
+      // dashboard fetch error - silently handled
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // AtualizaÃ§Ã£o automÃ¡tica a cada 30 segundos
+  // Atualização automática a cada 30 segundos (apenas quando a aba está visível)
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (activeTab === 'overview') {
+    if (activeTab !== 'overview') return;
+
+    const poll = () => {
+      if (document.visibilityState === 'visible') {
         fetchDashboardData();
       }
-    }, 30000);
+    };
+
+    const interval = setInterval(poll, 30000);
     return () => clearInterval(interval);
   }, [activeTab]);
 

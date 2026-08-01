@@ -431,8 +431,6 @@ function ShipmentList() {
       });
 
       if (!response.ok) {
-        const text = await response.text();
-        console.error('Erro ao buscar encomendas:', response.status, text);
         setError(t('ship.erroStatus', { status: response.status }));
         return;
       }
@@ -444,7 +442,6 @@ function ShipmentList() {
         setError(json.error || t('ship.erroCarregarEncomendas'));
       }
     } catch (err) {
-      console.error('Erro de conexÃ£o:', err);
       setError(t('ship.erroServidor'));
     } finally {
       setLoading(false);
