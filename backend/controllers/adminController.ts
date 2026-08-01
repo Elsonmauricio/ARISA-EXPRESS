@@ -26,8 +26,8 @@ export const AdminController = {
         }
       });
     } catch (error) {
-      logger.error('Erro ao buscar estat�sticas:', error);
-      res.status(500).json({ error: 'Erro ao buscar estat�sticas' });
+      logger.error('Erro ao buscar estatísticas:', error);
+      res.status(500).json({ error: 'Erro ao buscar estatísticas' });
     }
   },
 
@@ -89,7 +89,7 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
       const doc = await db.collection('shipments').doc(id).get();
 
       if (!doc.exists) {
-        return res.status(404).json({ error: 'Encomenda n�o encontrada' });
+        return res.status(404).json({ error: 'Encomenda não encontrada' });
       }
 
       const trackingSnapshot = await db.collection('shipments').doc(id)
@@ -174,7 +174,7 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
 
       const doc = await db.collection('shipments').doc(id).get();
       if (!doc.exists) {
-        return res.status(404).json({ error: 'Encomenda n�o encontrada' });
+        return res.status(404).json({ error: 'Encomenda não encontrada' });
       }
 
       const updateData: any = {};
@@ -232,18 +232,18 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
 
       const doc = await db.collection('shipments').doc(id).get();
       if (!doc.exists) {
-        return res.status(404).json({ error: 'Encomenda n�o encontrada' });
+        return res.status(404).json({ error: 'Encomenda não encontrada' });
       }
 
       const shipment = doc.data() as any;
 
       if (shipment.status !== 'READY_FOR_PICKUP') {
-        return res.status(400).json({ error: 'Encomenda n�o est� dispon�vel para levantamento' });
+        return res.status(400).json({ error: 'Encomenda não está disponível para levantamento' });
       }
 
       const phone = shipment.receiverPhone || shipment.senderPhone || '';
       if (!phone) {
-        return res.status(400).json({ error: 'Telefone do destinat�rio n�o definido' });
+        return res.status(400).json({ error: 'Telefone do destinatário não definido' });
       }
 
       const readyDate = shipment.readyForPickupAt ? new Date(shipment.readyForPickupAt.toDate ? shipment.readyForPickupAt.toDate() : shipment.readyForPickupAt) : new Date();
@@ -273,8 +273,8 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
         }
       });
     } catch (error) {
-      logger.error('Erro ao gerar notifica��o WhatsApp:', error);
-      res.status(500).json({ error: 'Erro ao gerar notifica��o' });
+      logger.error('Erro ao gerar notificação WhatsApp:', error);
+      res.status(500).json({ error: 'Erro ao gerar notificação' });
     }
   },
 
@@ -284,7 +284,7 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
 
       const doc = await db.collection('shipments').doc(id).get();
       if (!doc.exists) {
-        return res.status(404).json({ error: 'Encomenda n�o encontrada' });
+        return res.status(404).json({ error: 'Encomenda não encontrada' });
       }
 
       const shipment = doc.data() as any;
@@ -329,7 +329,7 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
 
       const shipmentDoc = await db.collection('shipments').doc(id).get();
       if (!shipmentDoc.exists) {
-        return res.status(404).json({ error: 'Encomenda n�o encontrada' });
+        return res.status(404).json({ error: 'Encomenda não encontrada' });
       }
 
       const shipment = shipmentDoc.data() as any;
@@ -387,7 +387,7 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
           if (user?.email) {
             await sendEmail({
               to: user.email,
-              subject: `?? Atualiza��o da Encomenda ${trackingCode}`,
+              subject: `?? Atualização da Encomenda ${trackingCode}`,
               template: 'shipment-updated',
               data: {
                 name: user.name || 'Cliente',
@@ -429,14 +429,14 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
       const { role } = req.body;
 
       if (!['ADMIN', 'OPERATOR', 'CLIENT'].includes(role)) {
-        return res.status(400).json({ error: 'Role inv�lida' });
+        return res.status(400).json({ error: 'Role inválida' });
       }
 
       await db.collection('users').doc(id).update({ role });
-      res.json({ success: true, message: 'Permiss�es atualizadas' });
+      res.json({ success: true, message: 'Permissões atualizadas' });
     } catch (error) {
       logger.error('Erro ao alterar role:', error);
-      res.status(500).json({ error: 'Erro ao alterar permiss�es' });
+      res.status(500).json({ error: 'Erro ao alterar permissões' });
     }
   },
 
@@ -446,7 +446,7 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
 
       const userDoc = await db.collection('users').doc(id).get();
       if (!userDoc.exists) {
-        return res.status(404).json({ error: 'Utilizador n�o encontrado' });
+        return res.status(404).json({ error: 'Utilizador não encontrado' });
       }
 
       await db.collection('users').doc(id).delete();
@@ -482,7 +482,7 @@ res.json({ success: true, data: fixEncodingObject(shipments) });
 
       const leadDoc = await db.collection('leads').doc(id).get();
       if (!leadDoc.exists) {
-        return res.status(404).json({ error: 'Mensagem n�o encontrada' });
+        return res.status(404).json({ error: 'Mensagem não encontrada' });
       }
 
       await db.collection('leads').doc(id).update({

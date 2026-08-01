@@ -38,7 +38,7 @@ function SceneContent(): React.ReactNode {
 export default function LogisticFlow3D(): JSX.Element {
   return (
     <Canvas shadows camera={{ position: [0, 0, 5], fov: 45 }}>
-      <color attach="background" args={['#D8B9FF']} />
+      <color attach="background" args={['#1a1133']} />
 
       <ambientLight intensity={0.2} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1.5} castShadow color="#F6EBBF" />

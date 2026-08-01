@@ -93,11 +93,11 @@ function ServiceCard({ s, i }: { s: Service; i: number }): JSX.Element {
         <h3 className="font-display text-xl sm:text-2xl font-semibold leading-tight text-gold mt-4 sm:mt-6">
           {s.title}
         </h3>
-        <p className="mt-3 text-sm text-gold/70 leading-relaxed flex-1">
+        <p className="mt-3 text-sm text-white/70 leading-relaxed flex-1">
           {s.description}
         </p>
 
-        <div className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-gold/80 group-hover:text-gold transition-all duration-300">
+        <div className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-white/80 group-hover:text-gold transition-all duration-300">
           {t('services.saberMais')}
           <ArrowUpRight className="w-4 h-4 group-hover:rotate-12 transition-transform" />
         </div>
@@ -118,7 +118,7 @@ export default function Services(): JSX.Element {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/40 via-transparent to-[#1a1133]/70 z-[1]" />
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-lilac-900/10 via-lilac/20 to-lilac/20 opacity-60" />
       
-      <div className="container mx-auto">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6">
         {/* Apenas o tÃ­tulo, sem a barra de pesquisa */}
          <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-gold mb-16 break-words">
           {t('services.title')}

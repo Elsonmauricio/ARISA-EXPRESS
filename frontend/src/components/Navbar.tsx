@@ -113,7 +113,7 @@ export default function Navbar() {
     <Link
       to="/admin"
       onClick={() => { setDropdowns({ ...dropdowns, profile: false }); setOpen(false); }}
-      className="block px-4 py-2 text-sm text-gold/80 hover:text-gold hover:bg-[#D8B9FF]/20 rounded-lg transition-colors"
+      className="block px-4 py-2 text-sm text-white/80 hover:text-gold hover:bg-white/5 rounded-lg transition-colors"
     >
       {t('nav.dashboardAdmin')}
     </Link>
@@ -154,7 +154,7 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={() => toggleDropdown('brand')}
-              className="flex items-center gap-1 text-sm text-gold/80 hover:text-gold transition-colors group"
+              className="flex items-center gap-1 text-sm text-white/80 hover:text-gold transition-colors group"
             >
               {t('nav.marca')}
               <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.brand ? 'rotate-180' : ''}`} />
@@ -165,7 +165,7 @@ export default function Navbar() {
                    initial={{ opacity: 0, y: -10 }}
                    animate={{ opacity: 1, y: 0 }}
                    exit={{ opacity: 0, y: -10 }}
-                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-[#D8B9FF]/30"
+                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/20"
                    style={{ zIndex: 9999 }}
                  >
                   {BRAND_LINKS.map((link) => (
@@ -173,7 +173,7 @@ export default function Navbar() {
                       key={link.href}
                       href={link.href}
                       onClick={(e) => { e.preventDefault(); goToSection(link.href); setDropdowns({ brand: false, shipments: false, profile: false }); }}
-                      className="block px-4 py-2 text-sm text-gold/80 hover:text-gold hover:bg-[#D8B9FF]/20 rounded-lg transition-colors"
+                      className="block px-4 py-2 text-sm text-white/80 hover:text-gold hover:bg-white/5 rounded-lg transition-colors"
                     >
                       {link.label}
                     </a>
@@ -187,7 +187,7 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={() => toggleDropdown('shipments')}
-              className="flex items-center gap-1 text-sm text-gold/80 hover:text-gold transition-colors group"
+              className="flex items-center gap-1 text-sm text-white/80 hover:text-gold transition-colors group"
             >
               {t('nav.encomendas')}
               <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.shipments ? 'rotate-180' : ''}`} />
@@ -198,7 +198,7 @@ export default function Navbar() {
                    initial={{ opacity: 0, y: -10 }}
                    animate={{ opacity: 1, y: 0 }}
                    exit={{ opacity: 0, y: -10 }}
-                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-[#D8B9FF]/30"
+                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/20"
                    style={{ zIndex: 9999 }}
                  >
                   {SHIPMENT_LINKS.map((link) => (
@@ -206,7 +206,7 @@ export default function Navbar() {
                       key={link.href}
                       to={link.href}
                       onClick={() => setDropdowns({ ...dropdowns, shipments: false })}
-                      className="block px-4 py-2 text-sm text-gold/80 hover:text-gold hover:bg-[#D8B9FF]/20 rounded-lg transition-colors"
+                      className="block px-4 py-2 text-sm text-white/80 hover:text-gold hover:bg-white/5 rounded-lg transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -221,7 +221,7 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => toggleDropdown('profile')}
-                className="flex items-center gap-2 text-sm text-gold/80 hover:text-gold transition-colors group"
+                className="flex items-center gap-2 text-sm text-white/80 hover:text-gold transition-colors group"
               >
                 <span className="w-8 h-8 rounded-full bg-lilac/20 flex items-center justify-center text-gold font-semibold">
                   {user.name?.charAt(0).toUpperCase() || 'U'}
@@ -234,20 +234,20 @@ export default function Navbar() {
                    initial={{ opacity: 0, y: -10 }}
                    animate={{ opacity: 1, y: 0 }}
                    exit={{ opacity: 0, y: -10 }}
-                   className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] max-w-[80vw] border border-[#D8B9FF]/30"
+                   className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] max-w-[80vw] border border-white/20"
                    style={{ zIndex: 9999 }}
                  >
                     {adminLink && (
                       <>
                         {adminLink}
-                        <div className="border-t border-[#D8B9FF]/30 my-2" />
+                        <div className="border-t border-white/20 my-2" />
                       </>
                     )}
                     {profileLinks.map((link) => (
                       <button
                         key={link.label}
                         onClick={() => handleProfileAction(link)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gold/80 hover:text-gold hover:bg-[#D8B9FF]/20 rounded-lg transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-white/80 hover:text-gold hover:bg-white/5 rounded-lg transition-colors"
                       >
                         {link.icon}
                         {link.label}
@@ -259,7 +259,7 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Link to="/login" className="text-sm text-gold/80 hover:text-gold transition-colors">
+              <Link to="/login" className="text-sm text-white/80 hover:text-gold transition-colors">
                 {t('nav.entrar')}
               </Link>
               <GoldButton className="px-5 py-2 text-sm" onClick={() => navigate('/registar')}>
@@ -290,35 +290,35 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={(e) => { e.preventDefault(); goToSection(link.href); setOpen(false); }}
-                className="text-gold/80 hover:text-gold transition-colors"
+                className="text-white/80 hover:text-gold transition-colors"
               >
                 {link.label}
               </a>
             ))}
-            <hr className="border-[#D8B9FF]/30" />
+            <hr className="border-white/20" />
             {SHIPMENT_LINKS.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
                 onClick={() => setOpen(false)}
-                className="text-gold/80 hover:text-gold transition-colors"
+                className="text-white/80 hover:text-gold transition-colors"
               >
                 {link.label}
               </Link>
             ))}
-            <hr className="border-[#D8B9FF]/30" />
+            <hr className="border-white/20" />
             {user ? (
               <>
                 {adminLink && (
                   <>
                     {adminLink}
-                    <hr className="border-[#D8B9FF]/30" />
+                    <hr className="border-white/20" />
                   </>
                 )}
-                 <Link to="/perfil" onClick={() => setOpen(false)} className="text-gold/80 hover:text-gold transition-colors">
+                 <Link to="/perfil" onClick={() => setOpen(false)} className="text-white/80 hover:text-gold transition-colors">
                    {t('nav.perfil')}
                  </Link>
-                 <Link to="/definicoes" onClick={() => setOpen(false)} className="text-gold/80 hover:text-gold transition-colors">
+                 <Link to="/definicoes" onClick={() => setOpen(false)} className="text-white/80 hover:text-gold transition-colors">
                    {t('nav.definicoes')}
                  </Link>
                  <button
@@ -330,7 +330,7 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setOpen(false)} className="text-gold/80 hover:text-gold transition-colors">
+                <Link to="/login" onClick={() => setOpen(false)} className="text-white/80 hover:text-gold transition-colors">
                   {t('nav.entrar')}
                 </Link>
                 <GoldButton className="w-full" onClick={() => { navigate('/registar'); setOpen(false); }}>

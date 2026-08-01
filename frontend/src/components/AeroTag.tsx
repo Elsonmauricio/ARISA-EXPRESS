@@ -14,7 +14,7 @@ export function AeroTag({
       ? "text-aero-lilas-dark bg-aero-lilas/10 border border-aero-lilas/20"
       : tone === "gold"
       ? "text-aero-gold bg-aero-gold/10 border border-aero-gold/30"
-      : "text-gold bg-[#D8B9FF] border border-[#D8B9FF]/40";
+      : "text-white/90 bg-[#2b1f4a] border border-white/20";
 
   return (
     <span

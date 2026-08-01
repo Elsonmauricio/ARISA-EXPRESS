@@ -35,7 +35,7 @@ export default function Hero() {
 
           <motion.p
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.25 }}
-            className="mt-6 text-base md:text-lg text-gold/80 max-w-xl leading-relaxed"
+            className="mt-6 text-base md:text-lg text-white/80 max-w-xl leading-relaxed"
           >
             {t('hero.subtitle')}
           </motion.p>
@@ -56,7 +56,7 @@ export default function Hero() {
 
       {/* Scroll indicator */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
-        <div className="w-6 h-10 rounded-full border border-[#D8B9FF]/40 flex justify-center pt-2">
+        <div className="w-6 h-10 rounded-full border border-white/20 flex justify-center pt-2">
           <span className="w-1 h-2 rounded-full bg-gold animate-bounce" />
         </div>
       </div>

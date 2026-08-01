@@ -62,7 +62,7 @@ export default function Contact() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-[#D8B9FF] border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-gold"
+                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold text-white/90"
               />
               <input
                 type="email"
@@ -70,14 +70,14 @@ export default function Contact() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-[#D8B9FF] border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-gold"
+                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold text-white/90"
               />
               <input
                 type="tel"
                 placeholder={t('contact.telefone')}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-3 bg-[#D8B9FF] border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-gold"
+                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold text-white/90"
               />
               <textarea
                 rows={4}
@@ -85,10 +85,10 @@ export default function Contact() {
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-[#D8B9FF] border border-gold/30 rounded-lg focus:outline-none focus:border-gold resize-none text-gold"
+                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold resize-none text-white/90"
               />
 
-              <GoldButton type="submit" className="w-full py-3 flex items-center justify-center gap-2" disabled={status === 'loading'}>
+              <GoldButton type="submit" className="w-full py-3 flex items-center justify-center text-black gap-2" disabled={status === 'loading'}>
                 <Send size={18} /> {status === 'loading' ? t('contact.enviando') : t('contact.enviar')}
               </GoldButton>
 
@@ -140,7 +140,7 @@ export default function Contact() {
                   <div className="flex items-center gap-2 text-gold font-medium">
                         {t('contact.portugal')}
                   </div>
-                   <p className="text-gold/70 mt-1">
+                   <p className="text-white/90 mt-1">
                      {t('contact.horarioPT')}
                    </p>
                  </div>
@@ -148,7 +148,7 @@ export default function Contact() {
                    <div className="flex items-center gap-2 text-gold font-medium">
                         {t('contact.angola')}
                    </div>
-                   <p className="text-gold/70 mt-1">
+                   <p className="text-white/90 mt-1">
                      {t('contact.horarioAO')}
                    </p>
                  </div>
@@ -163,7 +163,7 @@ export default function Contact() {
                   <div className="flex items-center gap-2 text-gold font-medium text-sm">
                     <MapPin size={16} /> {t('contact.luanda')}
                   </div>
-                   <p className="text-sm text-gold/70 mt-1">
+                   <p className="text-sm text-white/90 mt-1">
                      {t('contact.moradaLuanda1')}<br />
                      {t('contact.moradaLuanda2')}
                    </p>
@@ -172,7 +172,7 @@ export default function Contact() {
                    <div className="flex items-center gap-2 text-gold font-medium text-sm">
                      <MapPin size={16} /> {t('contact.lisboa')}
                    </div>
-                   <p className="text-sm text-gold/70 mt-1">
+                   <p className="text-sm text-white/90 mt-1">
                      {t('contact.moradaLisboa1')}<br />
                      {t('contact.moradaLisboa2')}
                    </p>

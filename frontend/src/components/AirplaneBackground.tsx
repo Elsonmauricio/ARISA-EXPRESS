@@ -102,7 +102,7 @@ function Airplane() {
 function Scene({ isMobile }: { isMobile: boolean }) {
   return (
     <>
-      <color attach="background" args={['#D8B9FF']} />
+      <color attach="background" args={['#1a1133']} />
       <ambientLight intensity={0.5} />
       <spotLight position={[8, 10, 8]} angle={0.3} penumbra={1} intensity={1.5} color="#F6EBBF" />
       <pointLight position={[-8, -4, -4]} color="#DDB8FA" intensity={1.0} />

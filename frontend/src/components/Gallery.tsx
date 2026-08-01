@@ -70,12 +70,12 @@ export default function Gallery() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#D4AF37] rounded-full blur-3xl" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto max-w-7xl px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#DDB8FA] to-[#D4AF37] bg-clip-text text-transparent">
             {t('gallery.title')}
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gold/70 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-black/70 max-w-3xl mx-auto">
             {t('gallery.subtitle')}
           </p>
         </div>

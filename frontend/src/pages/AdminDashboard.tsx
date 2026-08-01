@@ -131,7 +131,7 @@ function StatsCards({ stats }: { stats: any }) {
         <div key={i} className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs sm:text-sm text-gold/60">{card.label}</div>
+              <div className="text-xs sm:text-sm text-white/60">{card.label}</div>
               <div className="text-xl sm:text-2xl font-bold text-gold">{card.value}</div>
             </div>
             <card.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${card.color}`} />
@@ -495,7 +495,7 @@ function AdminShipmentList() {
       READY_FOR_PICKUP: 'text-emerald-300 bg-emerald-300/10',
       PICKED_UP: 'text-gray-400 bg-gray-400/10'
     };
-    return colors[status] || 'text-gold/60 bg-[#D8B9FF]/20';
+    return colors[status] || 'text-white/60 bg-white/5';
   };
 
   const filtered = shipments.filter(s => {
@@ -505,7 +505,7 @@ function AdminShipmentList() {
     return matchFilter && matchSearch;
   });
 
-  if (loading) return <div className="text-center py-8 text-gold/60">{t('admin.aCarregarEncomendas')}</div>;
+  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarEncomendas')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
@@ -519,14 +519,14 @@ function AdminShipmentList() {
               placeholder={t('admin.pesquisar')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm"
+              className="w-full pl-9 pr-4 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-gold text-sm"
             />
           </div>
         </div>
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="px-4 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg text-gold text-sm focus:border-gold outline-none"
+          className="px-4 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg text-gold text-sm focus:border-gold outline-none"
         >
           <option value="all">{t('admin.todosStatus')}</option>
           <option value="PENDING">{t('status.PENDING')}</option>
@@ -543,7 +543,7 @@ function AdminShipmentList() {
         </select>
         <button
           onClick={fetchShipments}
-          className="px-4 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg text-gold hover:bg-[#D8B9FF]/20 transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg text-gold hover:bg-white/5 transition-colors flex items-center gap-2"
         >
           <RefreshCw className="w-4 h-4" /> {t('admin.atualizar')}
         </button>
@@ -552,23 +552,23 @@ function AdminShipmentList() {
       <div className="overflow-x-auto px-4 sm:px-0">
         <div className="inline-block min-w-full align-middle">
           <table className="min-w-full text-sm">
-            <thead className="border-b border-[#D8B9FF]/30">
+            <thead className="border-b border-white/20">
               <tr>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.codigo')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.remetente')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.rota')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.peso')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.preco')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.prazoLimite')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.valorMulta')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.status')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.codigo')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.remetente')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.rota')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.peso')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.preco')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.prazoLimite')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.valorMulta')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.status')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((s) => (
                  <React.Fragment key={s.id}>
-                 <tr className="border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors">
+                 <tr className="border-b border-lilac/10 hover:bg-white/5 transition-colors">
                   <td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} → {s.destination}</td>
@@ -610,7 +610,7 @@ function AdminShipmentList() {
                          className={`flex items-center gap-1 px-2 py-1 rounded transition-colors text-[10px] sm:text-xs whitespace-nowrap ${
                            editingCttId === s.id
                              ? 'bg-gold/20 text-gold'
-                             : 'bg-[#D8B9FF] text-gold/60 hover:bg-[#D8B9FF]/20'
+                             : 'bg-[#2b1f4a] text-white/60 hover:bg-white/5'
                          }`}
                        >
                           <Edit className="w-3 h-3" /> {t('admin.ctt')}
@@ -618,7 +618,7 @@ function AdminShipmentList() {
                        <select
                         value={s.status}
                         onChange={(e) => updateStatus(s.id, e.target.value)}
-                        className="px-1 sm:px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none max-w-[100px]"
+                        className="px-1 sm:px-2 py-1 bg-[#2b1f4a] border border-white/20 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none max-w-[100px]"
                       >
                         <option value="PENDING">{t('status.PENDING')}</option>
                         <option value="COLLECTED">{t('status.COLLECTED')}</option>
@@ -644,24 +644,24 @@ function AdminShipmentList() {
                            placeholder={t('admin.cttCodigo')}
                            value={cttForm[s.id]?.code || ''}
                            onChange={(e) => setCttForm(prev => ({ ...prev, [s.id]: { ...(prev[s.id] || { code: '', link: '' }), code: e.target.value } }))}
-                           className="px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-xs text-gold focus:border-gold outline-none min-h-[32px]"
+                           className="px-2 py-1 bg-[#2b1f4a] border border-white/20 rounded text-xs text-gold focus:border-gold outline-none min-h-[32px]"
                          />
                          <input
                            type="text"
                            placeholder={t('admin.cttLink')}
                            value={cttForm[s.id]?.link || ''}
                            onChange={(e) => setCttForm(prev => ({ ...prev, [s.id]: { ...(prev[s.id] || { code: '', link: '' }), link: e.target.value } }))}
-                           className="px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-xs text-gold focus:border-gold outline-none min-h-[32px] flex-1"
+                           className="px-2 py-1 bg-[#2b1f4a] border border-white/20 rounded text-xs text-gold focus:border-gold outline-none min-h-[32px] flex-1"
                          />
                          <button
                            onClick={() => updateCtt(s.id)}
-                           className="px-3 py-1 bg-gold text-gold rounded text-xs font-medium hover:opacity-90 transition-opacity"
+                           className="px-3 py-1 bg-gold text-[#1a1133] rounded text-xs font-medium hover:opacity-90 transition-opacity"
                          >
                            {t('admin.salvarCtt')}
                          </button>
                          <button
                            onClick={() => { setEditingCttId(null); setCttForm(prev => { const next = { ...prev }; delete next[s.id]; return next; }); }}
-                           className="px-3 py-1 bg-[#D8B9FF] text-gold/60 rounded text-xs hover:bg-[#D8B9FF]/20 transition-colors"
+                           className="px-3 py-1 bg-[#2b1f4a] text-white/60 rounded text-xs hover:bg-white/5 transition-colors"
                          >
                            {t('admin.cancelar')}
                          </button>
@@ -676,7 +676,7 @@ function AdminShipmentList() {
         </div>
       </div>
       {filtered.length === 0 && (
-        <div className="text-center py-8 text-gold/40">{t('admin.nenhumaEncomenda')}</div>
+        <div className="text-center py-8 text-white/40">{t('admin.nenhumaEncomenda')}</div>
       )}
     </div>
   );
@@ -746,26 +746,26 @@ function AdminUserList() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-gold/60">{t('admin.aCarregarUsers')}</div>;
+  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarUsers')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
     <div className="overflow-x-auto px-4 sm:px-0">
       <div className="inline-block min-w-full align-middle">
         <table className="min-w-full text-sm">
-          <thead className="border-b border-[#D8B9FF]/30">
+          <thead className="border-b border-white/20">
             <tr>
-              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.nome')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.email')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.telefone')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.empresa')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.role')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.nome')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.email')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.telefone')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.empresa')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.role')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors">
+              <tr key={u.id} className="border-b border-lilac/10 hover:bg-white/5 transition-colors">
                 <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{u.name}</td>
                 <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{u.email}</td>
                 <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{u.phone || '—'}</td>
@@ -774,7 +774,7 @@ function AdminUserList() {
                   <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
                     u.role === 'ADMIN' ? 'text-gold bg-gold/10' :
                     u.role === 'OPERATOR' ? 'text-lilac-400 bg-lilac-400/10' :
-                    'text-gold/60 bg-[#D8B9FF]/20'
+                    'text-white/60 bg-white/5'
                   }`}>
                     {u.role}
                   </span>
@@ -783,7 +783,7 @@ function AdminUserList() {
                    <select
                      value={u.role}
                      onChange={(e) => changeRole(u.id, e.target.value)}
-                     className="px-1 sm:px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
+                     className="px-1 sm:px-2 py-1 bg-[#2b1f4a] border border-white/20 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
                    >
                     <option value="CLIENT">{t('admin.cliente')}</option>
                     <option value="OPERATOR">{t('admin.operador')}</option>
@@ -943,7 +943,7 @@ function AdminRouteManager() {
     return new Date(flightDate) < new Date();
   };
 
-  if (loading) return <div className="text-center py-8 text-gold/60">{t('admin.aCarregarRotas')}</div>;
+  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarRotas')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
@@ -957,7 +957,7 @@ function AdminRouteManager() {
             value={newRoute.origin}
             onChange={(e) => setNewRoute({ ...newRoute, origin: e.target.value })}
             required
-            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <input
             type="text"
@@ -965,7 +965,7 @@ function AdminRouteManager() {
             value={newRoute.destination}
             onChange={(e) => setNewRoute({ ...newRoute, destination: e.target.value })}
             required
-            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <input
             type="number"
@@ -973,14 +973,14 @@ function AdminRouteManager() {
             value={newRoute.pricePerKg || ''}
             onChange={(e) => setNewRoute({ ...newRoute, pricePerKg: parseFloat(e.target.value) || 0 })}
             required
-            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <input
             type="date"
             value={newRoute.flightDate}
             onChange={(e) => setNewRoute({ ...newRoute, flightDate: e.target.value })}
             required
-            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <input
             type="number"
@@ -988,7 +988,7 @@ function AdminRouteManager() {
             value={newRoute.capacity || ''}
             onChange={(e) => setNewRoute({ ...newRoute, capacity: parseFloat(e.target.value) || 0 })}
             required
-            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <div className="lg:col-span-6 flex flex-col sm:flex-row gap-2">
             <GoldButton type="submit" className="py-2 px-4 text-sm">
@@ -998,7 +998,7 @@ function AdminRouteManager() {
               <button
                 type="button"
                 onClick={() => { setEditingId(null); setNewRoute({ origin: '', destination: '', pricePerKg: 0, flightDate: '', capacity: 0 }); }}
-                className="px-4 py-2 rounded-lg bg-[#D8B9FF] text-gold/60 hover:bg-[#D8B9FF]/20 text-sm"
+                className="px-4 py-2 rounded-lg bg-[#2b1f4a] text-white/60 hover:bg-white/5 text-sm"
                 >
                   {t('admin.cancelar')}
                 </button>
@@ -1010,25 +1010,25 @@ function AdminRouteManager() {
       <div className="overflow-x-auto px-4 sm:px-0">
         <div className="inline-block min-w-full align-middle">
           <table className="min-w-full text-sm">
-            <thead className="border-b border-[#D8B9FF]/30">
+            <thead className="border-b border-white/20">
               <tr>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.origem')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.destino')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.servico')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.euKg')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.dataVoo')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.capacidade')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.reservado')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.disponivel')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.statusRota')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.origem')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.destino')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.servico')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.euKg')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.dataVoo')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.capacidade')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.reservado')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.disponivel')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.statusRota')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
               </tr>
             </thead>
             <tbody>
               {routes.map((r) => {
                 const expired = isExpired(r.flightDate);
                 return (
-                  <tr key={r.id} className={`border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors ${expired ? 'opacity-50' : ''}`}>
+                  <tr key={r.id} className={`border-b border-lilac/10 hover:bg-white/5 transition-colors ${expired ? 'opacity-50' : ''}`}>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.origin}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.destination}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{t(`admin.${r.serviceType.toLowerCase()}`)}</td>
@@ -1049,7 +1049,7 @@ function AdminRouteManager() {
                         value={r.status || 'SCHEDULED'}
                         onChange={(e) => updateRouteStatus(r.id, e.target.value)}
                         disabled={savingRouteId === r.id}
-                        className="px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
+                        className="px-2 py-1 bg-[#2b1f4a] border border-white/20 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
                       >
                         <option value="SCHEDULED">{t('admin.rotaAgendada')}</option>
                         <option value="DEPARTED">{t('admin.rotaPartiu')}</option>
@@ -1087,7 +1087,7 @@ function AdminRouteManager() {
         </div>
       </div>
       {routes.length === 0 && (
-        <div className="text-center py-8 text-gold/40">{t('admin.nenhumaRota')}</div>
+        <div className="text-center py-8 text-white/40">{t('admin.nenhumaRota')}</div>
       )}
     </div>
   );
@@ -1380,7 +1380,7 @@ function AdminLeadsList() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-gold/60">{t('admin.aCarregarMsgs')}</div>;
+  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarMsgs')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   const filterPills = [
@@ -1395,20 +1395,20 @@ function AdminLeadsList() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2 mb-2">
-        <Filter className="w-4 h-4 text-gold/40" />
+        <Filter className="w-4 h-4 text-white/40" />
         {filterPills.map((pill) => (
           <button
             key={pill.key}
             onClick={() => setStageFilter(pill.key)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 ${
               stageFilter === pill.key
-                ? 'bg-gold text-gold'
-                : 'bg-[#D8B9FF] text-gold/60 hover:bg-[#D8B9FF]/20'
+                ? 'bg-gold text-[#1a1133]'
+                : 'bg-[#2b1f4a] text-white/60 hover:bg-white/5'
             }`}
           >
             {pill.label}
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-              stageFilter === pill.key ? 'bg-[#D8B9FF]/20 text-[#2e1a47]' : 'bg-[#D8B9FF]/20 text-[#2e1a47]/70'
+              stageFilter === pill.key ? 'bg-lilac/20 text-[#1a1133]' : 'bg-white/5 text-white/70'
             }`}>
               {pill.count}
             </span>
@@ -1416,14 +1416,14 @@ function AdminLeadsList() {
         ))}
         <button
           onClick={refreshAll}
-          className="ml-auto px-3 py-1.5 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg text-gold hover:bg-[#D8B9FF]/20 transition-colors flex items-center gap-2 text-xs"
+          className="ml-auto px-3 py-1.5 bg-[#2b1f4a] border border-white/20 rounded-lg text-gold hover:bg-white/5 transition-colors flex items-center gap-2 text-xs"
         >
           <RefreshCw className="w-4 h-4" /> {t('admin.atualizar')}
         </button>
       </div>
 
       {leads.length === 0 && (
-        <div className="text-center py-8 text-gold/60">
+        <div className="text-center py-8 text-white/60">
           <Mail className="w-12 h-12 mx-auto mb-3 opacity-30" />
            <p>{t('admin.nenhumaLead')}</p>
         </div>
@@ -1446,14 +1446,14 @@ function AdminLeadsList() {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <span className="font-semibold text-gold text-sm sm:text-base truncate">{lead.name}</span>
-                  <span className="text-sm text-gold/40 hidden sm:inline">—</span>
+                  <span className="text-sm text-white/40 hidden sm:inline">—</span>
                   <a href={`mailto:${lead.email}`} className="text-sm text-gold hover:underline truncate">
                     {lead.email}
                   </a>
                   {lead.phone && (
                     <>
-                      <span className="text-sm text-gold/40 hidden sm:inline">—</span>
-                      <a href={`tel:${lead.phone}`} className="text-sm text-gold/60 hover:text-gold truncate">
+                      <span className="text-sm text-white/40 hidden sm:inline">—</span>
+                      <a href={`tel:${lead.phone}`} className="text-sm text-white/60 hover:text-gold truncate">
                         {lead.phone}
                       </a>
                     </>
@@ -1462,7 +1462,7 @@ function AdminLeadsList() {
                     {formatDateTime(lead.createdAt)}
                   </span>
                 </div>
-                <div className="mt-2 text-sm text-gold/80 whitespace-pre-wrap break-words">{lead.message}</div>
+                <div className="mt-2 text-sm text-white/80 whitespace-pre-wrap break-words">{lead.message}</div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${STAGE_COLORS[stage]}`}>
@@ -1472,7 +1472,7 @@ function AdminLeadsList() {
                     value={stage}
                     disabled={isSaving}
                     onChange={(e) => changeStage(lead.id, e.target.value)}
-                    className="px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
+                    className="px-2 py-1 bg-[#2b1f4a] border border-white/20 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
                   >
                     {LEAD_STAGES.map(s => (
                       <option key={s} value={s}>{t(STAGE_LABELS[s])}</option>
@@ -1485,7 +1485,7 @@ function AdminLeadsList() {
 
                 <div className="mt-2 text-xs">
                   {lead.assignedToName ? (
-                    <span className="text-gold/60 flex items-center gap-1">
+                    <span className="text-white/60 flex items-center gap-1">
                        <UserPlus className="w-3 h-3" /> {t('admin.atribuidoA', { name: lead.assignedToName })}
                     </span>
                   ) : (
@@ -1500,7 +1500,7 @@ function AdminLeadsList() {
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <Tag className="w-3 h-3 text-gold/40" />
+                  <Tag className="w-3 h-3 text-white/40" />
                   {tags.map((t) => (
                     <span key={t} className="text-[10px] text-gold bg-gold/10 px-2 py-0.5 rounded-full">
                       {t}
@@ -1513,12 +1513,12 @@ function AdminLeadsList() {
                       value={newTag[lead.id] || ''}
                       onChange={(e) => setNewTag(s => ({ ...s, [lead.id]: e.target.value }))}
                       onKeyDown={(e) => { if (e.key === 'Enter') addTag(lead.id); }}
-                      className="w-24 px-2 py-0.5 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none"
+                      className="w-24 px-2 py-0.5 bg-[#2b1f4a] border border-white/20 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none"
                     />
                     <button
                       onClick={() => addTag(lead.id)}
                       disabled={isSaving}
-                      className="px-1.5 py-0.5 bg-[#D8B9FF]/20 rounded text-[10px] text-gold/70 hover:bg-lilac/20"
+                      className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-white/70 hover:bg-lilac/20"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
@@ -1528,7 +1528,7 @@ function AdminLeadsList() {
                 <div className="mt-2">
                   <button
                     onClick={() => setNotesOpen(s => ({ ...s, [lead.id]: !isOpen }))}
-                    className="flex items-center gap-1 text-xs text-gold/60 hover:text-gold transition-colors"
+                    className="flex items-center gap-1 text-xs text-white/60 hover:text-gold transition-colors"
                   >
                     <StickyNote className="w-3 h-3" />
                     {t('admin.notasContador', { n: notes.length, s: notes.length === 1 ? '' : 's' })}
@@ -1537,12 +1537,12 @@ function AdminLeadsList() {
                   {isOpen && (
                     <div className="mt-2 space-y-2">
                       {notes.length === 0 && (
-                         <p className="text-xs text-gold/40">{t('admin.semNotas')}</p>
+                         <p className="text-xs text-white/40">{t('admin.semNotas')}</p>
                       )}
                       {notes.map((n, i) => (
-                        <div key={i} className="text-xs bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg p-2">
-                          <div className="text-gold/80 whitespace-pre-wrap break-words">{n.text}</div>
-                          <div className="text-gold/40 mt-1">
+                        <div key={i} className="text-xs bg-[#2b1f4a] border border-white/20 rounded-lg p-2">
+                          <div className="text-white/80 whitespace-pre-wrap break-words">{n.text}</div>
+                          <div className="text-white/40 mt-1">
                              {n.author ? t('admin.por', { author: n.author }) : '—'} — {formatDateTime(n.createdAt)}
                           </div>
                         </div>
@@ -1553,12 +1553,12 @@ function AdminLeadsList() {
                           value={newNote[lead.id] || ''}
                           onChange={(e) => setNewNote(s => ({ ...s, [lead.id]: e.target.value }))}
                           rows={2}
-                          className="flex-1 px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-xs text-gold focus:border-gold outline-none resize-none"
+                          className="flex-1 px-2 py-1 bg-[#2b1f4a] border border-white/20 rounded text-xs text-gold focus:border-gold outline-none resize-none"
                         />
                         <button
                           onClick={() => addNote(lead.id)}
                           disabled={isSaving}
-                          className="px-3 py-1.5 bg-gold text-gold rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1"
+                          className="px-3 py-1.5 bg-gold text-[#1a1133] rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1"
                         >
                            <Send className="w-3 h-3" /> {t('admin.addNota')}
                         </button>
@@ -1677,7 +1677,7 @@ export default function AdminDashboard() {
         setStatusDistribution(dist);
       }
     } catch (err) {
-      console.error('Erro ao carregar dashboard:', err);
+      // dashboard fetch error - silently handled
     } finally {
       setLoading(false);
       setRefreshing(false);

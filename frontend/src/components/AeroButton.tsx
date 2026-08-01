@@ -20,7 +20,7 @@ export function AeroButton({
 }) {
   const variantClasses =
     variant === 'gold'
-      ? 'bg-aero-gold text-gold hover:bg-[#D8B9FF] shadow-[0_0_25px_rgba(245,158,11,0.25)]'
+      ? 'bg-aero-gold text-[#1a1133] hover:bg-aero-gold/80 shadow-[0_0_25px_rgba(245,158,11,0.25)]'
       : 'bg-transparent text-gold border border-aero-lilas/40 hover:border-aero-gold hover:text-aero-gold';
 
   return (

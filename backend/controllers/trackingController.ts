@@ -17,7 +17,7 @@ export const TrackingController = {
         .get();
 
       if (snapshot.empty) {
-        return res.status(404).json({ error: 'Encomenda não encontrada' });
+        return res.status(404).json({ error: 'Encomenda nÃ£o encontrada' });
       }
 
       const shipmentDoc = snapshot.docs[0];
@@ -86,14 +86,14 @@ export const TrackingController = {
         progress: shipment.progress || 0,
       };
 
-logger.info(`Rastreamento encontrado para o código: ${code}`);
+logger.info(`Rastreamento encontrado para o cÃ³digo: ${code}`);
       res.json({
         success: true,
         data: fixEncodingObject(responseData)
       });
     } catch (error: any) {
       logger.error('Erro ao buscar rastreamento:', error.message, error.stack);
-      res.status(500).json({ error: 'Erro ao buscar informações de rastreamento' });
+      res.status(500).json({ error: 'Erro ao buscar informaÃ§Ãµes de rastreamento' });
     }
   }
 };

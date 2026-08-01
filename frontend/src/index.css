@@ -23,19 +23,19 @@
 }
 
 @layer base {
-  :root { color-scheme: light; }
+  :root { color-scheme: dark; }
   html, body {
-    background: #D8B9FF;
-    color: #2e1a47;
+    background: #1a1133;
+    color: #e5e7eb;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
   body {
     background:
-      radial-gradient(1200px 800px at 80% -10%, rgba(216,185,255,0.35), transparent 60%),
-      radial-gradient(900px 600px at -10% 20%, rgba(212,175,55,0.18), transparent 60%),
-      #D8B9FF;
+      radial-gradient(1200px 800px at 80% -10%, rgba(54,44,80,0.35), transparent 60%),
+      radial-gradient(900px 600px at -10% 20%, rgba(212,175,55,0.10), transparent 60%),
+      #1a1133;
   }
 }
 
@@ -116,11 +116,10 @@
   .preserve-3d { transform-style: preserve-3d; }
   .backface-hidden { backface-visibility: hidden; }
   #main-wrapper { overflow-x: clip; }
-  .text-gold {
-    text-shadow:
-      0 0 2px rgba(0, 0, 0, 0.7),
-      0 0 4px rgba(0, 0, 0, 0.5);
-  }
+   .text-gold {
+     text-shadow:
+       0 0 3px rgba(212, 175, 55, 0.7);
+   }
 }
 
 /* Storytelling: cena 3D preenche a secção pinada */

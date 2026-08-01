@@ -102,7 +102,7 @@ export default function StorySection({ chapters, visual, onProgress, className =
         {visual}
       </div>
 
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#D8B9FF]/20 z-20">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-white/5 z-20">
         <div ref={barRef} className="h-full origin-left bg-gradient-to-r from-gold via-lilac-500 to-lilac" style={{ transform: 'scaleX(0)' }} />
       </div>
 
@@ -126,7 +126,7 @@ export default function StorySection({ chapters, visual, onProgress, className =
                 <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-gold leading-[1.05]">
                   {ch.title}
                 </h2>
-                <p className="mt-6 text-base md:text-lg text-gold/65 leading-relaxed max-w-xl">
+                <p className="mt-6 text-base md:text-lg text-white/65 leading-relaxed max-w-xl">
                   {ch.body}
                 </p>
               </div>
