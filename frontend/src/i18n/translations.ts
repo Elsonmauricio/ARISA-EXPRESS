@@ -407,7 +407,6 @@ export const translations: Record<Lang, Dict> = {
     'track.kg': 'kg',
     'track.euro': '€ ',
     'track.historico': 'Histórico de Atualizações',
-    'track.acompanharCtt': 'Acompanhar nos CTT',
 
     // ---- TIMELINE ----
     'timeline.vazio': 'Nenhuma etapa disponível.',
@@ -1008,7 +1007,6 @@ export const translations: Record<Lang, Dict> = {
     'track.levantadaDesc': 'Package picked up by recipient',
     'track.cancelada': 'Cancelled',
     'track.canceladaDesc': 'Shipment cancelled',
-    'track.acompanharCtt': 'Track on CTT',
     'track.semCtt': 'No CTT tracking associated',
     'track.cttCodigo': 'CTT Code',
     'track.eyebrow': 'Tracking',
@@ -1028,7 +1026,6 @@ export const translations: Record<Lang, Dict> = {
     'track.kg': 'kg',
     'track.euro': '€ ',
     'track.historico': 'Update History',
-    'track.acompanharCtt': 'Track on CTT',
 
     // ---- TIMELINE ----
     'timeline.vazio': 'No steps available.',

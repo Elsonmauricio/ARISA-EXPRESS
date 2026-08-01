@@ -25,15 +25,7 @@ interface Shipment {
   status: string;
   createdAt: any;
   senderName: string;
-  senderContact?: string;
   receiverName: string;
-  receiverContact?: string;
-  category?: string;
-  freightValue?: number;
-  paymentStatus?: string;
-  cttCode?: string;
-  cttLink?: string;
-  route?: string;
   userId: string;
   readyForPickupAt?: any;
   pickupDeadline?: any;
@@ -347,95 +339,6 @@ function getStatusColor(status: string) {
   return colors[status] || 'text-white/60 bg-white/10';
 }
 
-
-// ======================== ADMIN SHIPMENT ROW ========================
-function AdminShipmentRow({ s, onUpdateStatus }: { s: Shipment; onUpdateStatus: (id: string, status: string) => void }) {
-  const [editingCtt, setEditingCtt] = useState(false);
-  const [cttCode, setCttCode] = useState(s.cttCode || '');
-  const [cttLink, setCttLink] = useState(s.cttLink || '');
-  const [savingCtt, setSavingCtt] = useState(false);
-  const { t } = useT();
-
-  const saveCtt = async () => {
-    setSavingCtt(true);
-    try {
-      const token = localStorage.getItem('token');
-      await fetch(api(`/api/admin/shipments/${s.id}/ctt`), {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ cttCode, cttLink })
-      });
-      setEditingCtt(false);
-    } catch (err) {
-      alert(t('admin.erroStatus'));
-    } finally {
-      setSavingCtt(false);
-    }
-  };
-
-  return (
-    <tr className="border-b border-white/5 hover:bg-white/5 transition-colors">
-      <td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
-      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
-      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.receiverName || '—'}</td>
-      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} → {s.destination}</td>
-      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} {t('ship.kg')}</td>
-      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{s.category || '—'}</td>
-      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">€ {s.freightValue?.toFixed(2) || '—'}</td>
-      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.paymentStatus === 'PAID' ? 'text-green-400 bg-green-400/10' : 'text-yellow-400 bg-yellow-400/10'}`}>
-          {s.paymentStatus === 'PAID' ? t('admin.pago') : t('admin.pendente')}
-        </span>
-      </td>
-      <td className="py-3 px-2 sm:px-4">
-        <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(s.status)}`}>
-          {t(`status.${s.status}`)}
-        </span>
-      </td>
-      <td className="py-3 px-2 sm:px-4 text-xs">
-        {!editingCtt ? (
-          <div className="flex items-center gap-1">
-            <span className="text-white/60 truncate max-w-[80px]">{s.cttCode || '—'}</span>
-            <button onClick={() => setEditingCtt(true)} className="text-blue-400 hover:text-blue-300">
-              <Edit className="w-3 h-3" />
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-1">
-            <input type="text" value={cttCode} onChange={e => setCttCode(e.target.value)} placeholder="Código CTT" className="w-full px-2 py-1 bg-white/5 border border-white/10 rounded text-white text-[10px] focus:border-gold outline-none" />
-            <input type="url" value={cttLink} onChange={e => setCttLink(e.target.value)} placeholder="Link CTT" className="w-full px-2 py-1 bg-white/5 border border-white/10 rounded text-white text-[10px] focus:border-gold outline-none" />
-            <button onClick={saveCtt} disabled={savingCtt} className="text-[10px] text-gold hover:underline">
-              {savingCtt ? t('admin.aProcessar') : t('admin.guardar')}
-            </button>
-          </div>
-        )}
-      </td>
-      <td className="py-3 px-2 sm:px-4">
-        <select
-          value={s.status}
-          onChange={(e) => onUpdateStatus(s.id, e.target.value)}
-          className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none max-w-[100px]"
-        >
-          <option value="REGISTERED">{t('status.REGISTERED')}</option>
-          <option value="SHIPPED">{t('status.SHIPPED')}</option>
-          <option value="IN_CUSTOMS">{t('status.IN_CUSTOMS')}</option>
-          <option value="READY_FOR_PICKUP">{t('status.READY_FOR_PICKUP')}</option>
-          <option value="PICKED_UP">{t('status.PICKED_UP')}</option>
-          <option value="PENDING">{t('status.PENDING')}</option>
-          <option value="COLLECTED">{t('status.COLLECTED')}</option>
-          <option value="IN_TRANSIT">{t('status.IN_TRANSIT')}</option>
-          <option value="CUSTOMS">{t('status.CUSTOMS')}</option>
-          <option value="IN_PORTUGAL">{t('status.IN_PORTUGAL')}</option>
-          <option value="IN_ANGOLA">{t('status.IN_ANGOLA')}</option>
-          <option value="OUT_FOR_DELIVERY">{t('status.OUT_FOR_DELIVERY')}</option>
-          <option value="DELIVERED">{t('status.DELIVERED')}</option>
-          <option value="CANCELLED">{t('status.CANCELLED')}</option>
-        </select>
-      </td>
-    </tr>
-  );
-}
-
 // ======================== ADMIN SHIPMENT LIST ========================
 function AdminShipmentList() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -524,7 +427,6 @@ function AdminShipmentList() {
     }
   };
 
-
   const sendWhatsApp = async (shipment: Shipment) => {
     try {
       const token = localStorage.getItem('token');
@@ -596,12 +498,10 @@ function AdminShipmentList() {
     return colors[status] || 'text-white/60 bg-white/5';
   };
 
-
   const filtered = shipments.filter(s => {
     const matchFilter = filter === 'all' || s.status === filter;
     const matchSearch = s.trackingCode.toLowerCase().includes(search.toLowerCase()) ||
-                        s.senderName.toLowerCase().includes(search.toLowerCase()) ||
-                        (s.receiverName || '').toLowerCase().includes(search.toLowerCase());
+                        s.senderName.toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
 
@@ -613,7 +513,7 @@ function AdminShipmentList() {
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/30" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <input
               type="text"
               placeholder={t('admin.pesquisar')}
@@ -629,11 +529,6 @@ function AdminShipmentList() {
           className="px-4 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg text-gold text-sm focus:border-gold outline-none"
         >
           <option value="all">{t('admin.todosStatus')}</option>
-          <option value="REGISTERED">{t('status.REGISTERED')}</option>
-          <option value="SHIPPED">{t('status.SHIPPED')}</option>
-          <option value="IN_CUSTOMS">{t('status.IN_CUSTOMS')}</option>
-          <option value="READY_FOR_PICKUP">{t('status.READY_FOR_PICKUP')}</option>
-          <option value="PICKED_UP">{t('status.PICKED_UP')}</option>
           <option value="PENDING">{t('status.PENDING')}</option>
           <option value="COLLECTED">{t('status.COLLECTED')}</option>
           <option value="IN_TRANSIT">{t('status.IN_TRANSIT')}</option>
@@ -779,12 +674,13 @@ function AdminShipmentList() {
              </tbody>
           </table>
         </div>
-        {filtered.length === 0 && (
-          <div className="text-center py-8 text-white/40">{t('admin.nenhumaEncomenda')}</div>
-        )}
       </div>
-    );
-  }
+      {filtered.length === 0 && (
+        <div className="text-center py-8 text-white/40">{t('admin.nenhumaEncomenda')}</div>
+      )}
+    </div>
+  );
+}
 
 // ======================== ADMIN USER LIST ========================
 function AdminUserList() {
@@ -1095,7 +991,7 @@ function AdminRouteManager() {
             className="px-3 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <div className="lg:col-span-6 flex flex-col sm:flex-row gap-2">
-            <GoldButton type="submit" className="py-2 px-4 text-black">
+            <GoldButton type="submit" className="py-2 px-4 text-sm">
               {editingId ? t('admin.atualizar') : t('admin.adicionar')}
             </GoldButton>
             {editingId && (
@@ -1512,7 +1408,7 @@ function AdminLeadsList() {
           >
             {pill.label}
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-              stageFilter === pill.key ? 'bg-lilac/20 text-[#1a1133]' : 'bg-white/5 text-white/70'
+              stageFilter === pill.key ? 'bg-white/5 text-white/90' : 'bg-white/5 text-white/90/70'
             }`}>
               {pill.count}
             </span>
@@ -1562,7 +1458,7 @@ function AdminLeadsList() {
                       </a>
                     </>
                   )}
-                  <span className="text-xs text-gold/30 ml-auto whitespace-nowrap">
+                  <span className="text-xs text-white/40 ml-auto whitespace-nowrap">
                     {formatDateTime(lead.createdAt)}
                   </span>
                 </div>
@@ -1781,7 +1677,7 @@ export default function AdminDashboard() {
         setStatusDistribution(dist);
       }
     } catch (err) {
-      // dashboard fetch error - silently handled
+      console.error('Erro ao carregar dashboard:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
