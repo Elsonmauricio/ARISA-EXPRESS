@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+﻿import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 
 interface ButtonProps {
@@ -19,7 +19,7 @@ export function GoldButton({ children, className, onClick, type = 'button', disa
       whileTap={{ scale: 0.98 }}
       className={cn(
         'relative inline-flex items-center justify-center px-5 sm:px-7 py-3 sm:py-3.5 rounded-full',
-        'text-white font-medium tracking-wide text-sm sm:text-base',
+        'text-gold font-medium tracking-wide text-sm sm:text-base',
         'bg-gradient-to-r from-lilac-500 to-gold hover:from-lilac-600 hover:to-gold',
         'overflow-hidden group',
         disabled && 'opacity-50 cursor-not-allowed grayscale',
@@ -41,7 +41,7 @@ export function GhostButton({ children, className, onClick }: ButtonProps) {
       className={cn(
         'relative inline-flex items-center justify-center px-5 sm:px-7 py-3 sm:py-3.5 rounded-full text-sm sm:text-base',
         'border border-lilac-500/30 hover:border-lilac-400',
-        'bg-white/[0.02] hover:bg-white/[0.06] hover:border-gold/60 transition-colors',
+        'bg-lilac/[0.02] hover:bg-lilac/[0.06] hover:border-gold/60 transition-colors',
         className
       )}
     >
@@ -49,3 +49,6 @@ export function GhostButton({ children, className, onClick }: ButtonProps) {
     </motion.button>
   );
 }
+
+
+

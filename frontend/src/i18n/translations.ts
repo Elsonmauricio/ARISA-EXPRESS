@@ -114,6 +114,7 @@ export const translations: Record<Lang, Dict> = {
     'contact.moradaLuanda2': 'Defronte ao Hotel Ágatha',
     'contact.moradaLisboa1': 'Praceta Salgado Zenha 2',
     'contact.moradaLisboa2': '2660-328 Santo António Cavaleiros, Portugal',
+    'contact.moradas': 'Moradas',
     'contact.whatsappTitle': 'Atendimento via WhatsApp',
     'contact.whatsapp': 'WhatsApp',
 
@@ -156,6 +157,7 @@ export const translations: Record<Lang, Dict> = {
     'settings.confirmarSenha': 'Confirmar nova senha',
     'settings.aAlterar': 'A alterar...',
     'settings.preferencias': 'Preferências',
+    'settings.preferenciasTitle': 'Preferências',
     'settings.notificacoes': 'Notificações por email',
     'settings.modoEscuro': 'Modo escuro',
     'settings.acoes': 'Ações',
@@ -371,6 +373,7 @@ export const translations: Record<Lang, Dict> = {
     'track.chegadaAngola': 'Chegada a Angola',
     'track.chegadaPortugal': 'Chegada a Portugal',
     'track.chegadaDestino': 'Chegada ao destino',
+    'track.destino': 'Destino',
     'track.hubPortugal': 'Hub logístico de Portugal',
     'track.aeroporto': 'Aeroporto 4 de Fevereiro',
     'track.alfandega': 'Alfândega',
@@ -381,6 +384,7 @@ export const translations: Record<Lang, Dict> = {
     'track.entregueDesc': 'Encomenda entregue ao destinatário',
     'track.disponivelLevantamento': 'Disponível para Levantamento',
     'track.levantada': 'Levantada',
+    'track.levantadaDesc': 'Encomenda levantada pelo destinatário',
     'track.cancelada': 'Cancelada',
     'track.canceladaDesc': 'Encomenda cancelada',
     'track.acompanharCtt': 'Acompanhar nos CTT',
@@ -528,6 +532,7 @@ export const translations: Record<Lang, Dict> = {
     'admin.cttLink': 'Link CTT',
     'admin.editarCtt': 'Editar CTT',
     'admin.salvarCtt': 'Salvar',
+    'admin.ctt': 'CTT',
 
     // ---- TERMS ----
     'terms.titulo': 'Termos & Condições',
@@ -711,6 +716,7 @@ export const translations: Record<Lang, Dict> = {
     'contact.moradaLuanda2': 'Opposite Hotel Ágatha',
     'contact.moradaLisboa1': 'Praceta Salgado Zenha 2',
     'contact.moradaLisboa2': '2660-328 Santo António Cavaleiros, Portugal',
+    'contact.moradas': 'Addresses',
     'contact.whatsappTitle': 'WhatsApp Support',
     'contact.whatsapp': 'WhatsApp',
 
@@ -753,6 +759,7 @@ export const translations: Record<Lang, Dict> = {
     'settings.confirmarSenha': 'Confirm new password',
     'settings.aAlterar': 'Changing...',
     'settings.preferencias': 'Preferences',
+    'settings.preferenciasTitle': 'Preferences',
     'settings.notificacoes': 'Email notifications',
     'settings.modoEscuro': 'Dark mode',
     'settings.acoes': 'Actions',
@@ -968,6 +975,7 @@ export const translations: Record<Lang, Dict> = {
     'track.chegadaAngola': 'Arrived in Angola',
     'track.chegadaPortugal': 'Arrived in Portugal',
     'track.chegadaDestino': 'Arrived at destination',
+    'track.destino': 'Destination',
     'track.hubPortugal': 'Portugal Logistics Hub',
     'track.aeroporto': '4 de Fevereiro Airport',
     'track.alfandega': 'Customs',
@@ -978,6 +986,7 @@ export const translations: Record<Lang, Dict> = {
     'track.entregueDesc': 'Shipment delivered to recipient',
     'track.disponivelLevantamento': 'Available for Pickup',
     'track.levantada': 'Picked Up',
+    'track.levantadaDesc': 'Package picked up by recipient',
     'track.cancelada': 'Cancelled',
     'track.canceladaDesc': 'Shipment cancelled',
     'track.acompanharCtt': 'Track on CTT',
@@ -1125,6 +1134,7 @@ export const translations: Record<Lang, Dict> = {
     'admin.cttLink': 'CTT Link',
     'admin.editarCtt': 'Edit CTT',
     'admin.salvarCtt': 'Save',
+    'admin.ctt': 'CTT',
 
     // ---- TERMS ----
     'terms.titulo': 'Terms & Conditions',

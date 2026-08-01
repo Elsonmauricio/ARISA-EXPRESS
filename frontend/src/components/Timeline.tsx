@@ -1,4 +1,4 @@
-// src/components/Timeline.tsx
+﻿// src/components/Timeline.tsx
 'use client';
 
 import { motion } from 'framer-motion';
@@ -76,7 +76,7 @@ export default function Timeline({
   const { t } = useT();
   if (!steps || steps.length === 0) {
     return (
-      <div className="text-center text-white/40 py-8 text-sm">
+      <div className="text-center text-gold/40 py-8 text-sm">
         {t('timeline.vazio')}
       </div>
     );
@@ -93,7 +93,7 @@ export default function Timeline({
     >
       {/* Desktop */}
       <div className="hidden md:block">
-        <div className="absolute top-7 left-[7%] right-[7%] h-px bg-white/10" />
+        <div className="absolute top-7 left-[7%] right-[7%] h-px bg-[#D8B9FF]/20" />
         <div className={`grid grid-cols-${Math.min(steps.length, 4)} gap-4`}>
           {steps.map((step, index) => {
             const reached = index <= safeCurrentStep;
@@ -117,15 +117,15 @@ export default function Timeline({
                       ? 'border-gold bg-gold/20 shadow-gold animate-glow'
                       : reached
                         ? 'border-lilac-400 bg-lilac-500/20'
-                        : 'border-white/15 bg-white/[0.03]'
+                        : 'border-[#D8B9FF]/30/15 bg-[#D8B9FF]/[0.03]'
                   }`}
                 >
                   {reached && !isCurrent ? (
-                    <Check className="w-5 h-5 text-white" />
+                    <Check className="w-5 h-5 text-gold" />
                   ) : (
                     <Icon
                       className={`w-5 h-5 ${
-                        isCurrent ? 'text-gold' : reached ? 'text-white' : 'text-white/30'
+                        isCurrent ? 'text-gold' : reached ? 'text-gold' : 'text-gold/30'
                       }`}
                     />
                   )}
@@ -133,13 +133,13 @@ export default function Timeline({
                 <motion.div variants={contentVariants} className="mt-4 px-2">
                   <div
                     className={`text-sm font-semibold ${
-                      isCurrent ? 'text-gold' : reached ? 'text-white' : 'text-white/40'
+                      isCurrent ? 'text-gold' : reached ? 'text-gold' : 'text-gold/40'
                     }`}
                   >
                     {step.title}
                   </div>
-                  <div className="text-xs text-white/50 mt-1">{step.description}</div>
-                  <div className="text-[10px] tracking-widest uppercase text-white/30 mt-1">
+                  <div className="text-xs text-gold/50 mt-1">{step.description}</div>
+                  <div className="text-[10px] tracking-widest uppercase text-gold/30 mt-1">
                     {step.date}
                   </div>
                 </motion.div>
@@ -151,7 +151,7 @@ export default function Timeline({
 
       {/* Mobile */}
       <div className="md:hidden relative pl-10">
-        <div className="absolute left-[1.6rem] top-2 bottom-2 w-px bg-white/10" />
+        <div className="absolute left-[1.6rem] top-2 bottom-2 w-px bg-[#D8B9FF]/20" />
         {steps.map((step, index) => {
           const reached = index <= safeCurrentStep;
           const isCurrent = index === safeCurrentStep;
@@ -166,15 +166,15 @@ export default function Timeline({
                     ? 'border-gold bg-gold/20 shadow-gold animate-glow'
                     : reached
                       ? 'border-lilac-400 bg-lilac-500/20'
-                      : 'border-white/15 bg-white/[0.03]'
+                      : 'border-[#D8B9FF]/30/15 bg-[#D8B9FF]/[0.03]'
                 }`}
               >
                 {reached && !isCurrent ? (
-                  <Check className="w-4 h-4 text-white" />
+                  <Check className="w-4 h-4 text-gold" />
                 ) : (
                   <Icon
                     className={`w-4 h-4 ${
-                      isCurrent ? 'text-gold' : reached ? 'text-white' : 'text-white/30'
+                      isCurrent ? 'text-gold' : reached ? 'text-gold' : 'text-gold/30'
                     }`}
                   />
                 )}
@@ -182,13 +182,13 @@ export default function Timeline({
               <motion.div variants={contentVariants} className="ml-4">
                 <div
                   className={`font-semibold text-sm ${
-                    isCurrent ? 'text-gold' : reached ? 'text-white' : 'text-white/40'
+                    isCurrent ? 'text-gold' : reached ? 'text-gold' : 'text-gold/40'
                   }`}
                 >
                   {step.title}
                 </div>
-                <div className="text-xs text-white/50">{step.description}</div>
-                <div className="text-[10px] tracking-widest uppercase text-white/30 mt-0.5">
+                <div className="text-xs text-gold/50">{step.description}</div>
+                <div className="text-[10px] tracking-widest uppercase text-gold/30 mt-0.5">
                   {step.date}
                 </div>
               </motion.div>
@@ -199,3 +199,6 @@ export default function Timeline({
     </motion.div>
   );
 }
+
+
+

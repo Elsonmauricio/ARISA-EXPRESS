@@ -1,4 +1,4 @@
-// src/pages/AdminDashboard.tsx
+﻿// src/pages/AdminDashboard.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -131,8 +131,8 @@ function StatsCards({ stats }: { stats: any }) {
         <div key={i} className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs sm:text-sm text-white/60">{card.label}</div>
-              <div className="text-xl sm:text-2xl font-bold text-white">{card.value}</div>
+              <div className="text-xs sm:text-sm text-gold/60">{card.label}</div>
+              <div className="text-xl sm:text-2xl font-bold text-gold">{card.value}</div>
             </div>
             <card.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${card.color}`} />
           </div>
@@ -298,7 +298,7 @@ function AdminShipmentList() {
       READY_FOR_PICKUP: 'text-emerald-300 bg-emerald-300/10',
       PICKED_UP: 'text-gray-400 bg-gray-400/10'
     };
-    return colors[status] || 'text-white/60 bg-white/10';
+    return colors[status] || 'text-gold/60 bg-[#D8B9FF]/20';
   };
 
   const filtered = shipments.filter(s => {
@@ -308,7 +308,7 @@ function AdminShipmentList() {
     return matchFilter && matchSearch;
   });
 
-  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarEncomendas')}</div>;
+  if (loading) return <div className="text-center py-8 text-gold/60">{t('admin.aCarregarEncomendas')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
@@ -316,20 +316,20 @@ function AdminShipmentList() {
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/30" />
             <input
               type="text"
               placeholder={t('admin.pesquisar')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm"
+              className="w-full pl-9 pr-4 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm"
             />
           </div>
         </div>
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none"
+          className="px-4 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg text-gold text-sm focus:border-gold outline-none"
         >
           <option value="all">{t('admin.todosStatus')}</option>
           <option value="PENDING">{t('status.PENDING')}</option>
@@ -346,7 +346,7 @@ function AdminShipmentList() {
         </select>
         <button
           onClick={fetchShipments}
-          className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg text-gold hover:bg-[#D8B9FF]/20 transition-colors flex items-center gap-2"
         >
           <RefreshCw className="w-4 h-4" /> {t('admin.atualizar')}
         </button>
@@ -355,37 +355,37 @@ function AdminShipmentList() {
       <div className="overflow-x-auto px-4 sm:px-0">
         <div className="inline-block min-w-full align-middle">
           <table className="min-w-full text-sm">
-            <thead className="border-b border-white/10">
+            <thead className="border-b border-[#D8B9FF]/30">
               <tr>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.codigo')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.remetente')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.rota')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.peso')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.preco')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.prazoLimite')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.valorMulta')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.status')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.codigo')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.remetente')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.rota')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.peso')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.preco')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.prazoLimite')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.valorMulta')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.status')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((s) => (
                 <React.Fragment key={s.id}>
-                <tr key={s.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                <tr key={s.id} className="border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors">
                   <td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} → {s.destination}</td>
+                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} â†’ {s.destination}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} {t('ship.kg')}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">€ {s.price?.toFixed(2) || '—'}</td>
+                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">â‚¬ {s.price?.toFixed(2) || 'â€”'}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">
                     {s.pickupDeadline
                       ? (typeof s.pickupDeadline === 'object' && s.pickupDeadline.toDate
                         ? s.pickupDeadline.toDate().toLocaleDateString('pt-PT')
                         : new Date(s.pickupDeadline).toLocaleDateString('pt-PT'))
-                      : '—'}
+                      : 'â€”'}
                   </td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
-                    {s.calculatedFine !== undefined ? `€ ${s.calculatedFine.toFixed(2)}` : '—'}
+                    {s.calculatedFine !== undefined ? `â‚¬ ${s.calculatedFine.toFixed(2)}` : 'â€”'}
                   </td>
                   <td className="py-3 px-2 sm:px-4">
                     <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(s.status)}`}>
@@ -413,15 +413,15 @@ function AdminShipmentList() {
                          className={`flex items-center gap-1 px-2 py-1 rounded transition-colors text-[10px] sm:text-xs whitespace-nowrap ${
                            editingCttId === s.id
                              ? 'bg-gold/20 text-gold'
-                             : 'bg-white/5 text-white/60 hover:bg-white/10'
+                             : 'bg-[#D8B9FF] text-gold/60 hover:bg-[#D8B9FF]/20'
                          }`}
                        >
-                         <Edit className="w-3 h-3" /> CTT
+                          <Edit className="w-3 h-3" /> {t('admin.ctt')}
                        </button>
                        <select
                         value={s.status}
                         onChange={(e) => updateStatus(s.id, e.target.value)}
-                        className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none max-w-[100px]"
+                        className="px-1 sm:px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none max-w-[100px]"
                       >
                         <option value="PENDING">{t('status.PENDING')}</option>
                         <option value="COLLECTED">{t('status.COLLECTED')}</option>
@@ -439,7 +439,7 @@ function AdminShipmentList() {
                    </td>
                  </tr>
                  {editingCttId === s.id && (
-                   <tr key={`${s.id}-ctt`} className="border-b border-white/5 bg-white/[0.02]">
+                   <tr key={`${s.id}-ctt`} className="border-b border-lilac/10 bg-lilac/[0.02]">
                      <td colSpan={9} className="py-3 px-2 sm:px-4">
                        <div className="flex flex-wrap items-center gap-2">
                          <input
@@ -447,24 +447,24 @@ function AdminShipmentList() {
                            placeholder={t('admin.cttCodigo')}
                            value={cttForm[s.id]?.code || ''}
                            onChange={(e) => setCttForm(prev => ({ ...prev, [s.id]: { ...(prev[s.id] || { code: '', link: '' }), code: e.target.value } }))}
-                           className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:border-gold outline-none min-h-[32px]"
+                           className="px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-xs text-gold focus:border-gold outline-none min-h-[32px]"
                          />
                          <input
                            type="text"
                            placeholder={t('admin.cttLink')}
                            value={cttForm[s.id]?.link || ''}
                            onChange={(e) => setCttForm(prev => ({ ...prev, [s.id]: { ...(prev[s.id] || { code: '', link: '' }), link: e.target.value } }))}
-                           className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:border-gold outline-none min-h-[32px] flex-1"
+                           className="px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-xs text-gold focus:border-gold outline-none min-h-[32px] flex-1"
                          />
                          <button
                            onClick={() => updateCtt(s.id)}
-                           className="px-3 py-1 bg-gold text-black rounded text-xs font-medium hover:opacity-90 transition-opacity"
+                           className="px-3 py-1 bg-gold text-gold rounded text-xs font-medium hover:opacity-90 transition-opacity"
                          >
                            {t('admin.salvarCtt')}
                          </button>
                          <button
                            onClick={() => { setEditingCttId(null); setCttForm(prev => { const next = { ...prev }; delete next[s.id]; return next; }); }}
-                           className="px-3 py-1 bg-white/5 text-white/60 rounded text-xs hover:bg-white/10 transition-colors"
+                           className="px-3 py-1 bg-[#D8B9FF] text-gold/60 rounded text-xs hover:bg-[#D8B9FF]/20 transition-colors"
                          >
                            {t('admin.cancelar')}
                          </button>
@@ -479,7 +479,7 @@ function AdminShipmentList() {
         </div>
       </div>
       {filtered.length === 0 && (
-        <div className="text-center py-8 text-white/40">{t('admin.nenhumaEncomenda')}</div>
+        <div className="text-center py-8 text-gold/40">{t('admin.nenhumaEncomenda')}</div>
       )}
     </div>
   );
@@ -549,35 +549,35 @@ function AdminUserList() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarUsers')}</div>;
+  if (loading) return <div className="text-center py-8 text-gold/60">{t('admin.aCarregarUsers')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
     <div className="overflow-x-auto px-4 sm:px-0">
       <div className="inline-block min-w-full align-middle">
         <table className="min-w-full text-sm">
-          <thead className="border-b border-white/10">
+          <thead className="border-b border-[#D8B9FF]/30">
             <tr>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.nome')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.email')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.telefone')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.empresa')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.role')}</th>
-              <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.nome')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.email')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.telefone')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.empresa')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.role')}</th>
+              <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+              <tr key={u.id} className="border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors">
                 <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{u.name}</td>
                 <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{u.email}</td>
-                <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{u.phone || '—'}</td>
-                <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{u.company || '—'}</td>
+                <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{u.phone || 'â€”'}</td>
+                <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{u.company || 'â€”'}</td>
                 <td className="py-3 px-2 sm:px-4">
                   <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
                     u.role === 'ADMIN' ? 'text-gold bg-gold/10' :
                     u.role === 'OPERATOR' ? 'text-lilac-400 bg-lilac-400/10' :
-                    'text-white/60 bg-white/10'
+                    'text-gold/60 bg-[#D8B9FF]/20'
                   }`}>
                     {u.role}
                   </span>
@@ -586,7 +586,7 @@ function AdminUserList() {
                    <select
                      value={u.role}
                      onChange={(e) => changeRole(u.id, e.target.value)}
-                     className="px-1 sm:px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
+                     className="px-1 sm:px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
                    >
                     <option value="CLIENT">{t('admin.cliente')}</option>
                     <option value="OPERATOR">{t('admin.operador')}</option>
@@ -746,7 +746,7 @@ function AdminRouteManager() {
     return new Date(flightDate) < new Date();
   };
 
-  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarRotas')}</div>;
+  if (loading) return <div className="text-center py-8 text-gold/60">{t('admin.aCarregarRotas')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
@@ -760,7 +760,7 @@ function AdminRouteManager() {
             value={newRoute.origin}
             onChange={(e) => setNewRoute({ ...newRoute, origin: e.target.value })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <input
             type="text"
@@ -768,7 +768,7 @@ function AdminRouteManager() {
             value={newRoute.destination}
             onChange={(e) => setNewRoute({ ...newRoute, destination: e.target.value })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <input
             type="number"
@@ -776,14 +776,14 @@ function AdminRouteManager() {
             value={newRoute.pricePerKg || ''}
             onChange={(e) => setNewRoute({ ...newRoute, pricePerKg: parseFloat(e.target.value) || 0 })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <input
             type="date"
             value={newRoute.flightDate}
             onChange={(e) => setNewRoute({ ...newRoute, flightDate: e.target.value })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <input
             type="number"
@@ -791,7 +791,7 @@ function AdminRouteManager() {
             value={newRoute.capacity || ''}
             onChange={(e) => setNewRoute({ ...newRoute, capacity: parseFloat(e.target.value) || 0 })}
             required
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white text-sm min-h-[44px]"
+            className="px-3 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <div className="lg:col-span-6 flex flex-col sm:flex-row gap-2">
             <GoldButton type="submit" className="py-2 px-4 text-sm">
@@ -801,7 +801,7 @@ function AdminRouteManager() {
               <button
                 type="button"
                 onClick={() => { setEditingId(null); setNewRoute({ origin: '', destination: '', pricePerKg: 0, flightDate: '', capacity: 0 }); }}
-                className="px-4 py-2 rounded-lg bg-white/5 text-white/60 hover:bg-white/10 text-sm"
+                className="px-4 py-2 rounded-lg bg-[#D8B9FF] text-gold/60 hover:bg-[#D8B9FF]/20 text-sm"
                 >
                   {t('admin.cancelar')}
                 </button>
@@ -813,31 +813,31 @@ function AdminRouteManager() {
       <div className="overflow-x-auto px-4 sm:px-0">
         <div className="inline-block min-w-full align-middle">
           <table className="min-w-full text-sm">
-            <thead className="border-b border-white/10">
+            <thead className="border-b border-[#D8B9FF]/30">
               <tr>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.origem')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.destino')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.servico')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.euKg')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.dataVoo')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.capacidade')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.reservado')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.disponivel')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.statusRota')}</th>
-                <th className="text-left py-3 px-2 sm:px-4 text-white/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.origem')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.destino')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden sm:table-cell">{t('admin.servico')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.euKg')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.dataVoo')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden md:table-cell">{t('admin.capacidade')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm hidden lg:table-cell">{t('admin.reservado')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.disponivel')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.statusRota')}</th>
+                <th className="text-left py-3 px-2 sm:px-4 text-gold/60 text-xs sm:text-sm">{t('admin.acoes')}</th>
               </tr>
             </thead>
             <tbody>
               {routes.map((r) => {
                 const expired = isExpired(r.flightDate);
                 return (
-                  <tr key={r.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${expired ? 'opacity-50' : ''}`}>
+                  <tr key={r.id} className={`border-b border-lilac/10 hover:bg-[#D8B9FF] transition-colors ${expired ? 'opacity-50' : ''}`}>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.origin}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{r.destination}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{t(`admin.${r.serviceType.toLowerCase()}`)}</td>
-                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">€ {r.pricePerKg}</td>
+                    <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">â‚¬ {r.pricePerKg}</td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
-                      {r.flightDate ? new Date(r.flightDate).toLocaleDateString('pt-PT') : '—'}
+                      {r.flightDate ? new Date(r.flightDate).toLocaleDateString('pt-PT') : 'â€”'}
                       {expired && <span className="ml-2 text-red-400 text-[10px]">{t('admin.expirada')}</span>}
                     </td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{r.capacity} {t('ship.kg')}</td>
@@ -852,7 +852,7 @@ function AdminRouteManager() {
                         value={r.status || 'SCHEDULED'}
                         onChange={(e) => updateRouteStatus(r.id, e.target.value)}
                         disabled={savingRouteId === r.id}
-                        className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
+                        className="px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
                       >
                         <option value="SCHEDULED">{t('admin.rotaAgendada')}</option>
                         <option value="DEPARTED">{t('admin.rotaPartiu')}</option>
@@ -890,7 +890,7 @@ function AdminRouteManager() {
         </div>
       </div>
       {routes.length === 0 && (
-        <div className="text-center py-8 text-white/40">{t('admin.nenhumaRota')}</div>
+        <div className="text-center py-8 text-gold/40">{t('admin.nenhumaRota')}</div>
       )}
     </div>
   );
@@ -1162,9 +1162,9 @@ function AdminLeadsList() {
     }
   };
 
-  // Função para formatar data/hora
+  // FunÃ§Ã£o para formatar data/hora
   const formatDateTime = (dateValue: any): string => {
-    if (!dateValue) return '—';
+    if (!dateValue) return 'â€”';
     try {
       let d;
       if (typeof dateValue === 'object' && dateValue.toDate) {
@@ -1174,16 +1174,16 @@ function AdminLeadsList() {
       } else if (dateValue instanceof Date) {
         d = dateValue;
       } else {
-        return '—';
+        return 'â€”';
       }
-      if (isNaN(d.getTime())) return '—';
+      if (isNaN(d.getTime())) return 'â€”';
       return d.toLocaleDateString('pt-PT') + ' ' + d.toLocaleTimeString('pt-PT');
     } catch {
-      return '—';
+      return 'â€”';
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-white/60">{t('admin.aCarregarMsgs')}</div>;
+  if (loading) return <div className="text-center py-8 text-gold/60">{t('admin.aCarregarMsgs')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   const filterPills = [
@@ -1198,20 +1198,20 @@ function AdminLeadsList() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2 mb-2">
-        <Filter className="w-4 h-4 text-white/40" />
+        <Filter className="w-4 h-4 text-gold/40" />
         {filterPills.map((pill) => (
           <button
             key={pill.key}
             onClick={() => setStageFilter(pill.key)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 ${
               stageFilter === pill.key
-                ? 'bg-gold text-black'
-                : 'bg-white/5 text-white/60 hover:bg-white/10'
+                ? 'bg-gold text-gold'
+                : 'bg-[#D8B9FF] text-gold/60 hover:bg-[#D8B9FF]/20'
             }`}
           >
             {pill.label}
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-              stageFilter === pill.key ? 'bg-black/20 text-black' : 'bg-white/10 text-white/70'
+              stageFilter === pill.key ? 'bg-[#D8B9FF]/20 text-[#2e1a47]' : 'bg-[#D8B9FF]/20 text-[#2e1a47]/70'
             }`}>
               {pill.count}
             </span>
@@ -1219,14 +1219,14 @@ function AdminLeadsList() {
         ))}
         <button
           onClick={refreshAll}
-          className="ml-auto px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2 text-xs"
+          className="ml-auto px-3 py-1.5 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg text-gold hover:bg-[#D8B9FF]/20 transition-colors flex items-center gap-2 text-xs"
         >
           <RefreshCw className="w-4 h-4" /> {t('admin.atualizar')}
         </button>
       </div>
 
       {leads.length === 0 && (
-        <div className="text-center py-8 text-white/60">
+        <div className="text-center py-8 text-gold/60">
           <Mail className="w-12 h-12 mx-auto mb-3 opacity-30" />
            <p>{t('admin.nenhumaLead')}</p>
         </div>
@@ -1248,24 +1248,24 @@ function AdminLeadsList() {
             <div className="flex flex-wrap justify-between items-start gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <span className="font-semibold text-white text-sm sm:text-base truncate">{lead.name}</span>
-                  <span className="text-sm text-white/40 hidden sm:inline">•</span>
+                  <span className="font-semibold text-gold text-sm sm:text-base truncate">{lead.name}</span>
+                  <span className="text-sm text-gold/40 hidden sm:inline">â€¢</span>
                   <a href={`mailto:${lead.email}`} className="text-sm text-gold hover:underline truncate">
                     {lead.email}
                   </a>
                   {lead.phone && (
                     <>
-                      <span className="text-sm text-white/40 hidden sm:inline">•</span>
-                      <a href={`tel:${lead.phone}`} className="text-sm text-white/60 hover:text-white truncate">
+                      <span className="text-sm text-gold/40 hidden sm:inline">â€¢</span>
+                      <a href={`tel:${lead.phone}`} className="text-sm text-gold/60 hover:text-gold truncate">
                         {lead.phone}
                       </a>
                     </>
                   )}
-                  <span className="text-xs text-white/30 ml-auto whitespace-nowrap">
+                  <span className="text-xs text-gold/30 ml-auto whitespace-nowrap">
                     {formatDateTime(lead.createdAt)}
                   </span>
                 </div>
-                <div className="mt-2 text-sm text-white/80 whitespace-pre-wrap break-words">{lead.message}</div>
+                <div className="mt-2 text-sm text-gold/80 whitespace-pre-wrap break-words">{lead.message}</div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${STAGE_COLORS[stage]}`}>
@@ -1275,7 +1275,7 @@ function AdminLeadsList() {
                     value={stage}
                     disabled={isSaving}
                     onChange={(e) => changeStage(lead.id, e.target.value)}
-                    className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
+                    className="px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
                   >
                     {LEAD_STAGES.map(s => (
                       <option key={s} value={s}>{t(STAGE_LABELS[s])}</option>
@@ -1288,7 +1288,7 @@ function AdminLeadsList() {
 
                 <div className="mt-2 text-xs">
                   {lead.assignedToName ? (
-                    <span className="text-white/60 flex items-center gap-1">
+                    <span className="text-gold/60 flex items-center gap-1">
                        <UserPlus className="w-3 h-3" /> {t('admin.atribuidoA', { name: lead.assignedToName })}
                     </span>
                   ) : (
@@ -1303,7 +1303,7 @@ function AdminLeadsList() {
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <Tag className="w-3 h-3 text-white/40" />
+                  <Tag className="w-3 h-3 text-gold/40" />
                   {tags.map((t) => (
                     <span key={t} className="text-[10px] text-gold bg-gold/10 px-2 py-0.5 rounded-full">
                       {t}
@@ -1316,12 +1316,12 @@ function AdminLeadsList() {
                       value={newTag[lead.id] || ''}
                       onChange={(e) => setNewTag(s => ({ ...s, [lead.id]: e.target.value }))}
                       onKeyDown={(e) => { if (e.key === 'Enter') addTag(lead.id); }}
-                      className="w-24 px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] sm:text-xs text-white focus:border-gold outline-none"
+                      className="w-24 px-2 py-0.5 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none"
                     />
                     <button
                       onClick={() => addTag(lead.id)}
                       disabled={isSaving}
-                      className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] text-white/70 hover:bg-white/20"
+                      className="px-1.5 py-0.5 bg-[#D8B9FF]/20 rounded text-[10px] text-gold/70 hover:bg-lilac/20"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
@@ -1331,7 +1331,7 @@ function AdminLeadsList() {
                 <div className="mt-2">
                   <button
                     onClick={() => setNotesOpen(s => ({ ...s, [lead.id]: !isOpen }))}
-                    className="flex items-center gap-1 text-xs text-white/60 hover:text-white transition-colors"
+                    className="flex items-center gap-1 text-xs text-gold/60 hover:text-gold transition-colors"
                   >
                     <StickyNote className="w-3 h-3" />
                     {t('admin.notasContador', { n: notes.length, s: notes.length === 1 ? '' : 's' })}
@@ -1340,13 +1340,13 @@ function AdminLeadsList() {
                   {isOpen && (
                     <div className="mt-2 space-y-2">
                       {notes.length === 0 && (
-                         <p className="text-xs text-white/40">{t('admin.semNotas')}</p>
+                         <p className="text-xs text-gold/40">{t('admin.semNotas')}</p>
                       )}
                       {notes.map((n, i) => (
-                        <div key={i} className="text-xs bg-white/5 border border-white/10 rounded-lg p-2">
-                          <div className="text-white/80 whitespace-pre-wrap break-words">{n.text}</div>
-                          <div className="text-white/40 mt-1">
-                             {n.author ? t('admin.por', { author: n.author }) : '—'} • {formatDateTime(n.createdAt)}
+                        <div key={i} className="text-xs bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg p-2">
+                          <div className="text-gold/80 whitespace-pre-wrap break-words">{n.text}</div>
+                          <div className="text-gold/40 mt-1">
+                             {n.author ? t('admin.por', { author: n.author }) : 'â€”'} â€¢ {formatDateTime(n.createdAt)}
                           </div>
                         </div>
                       ))}
@@ -1356,12 +1356,12 @@ function AdminLeadsList() {
                           value={newNote[lead.id] || ''}
                           onChange={(e) => setNewNote(s => ({ ...s, [lead.id]: e.target.value }))}
                           rows={2}
-                          className="flex-1 px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:border-gold outline-none resize-none"
+                          className="flex-1 px-2 py-1 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded text-xs text-gold focus:border-gold outline-none resize-none"
                         />
                         <button
                           onClick={() => addNote(lead.id)}
                           disabled={isSaving}
-                          className="px-3 py-1.5 bg-gold text-black rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1"
+                          className="px-3 py-1.5 bg-gold text-gold rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1"
                         >
                            <Send className="w-3 h-3" /> {t('admin.addNota')}
                         </button>
@@ -1406,7 +1406,7 @@ export default function AdminDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Verificar permissões
+  // Verificar permissÃµes
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (!userStr) {
@@ -1427,7 +1427,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      // Buscar estatísticas
+      // Buscar estatÃ­sticas
       const statsRes = await fetch(api('/api/admin/stats'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1449,7 +1449,7 @@ export default function AdminDashboard() {
         });
       }
 
-      // Buscar encomendas recentes (últimas 5)
+      // Buscar encomendas recentes (Ãºltimas 5)
       const shipmentsRes = await fetch(api('/api/admin/shipments'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1472,7 +1472,7 @@ export default function AdminDashboard() {
         });
         setRecentShipments(sorted.slice(0, 5));
 
-        // Calcular distribuição por status
+        // Calcular distribuiÃ§Ã£o por status
         const dist: Record<string, number> = {};
         all.forEach((s: any) => {
           dist[s.status] = (dist[s.status] || 0) + 1;
@@ -1487,7 +1487,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // Atualização automática a cada 30 segundos
+  // AtualizaÃ§Ã£o automÃ¡tica a cada 30 segundos
   useEffect(() => {
     const interval = setInterval(() => {
       if (activeTab === 'overview') {
@@ -1509,7 +1509,7 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-black pt-24 sm:pt-28 pb-20 px-4">
+      <div className="min-h-screen bg-[#D8B9FF] pt-24 sm:pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1518,16 +1518,16 @@ export default function AdminDashboard() {
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold text-white flex flex-wrap items-center gap-2">
+                <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold text-gold flex flex-wrap items-center gap-2">
                   <span className="text-gradient-gold">{t('admin.titulo')}</span>
-                  <span className="text-sm text-white/40">{t('admin.subtitle')}</span>
+                  <span className="text-sm text-gold/40">{t('admin.subtitle')}</span>
                 </h1>
-                <p className="text-white/60 mt-1 text-sm sm:text-base">{t('admin.desc')}</p>
+                <p className="text-gold/60 mt-1 text-sm sm:text-base">{t('admin.desc')}</p>
               </div>
               <button
                 onClick={fetchDashboardData}
                 disabled={refreshing}
-                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg text-gold hover:bg-[#D8B9FF]/20 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                 {refreshing ? t('admin.atualizando') : t('admin.atualizar')}
@@ -1536,15 +1536,15 @@ export default function AdminDashboard() {
           </motion.div>
 
           {/* Tabs - Desktop */}
-          <div className="hidden md:flex flex-wrap gap-2 mb-8 border-b border-white/10 pb-4">
+          <div className="hidden md:flex flex-wrap gap-2 mb-8 border-b border-[#D8B9FF]/30 pb-4">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? 'bg-gold text-black'
-                    : 'bg-white/5 text-white/60 hover:bg-white/10'
+                    ? 'bg-gold text-gold'
+                    : 'bg-[#D8B9FF] text-gold/60 hover:bg-[#D8B9FF]/20'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -1557,7 +1557,7 @@ export default function AdminDashboard() {
           <div className="md:hidden mb-6">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-full flex items-center justify-between min-h-[48px] px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white"
+              className="w-full flex items-center justify-between min-h-[48px] px-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-xl text-gold"
             >
               <span className="flex items-center gap-2">
                 {currentTab && <currentTab.icon className="w-4 h-4" />}
@@ -1566,7 +1566,7 @@ export default function AdminDashboard() {
               <ChevronDown className={`w-4 h-4 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`} />
             </button>
             {mobileMenuOpen && (
-              <div className="mt-2 bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+              <div className="mt-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-xl overflow-hidden">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -1574,7 +1574,7 @@ export default function AdminDashboard() {
                     className={`w-full flex items-center gap-2 min-h-[48px] px-4 py-3 text-sm transition-colors ${
                       activeTab === tab.id
                         ? 'bg-gold/20 text-gold'
-                        : 'text-white/60 hover:bg-white/5'
+                        : 'text-gold/60 hover:bg-[#D8B9FF]'
                     }`}
                   >
                     <tab.icon className="w-4 h-4" />
@@ -1585,28 +1585,28 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* Conteúdo */}
+          {/* ConteÃºdo */}
           <div className="mt-6">
             {activeTab === 'overview' && (
               <>
                 <StatsCards stats={stats} />
                 <div className="grid md:grid-cols-2 gap-6">
-                  {/* Últimas Encomendas */}
+                  {/* Ãšltimas Encomendas */}
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
                      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.ultimasEncomendas')}</h3>
                      <div className="space-y-3">
                        {recentShipments.length === 0 ? (
-                         <p className="text-white/40 text-sm">{t('admin.nenhumaRecente')}</p>
+                         <p className="text-gold/40 text-sm">{t('admin.nenhumaRecente')}</p>
                       ) : (
                         recentShipments.map((s) => (
-                          <div key={s.id} className="flex justify-between items-center border-b border-white/5 pb-2 last:border-0">
+                          <div key={s.id} className="flex justify-between items-center border-b border-lilac/10 pb-2 last:border-0">
                             <div>
                               <div className="font-mono text-xs text-gold">{s.trackingCode}</div>
-                              <div className="text-xs text-white/60">{s.origin} → {s.destination}</div>
-                              <div className="text-[10px] text-white/40">{formatDate(s.createdAt)}</div>
+                              <div className="text-xs text-gold/60">{s.origin} â†’ {s.destination}</div>
+                              <div className="text-[10px] text-gold/40">{formatDate(s.createdAt)}</div>
                             </div>
                             <div className="text-right">
-                              <div className="text-xs font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
+                              <div className="text-xs font-semibold">â‚¬ {s.price?.toFixed(2) || 'â€”'}</div>
                               <div className={`text-[10px] px-2 py-0.5 rounded-full ${s.status === 'DELIVERED' ? 'text-green-400 bg-green-400/10' : 'text-yellow-400 bg-yellow-400/10'}`}>
                       {t(`status.${s.status}`)}
                               </div>
@@ -1617,17 +1617,17 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  {/* Distribuição por Status */}
+                  {/* DistribuiÃ§Ã£o por Status */}
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
                      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.distribuicao')}</h3>
                      {Object.keys(statusDistribution).length === 0 ? (
-                       <p className="text-white/40 text-sm">{t('admin.nenhumaEncomenda2')}</p>
+                       <p className="text-gold/40 text-sm">{t('admin.nenhumaEncomenda2')}</p>
                     ) : (
                       <div className="space-y-2">
                         {Object.entries(statusDistribution).map(([status, count]) => (
                           <div key={status} className="flex justify-between items-center">
-                            <span className="text-sm text-white/60">{status.replace('_', ' ')}</span>
-                            <span className="text-sm font-semibold text-white">{count}</span>
+                            <span className="text-sm text-gold/60">{status.replace('_', ' ')}</span>
+                            <span className="text-sm font-semibold text-gold">{count}</span>
                           </div>
                         ))}
                       </div>
@@ -1647,3 +1647,5 @@ export default function AdminDashboard() {
     </Layout>
   );
 }
+
+

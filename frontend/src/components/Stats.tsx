@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TelemetryCard } from './TelemetryCard';
@@ -94,6 +94,8 @@ export default function Stats(): JSX.Element {
 
   return (
     <section id="stats" className="relative py-20 w-full flex justify-center">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/60 via-transparent to-[#1a1133]/30 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/40 via-transparent to-[#1a1133]/70 z-[1]" />
       <div className="container mx-auto px-4">
         <div
           ref={containerRef}
@@ -114,3 +116,5 @@ export default function Stats(): JSX.Element {
     </section>
   );
 }
+
+

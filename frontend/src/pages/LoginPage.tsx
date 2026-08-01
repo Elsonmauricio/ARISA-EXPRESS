@@ -1,4 +1,4 @@
-// src/pages/Login.tsx
+﻿// src/pages/Login.tsx
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
@@ -46,7 +46,7 @@ export default function Login() {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center bg-black pt-20 pb-20 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#D8B9FF] pt-20 pb-20 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -54,42 +54,42 @@ export default function Login() {
         >
           <div className="glass-strong border-gradient p-8 rounded-2xl">
             <div className="text-center mb-8">
-              <h2 className="font-display text-3xl font-bold text-white">{t('login.bemVindo')}</h2>
-              <p className="text-white/60 mt-2">{t('login.subtitle')}</p>
+              <h2 className="font-display text-3xl font-bold text-gold">{t('login.bemVindo')}</h2>
+               <p className="text-gold/70 mt-2">{t('login.subtitle')}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm text-white/60 mb-1">{t('login.email')}</label>
+                 <label className="block text-sm text-gold/70 mb-1">{t('login.email')}</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                    className="w-full pl-10 pr-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold"
                     placeholder={t('login.emailPlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">{t('login.senha')}</label>
+                 <label className="block text-sm text-gold/70 mb-1">{t('login.senha')}</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
-                    placeholder="••••••••"
+                    className="w-full pl-10 pr-12 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg focus:border-gold outline-none text-gold"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gold/60 hover:text-gold"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -107,7 +107,7 @@ export default function Login() {
               </GoldButton>
             </form>
 
-            <div className="mt-6 text-center text-sm text-white/50">
+            <div className="mt-6 text-center text-sm text-gold/50">
               {t('login.semConta')}{' '}
               <Link to="/registar" className="text-gold hover:underline">
                 {t('login.criarConta')}
@@ -119,3 +119,5 @@ export default function Login() {
     </Layout>
   );
 }
+
+

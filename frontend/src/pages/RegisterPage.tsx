@@ -1,4 +1,4 @@
-// src/pages/Register.tsx
+﻿// src/pages/Register.tsx
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, Phone, AlertCircle, Eye, EyeOff } from 'lucide-react';
@@ -66,70 +66,70 @@ export default function Register() {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center bg-black pt-20 pb-20 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#D8B9FF] pt-20 pb-20 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md"
         >
           <div className="glass-strong border-gradient p-8 rounded-2xl">
-            <div className="text-center mb-8">
-              <h2 className="font-display text-3xl font-bold text-white">{t('register.titulo')}</h2>
-              <p className="text-white/60 mt-2">{t('register.subtitle')}</p>
+             <div className="text-center mb-8">
+              <h2 className="font-display text-3xl font-bold text-gold">{t('register.titulo')}</h2>
+              <p className="text-gold/70 mt-2">{t('register.subtitle')}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm text-white/60 mb-1">{t('register.nome')}</label>
+                <label className="block text-sm text-gold/70 mb-1">{t('register.nome')}</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                    className="w-full pl-10 pr-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/40 rounded-lg focus:border-gold outline-none text-gold"
                     placeholder={t('register.nomePlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">{t('register.email')}</label>
+                <label className="block text-sm text-gold/70 mb-1">{t('register.email')}</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                    className="w-full pl-10 pr-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/40 rounded-lg focus:border-gold outline-none text-gold"
                     placeholder={t('login.emailPlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">{t('register.telefone')}</label>
+                <label className="block text-sm text-gold/70 mb-1">{t('register.telefone')}</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                    className="w-full pl-10 pr-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/40 rounded-lg focus:border-gold outline-none text-gold"
                     placeholder={t('register.telefonePlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">{t('register.senha')}</label>
+                <label className="block text-sm text-gold/70 mb-1">{t('register.senha')}</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
@@ -137,13 +137,13 @@ export default function Register() {
                     onChange={handleChange}
                     required
                     minLength={6}
-                    className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                    className="w-full pl-10 pr-12 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/40 rounded-lg focus:border-gold outline-none text-gold"
                     placeholder={t('register.senhaPlaceholder')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gold/60 hover:text-gold"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -151,16 +151,16 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">{t('register.confirmarSenha')}</label>
+                <label className="block text-sm text-gold/70 mb-1">{t('register.confirmarSenha')}</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                    className="w-full pl-10 pr-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/40 rounded-lg focus:border-gold outline-none text-gold"
                     placeholder={t('register.confirmarSenhaPlaceholder')}
                   />
                 </div>
@@ -177,7 +177,7 @@ export default function Register() {
               </GoldButton>
             </form>
 
-            <div className="mt-6 text-center text-sm text-white/50">
+            <div className="mt-6 text-center text-sm text-gold/50">
               {t('register.temConta')}{' '}
               <Link to="/login" className="text-gold hover:underline">
                 {t('register.iniciarSessao')}
@@ -189,3 +189,5 @@ export default function Register() {
     </Layout>
   );
 }
+
+

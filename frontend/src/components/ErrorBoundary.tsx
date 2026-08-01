@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+﻿import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -41,3 +41,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return this.props.children;
   }
 }
+
+
+

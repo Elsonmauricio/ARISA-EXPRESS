@@ -1,4 +1,4 @@
-// src/components/Contact.tsx
+﻿// src/components/Contact.tsx
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { GoldButton } from './Button';
@@ -43,6 +43,8 @@ export default function Contact() {
 
   return (
     <section id="contactos" className="py-20 px-4">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/60 via-transparent to-[#1a1133]/30 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/40 via-transparent to-[#1a1133]/70 z-[1]" />
       <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           align="center"
@@ -60,7 +62,7 @@ export default function Contact() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-white"
+                className="w-full px-4 py-3 bg-[#D8B9FF] border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-gold"
               />
               <input
                 type="email"
@@ -68,14 +70,14 @@ export default function Contact() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-white"
+                className="w-full px-4 py-3 bg-[#D8B9FF] border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-gold"
               />
               <input
                 type="tel"
                 placeholder={t('contact.telefone')}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-white"
+                className="w-full px-4 py-3 bg-[#D8B9FF] border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-gold"
               />
               <textarea
                 rows={4}
@@ -83,7 +85,7 @@ export default function Contact() {
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg focus:outline-none focus:border-gold resize-none text-white"
+                className="w-full px-4 py-3 bg-[#D8B9FF] border border-gold/30 rounded-lg focus:outline-none focus:border-gold resize-none text-gold"
               />
 
               <GoldButton type="submit" className="w-full py-3 flex items-center justify-center gap-2" disabled={status === 'loading'}>
@@ -128,7 +130,7 @@ export default function Contact() {
               </div>
             </div>
 
-            {/* Horários */}
+            {/* HorÃ¡rios */}
             <div className="glass-strong border-gradient p-6 rounded-3xl">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Clock size={18} className="text-gold" /> {t('contact.horario')}
@@ -136,45 +138,45 @@ export default function Contact() {
               <div className="space-y-3 text-sm">
                 <div>
                   <div className="flex items-center gap-2 text-gold font-medium">
-                    🇵🇹 {t('contact.portugal')}
+                        {t('contact.portugal')}
                   </div>
-                  <p className="text-white/70 mt-1">
-                    {t('contact.horarioPT')}
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-gold font-medium">
-                    🇦🇴 {t('contact.angola')}
-                  </div>
-                  <p className="text-white/70 mt-1">
-                    {t('contact.horarioAO')}
-                  </p>
-                </div>
+                   <p className="text-gold/70 mt-1">
+                     {t('contact.horarioPT')}
+                   </p>
+                 </div>
+                 <div>
+                   <div className="flex items-center gap-2 text-gold font-medium">
+                        {t('contact.angola')}
+                   </div>
+                   <p className="text-gold/70 mt-1">
+                     {t('contact.horarioAO')}
+                   </p>
+                 </div>
               </div>
             </div>
 
             {/* Moradas */}
             <div className="glass-strong border-gradient p-6 rounded-3xl">
-              <h3 className="text-xl font-bold mb-4">📍 Moradas</h3>
+               <h3 className="text-xl font-bold mb-4">{t('contact.moradas')}</h3>
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2 text-gold font-medium text-sm">
                     <MapPin size={16} /> {t('contact.luanda')}
                   </div>
-                  <p className="text-sm text-white/70 mt-1">
-                    {t('contact.moradaLuanda1')}<br />
-                    {t('contact.moradaLuanda2')}
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-gold font-medium text-sm">
-                    <MapPin size={16} /> {t('contact.lisboa')}
-                  </div>
-                  <p className="text-sm text-white/70 mt-1">
-                    {t('contact.moradaLisboa1')}<br />
-                    {t('contact.moradaLisboa2')}
-                  </p>
-                </div>
+                   <p className="text-sm text-gold/70 mt-1">
+                     {t('contact.moradaLuanda1')}<br />
+                     {t('contact.moradaLuanda2')}
+                   </p>
+                 </div>
+                 <div>
+                   <div className="flex items-center gap-2 text-gold font-medium text-sm">
+                     <MapPin size={16} /> {t('contact.lisboa')}
+                   </div>
+                   <p className="text-sm text-gold/70 mt-1">
+                     {t('contact.moradaLisboa1')}<br />
+                     {t('contact.moradaLisboa2')}
+                   </p>
+                 </div>
               </div>
             </div>
 
@@ -184,7 +186,7 @@ export default function Contact() {
                 href={whatsappUrl(t('contact.whatsapp'))}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block bg-green-600 text-white w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+                className="block bg-green-600 text-gold w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
               >
                 {t('contact.whatsapp')}
               </a>
@@ -195,3 +197,6 @@ export default function Contact() {
     </section>
   );
 }
+
+
+

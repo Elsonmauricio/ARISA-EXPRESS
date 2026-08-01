@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, ReactNode } from 'react';
+﻿import { useRef, useEffect, useState, ReactNode } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -10,15 +10,15 @@ export interface StoryChapter {
   id: string;
   title: ReactNode;
   body: ReactNode;
-  /** Tom visual do capítulo. */
+  /** Tom visual do capÃ­tulo. */
   tone?: 'gold' | 'lilac' | 'white';
-  /** Posição horizontal do capítulo na secção. */
+  /** PosiÃ§Ã£o horizontal do capÃ­tulo na secÃ§Ã£o. */
   align?: 'left' | 'center' | 'right';
 }
 
 interface StorySectionProps {
   chapters: StoryChapter[];
-  /** Cena visual 3D/background renderizada atrás dos capítulos. */
+  /** Cena visual 3D/background renderizada atrÃ¡s dos capÃ­tulos. */
   visual?: ReactNode;
   /** Callback com o progresso global (0..1) do storytelling. */
   onProgress?: (p: number) => void;
@@ -26,9 +26,9 @@ interface StorySectionProps {
 }
 
 /**
- * Experiência de storytelling scroll-driven:
- * a secção fica "pinnada" enquanto o utilizador faz scroll e os capítulos
- * (texto) trocam em crossfade. A cena visual em segundo plano lê a variável
+ * ExperiÃªncia de storytelling scroll-driven:
+ * a secÃ§Ã£o fica "pinnada" enquanto o utilizador faz scroll e os capÃ­tulos
+ * (texto) trocam em crossfade. A cena visual em segundo plano lÃª a variÃ¡vel
  * CSS `--story-progress` (0..1) para se animar de forma sincronizada.
  */
 export default function StorySection({ chapters, visual, onProgress, className = '' }: StorySectionProps) {
@@ -96,12 +96,14 @@ export default function StorySection({ chapters, visual, onProgress, className =
       ref={sectionRef}
       className={`relative h-screen w-full overflow-hidden ${className}`}
     >
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/60 via-transparent to-[#1a1133]/30 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/40 via-transparent to-[#1a1133]/70 z-[1]" />
       <div ref={stageRef} className="absolute inset-0 -z-10" style={{ ['--story-progress' as any]: 0 }}>
         {visual}
       </div>
 
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-white/5 z-20">
-        <div ref={barRef} className="h-full origin-left bg-gradient-to-r from-gold via-lilac-500 to-white" style={{ transform: 'scaleX(0)' }} />
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#D8B9FF]/20 z-20">
+        <div ref={barRef} className="h-full origin-left bg-gradient-to-r from-gold via-lilac-500 to-lilac" style={{ transform: 'scaleX(0)' }} />
       </div>
 
       <div className="relative z-10 h-full w-full flex items-center">
@@ -121,10 +123,10 @@ export default function StorySection({ chapters, visual, onProgress, className =
               style={{ top: '50%', transform: align === 'center' ? 'translate(-50%, -50%)' : 'translateY(-50%)' }}
             >
               <div className="story-inner" style={{ opacity: i === 0 ? 1 : 0 }}>
-                <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-[1.05]">
+                <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-gold leading-[1.05]">
                   {ch.title}
                 </h2>
-                <p className="mt-6 text-base md:text-lg text-white/65 leading-relaxed max-w-xl">
+                <p className="mt-6 text-base md:text-lg text-gold/65 leading-relaxed max-w-xl">
                   {ch.body}
                 </p>
               </div>
@@ -135,3 +137,6 @@ export default function StorySection({ chapters, visual, onProgress, className =
     </section>
   );
 }
+
+
+

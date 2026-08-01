@@ -21,7 +21,7 @@ import { LanguageProvider, useT } from './i18n/LanguageContext';
 
 function PageLoader() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#D8B9FF]">
       <div className="w-10 h-10 rounded-full border-2 border-t-gold border-lilac-500/20 animate-spin" />
     </div>
   );
@@ -106,3 +106,6 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+
+

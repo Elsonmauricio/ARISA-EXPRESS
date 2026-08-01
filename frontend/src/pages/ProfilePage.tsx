@@ -1,4 +1,4 @@
-// src/pages/Profile.tsx
+﻿// src/pages/Profile.tsx
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, Building, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -89,8 +89,8 @@ export default function Profile() {
   if (loading && !user) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-black">
-          <div className="text-white/60">{t('profile.aCarregar')}</div>
+        <div className="min-h-screen flex items-center justify-center bg-[#D8B9FF]">
+          <div className="text-gold/60">{t('profile.aCarregar')}</div>
         </div>
       </Layout>
     );
@@ -98,68 +98,68 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-black pt-28 pb-20 px-4">
+      <div className="min-h-screen bg-[#D8B9FF] pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-gold mb-2">
               <span className="text-gradient-gold">{t('profile.titulo')}</span>
             </h1>
-              <p className="text-white/60 mb-8">{t('profile.subtitle')}</p>
+              <p className="text-gold/70 mb-8">{t('profile.subtitle')}</p>
 
             <div className="glass-strong border-gradient p-8 rounded-2xl">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('profile.nome')}</label>
+                  <label className="block text-sm text-gold/70 mb-1">{t('profile.nome')}</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                      className="w-full pl-10 pr-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/40 rounded-lg focus:border-gold outline-none text-gold"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('profile.email')}</label>
+                  <label className="block text-sm text-gold/70 mb-1">{t('profile.email')}</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                     <input
                       type="email"
                       value={user?.email || ''}
                       disabled
-                      className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg outline-none text-white/50 cursor-not-allowed"
+                      className="w-full pl-10 pr-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/40 rounded-lg outline-none text-gold/50 cursor-not-allowed"
                     />
                   </div>
-                  <p className="text-xs text-white/30 mt-1">{t('profile.emailFixo')}</p>
+                  <p className="text-xs text-gold/40 mt-1">{t('profile.emailFixo')}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('profile.telefone')}</label>
+                  <label className="block text-sm text-gold/70 mb-1">{t('profile.telefone')}</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                      className="w-full pl-10 pr-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/40 rounded-lg focus:border-gold outline-none text-gold"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('profile.empresa')}</label>
+                  <label className="block text-sm text-gold/70 mb-1">{t('profile.empresa')}</label>
                   <div className="relative">
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/40" />
                     <input
                       type="text"
                       value={formData.company}
                       onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                      className="w-full pl-10 pr-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/40 rounded-lg focus:border-gold outline-none text-gold"
                       placeholder={t('profile.empresaPlaceholder')}
                     />
                   </div>
@@ -188,3 +188,5 @@ export default function Profile() {
     </Layout>
   );
 }
+
+

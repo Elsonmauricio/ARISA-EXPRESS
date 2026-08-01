@@ -9,73 +9,72 @@
    Paleta recombinada: BLK · LIL · GLD · WHT
    ============================================================ */
 :root {
-  --aero-black: #08080a;     /* Fuselagem de Radar */
-  --aero-panel: #0f0f14;     /* Preto Industrial */
-  --aero-border: #221f2d;    /* Borda sutil violácea */
+  --aero-black: #1a1133;
+  --aero-panel: #2b1f4a;
+  --aero-border: #4b3a7a;
   --aero-white: #ffffff;
-  --aero-muted: #9e9cb0;     /* Branco acinzentado / lilás muted */
-  --aero-lilas: #a855f7;     /* Lilás / Violeta Aero */
-  --aero-lilas-dark: #3b185f;
-  --aero-gold: #f59e0b;      /* Dourado Aero */
-  --aero-gold-glow: rgba(245, 158, 11, 0.35);
-  --aero-lilas-glow: rgba(168, 85, 247, 0.3);
+  --aero-muted: #6b5b8a;
+  --aero-lilas: #D8B9FF;
+  --aero-lilas-dark: #8B2FC9;
+  --aero-gold: #D4AF37;
+  --aero-gold-glow: rgba(212, 175, 55, 0.45);
+  --aero-lilas-glow: rgba(221, 184, 250, 0.45);
   --aero-chamfer: 16px;
 }
 
 @layer base {
-  :root { color-scheme: dark; }
+  :root { color-scheme: light; }
   html, body {
-    background: #000;
-    color: #fff;
+    background: #D8B9FF;
+    color: #2e1a47;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
   body {
     background:
-      radial-gradient(1200px 800px at 80% -10%, rgba(124,58,237,0.25), transparent 60%),
-      radial-gradient(900px 600px at -10% 20%, rgba(212,175,55,0.12), transparent 60%),
-      #000;
+      radial-gradient(1200px 800px at 80% -10%, rgba(216,185,255,0.35), transparent 60%),
+      radial-gradient(900px 600px at -10% 20%, rgba(212,175,55,0.18), transparent 60%),
+      #D8B9FF;
   }
-
 }
 
 @layer components {
   .glass {
-    background: rgba(15, 23, 42, 0.45);
+    background: rgba(139, 47, 201, 0.08);
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(139, 47, 201, 0.18);
   }
   .glass-strong {
-    background: rgba(10, 10, 18, 0.7);
+    background: rgba(139, 47, 201, 0.05);
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255,255,255,0.10);
+    border: 1px solid rgba(139, 47, 201, 0.22);
   }
   .text-gradient-gold {
-    background: linear-gradient(135deg, #F6EBBF 0%, #D4AF37 50%, #B89327 100%);
+    background: linear-gradient(135deg, #8B2FC9 0%, #D4AF37 50%, #DDB8FA 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .text-gradient-lilac {
-    background: linear-gradient(135deg, #BE93FF 0%, #A974FF 50%, #7C3AED 100%);
+    background: linear-gradient(135deg, #7B2FBF 0%, #D4AF37 50%, #8B2FC9 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .bg-cta-grad {
-    background: linear-gradient(135deg, #D4AF37 0%, #B89327 100%);
+    background: linear-gradient(135deg, #D4AF37 0%, #8B2FC9 100%);
   }
   .bg-gold-grad {
-    background: linear-gradient(90deg, #F6EBBF 0%, #D4AF37 50%, #B89327 100%);
+    background: linear-gradient(90deg, #8B2FC9 0%, #D4AF37 50%, #DDB8FA 100%);
   }
   .shadow-glow {
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 0 24px rgba(139, 47, 201, 0.35);
   }
   .shadow-gold {
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 24px rgba(212, 175, 55, 0.45);
   }
   /* AERO-ANGLES: canto chanfrado (chamfer) para painéis "fora da caixa" */
   .aero-chamfer {
@@ -99,7 +98,7 @@
     position: absolute; inset: 0;
     padding: 1px;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgba(169,116,255,0.6), rgba(212,175,55,0.4), rgba(255,255,255,0.05));
+      background: linear-gradient(135deg, rgba(139,47,201,0.45), rgba(212,175,55,0.4), rgba(139,47,201,0.3));
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
@@ -117,6 +116,11 @@
   .preserve-3d { transform-style: preserve-3d; }
   .backface-hidden { backface-visibility: hidden; }
   #main-wrapper { overflow-x: clip; }
+  .text-gold {
+    text-shadow:
+      0 0 2px rgba(0, 0, 0, 0.7),
+      0 0 4px rgba(0, 0, 0, 0.5);
+  }
 }
 
 /* Storytelling: cena 3D preenche a secção pinada */

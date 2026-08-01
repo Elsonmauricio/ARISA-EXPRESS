@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 
 type AeroButtonVariant = 'gold' | 'ghost';
@@ -20,8 +20,8 @@ export function AeroButton({
 }) {
   const variantClasses =
     variant === 'gold'
-      ? 'bg-aero-gold text-aero-black hover:bg-white shadow-[0_0_25px_rgba(245,158,11,0.25)]'
-      : 'bg-transparent text-white border border-aero-lilas/40 hover:border-aero-gold hover:text-aero-gold';
+      ? 'bg-aero-gold text-gold hover:bg-[#D8B9FF] shadow-[0_0_25px_rgba(245,158,11,0.25)]'
+      : 'bg-transparent text-gold border border-aero-lilas/40 hover:border-aero-gold hover:text-aero-gold';
 
   return (
     <motion.button

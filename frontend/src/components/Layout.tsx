@@ -14,10 +14,13 @@ export default function Layout({ children, hideNavbar = false }: LayoutProps) {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-transparent text-white antialiased relative">
+    <div className="min-h-screen bg-transparent text-gold antialiased relative">
       {!hideNavbar && <Navbar />}
       {children}
       {location.pathname === '/' && <AirplaneBackground />}
     </div>
   );
 }
+
+
+

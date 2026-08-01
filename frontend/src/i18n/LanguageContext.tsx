@@ -1,4 +1,4 @@
-// src/i18n/LanguageContext.tsx
+﻿// src/i18n/LanguageContext.tsx
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { translations, Lang } from './translations';
 
@@ -73,3 +73,6 @@ export function useT() {
   }
   return ctx;
 }
+
+
+

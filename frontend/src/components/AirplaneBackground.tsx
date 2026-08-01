@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+﻿import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Environment, Stars, ContactShadows } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -118,17 +118,17 @@ function Airplane() {
 function Scene({ isMobile }: { isMobile: boolean }) {
   return (
     <>
-      <color attach="background" args={['#050509']} />
+      <color attach="background" args={['#D8B9FF']} />
       <ambientLight intensity={0.5} />
       <spotLight position={[8, 10, 8]} angle={0.3} penumbra={1} intensity={1.5} color="#F6EBBF" />
-      <pointLight position={[-8, -4, -4]} color="#7C3AED" intensity={1.0} />
+      <pointLight position={[-8, -4, -4]} color="#DDB8FA" intensity={1.0} />
       <pointLight position={[-6, 2, 0]} color="#60A5FA" intensity={40} distance={12} decay={2} />
       <pointLight position={[6, 2, 0]} color="#F472B6" intensity={40} distance={12} decay={2} />
       <pointLight position={[0, 3, -6]} color="#A78BFA" intensity={50} distance={12} decay={2} />
       <Suspense fallback={null}>
         <Airplane />
-        <Stars radius={90} depth={50} count={isMobile ? 500 : 2500} factor={3} saturation={0} fade speed={0.6} />
-        <ContactShadows position={[0, -1.5, 0]} opacity={isMobile ? 0.1 : 0.35} scale={isMobile ? undefined : 10} blur={isMobile ? 5 : 2.5} far={4} color="#7C3AED" />
+        <Stars radius={90} depth={50} count={isMobile ? 500 : 2500} factor={3} saturation={0.9} fade speed={0.6} />
+        <ContactShadows position={[0, -1.5, 0]} opacity={isMobile ? 0.1 : 0.35} scale={isMobile ? undefined : 10} blur={isMobile ? 5 : 2.5} far={4} color="#DDB8FA" />
       </Suspense>
     </>
   );
@@ -159,88 +159,6 @@ export default function AirplaneBackground() {
     }
   };
 
-  useEffect(() => {
-    const wrapper = wrapRef.current;
-    if (!wrapper) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        wrapper,
-        { yPercent: 0, scale: 1 },
-        {
-          yPercent: 10,
-          scale: 1.05,
-          ease: 'none',
-          scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 1.2 },
-        }
-      );
-    }, wrapper);
-    return () => ctx.revert();
-  }, []);
-
-  useEffect(() => {
-    const wrapper = wrapRef.current;
-    if (!wrapper) return;
-    
-    const fixCanvas = () => {
-      const allCanvases = document.querySelectorAll('canvas[data-airplane-bg="true"]') as NodeListOf<HTMLCanvasElement>;
-      allCanvases.forEach((canvas) => {
-        canvas.style.position = 'absolute';
-        canvas.style.zIndex = '-1';
-        canvas.style.pointerEvents = 'none';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-      });
-    };
-
-    fixCanvas();
-
-    const observer = new MutationObserver(fixCanvas);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (canvasDomRef.current) {
-        try {
-          const gl =
-            (canvasDomRef.current.getContext('webgl2') as WebGLRenderingContext | null) ||
-            (canvasDomRef.current.getContext('webgl') as WebGLRenderingContext | null);
-          if (gl) {
-            const ext = gl.getExtension('WEBGL_lose_context');
-            ext?.loseContext();
-          }
-        } catch {
-          // ignore
-        }
-        if (canvasDomRef.current.parentNode) {
-          canvasDomRef.current.parentNode.removeChild(canvasDomRef.current);
-        }
-        canvasDomRef.current = null;
-      }
-
-      if (rendererRef.current) {
-        try {
-          rendererRef.current.setAnimationLoop(null);
-          rendererRef.current.dispose();
-        } catch {
-          // ignore
-        }
-        rendererRef.current = null;
-      }
-
-      if (r3fSceneRef.current) {
-        try {
-          r3fSceneRef.current.clear();
-        } catch {
-          // ignore
-        }
-        r3fSceneRef.current = null;
-      }
-    };
-  }, []);
-
   return (
     <div ref={wrapRef} id="airplane-background" className="fixed inset-0 z-0 overflow-hidden pointer-events-none will-change-transform">
       <ErrorBoundary fallback={null}>
@@ -252,7 +170,10 @@ export default function AirplaneBackground() {
           <Scene isMobile={isMobile} />
         </Canvas>
       </ErrorBoundary>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_30%,_rgba(0,0,0,0.55)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_30%,_rgba(26,17,51,0.35)_100%)]" />
     </div>
   );
 }
+
+
+
