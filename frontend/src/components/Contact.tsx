@@ -1,4 +1,4 @@
-// src/components/Contact.tsx
+﻿// src/components/Contact.tsx
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { GoldButton } from './Button';
@@ -6,13 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SectionHeading from './SectionHeading';
 import { useT } from '../i18n/LanguageContext';
 import { api } from '../lib/api';
+import { whatsappUrl } from '../lib/utils';
 
 export default function Contact() {
   const { t } = useT();
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const whatsappUrl = 'https://wa.me/351934292082';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +43,8 @@ export default function Contact() {
 
   return (
     <section id="contactos" className="py-20 px-4">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/60 via-transparent to-[#1a1133]/30 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/40 via-transparent to-[#1a1133]/70 z-[1]" />
       <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           align="center"
@@ -60,7 +62,7 @@ export default function Contact() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-white"
+                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold text-white/90"
               />
               <input
                 type="email"
@@ -68,14 +70,14 @@ export default function Contact() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-white"
+                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold text-white/90"
               />
               <input
                 type="tel"
                 placeholder={t('contact.telefone')}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg focus:outline-none focus:border-gold text-white"
+                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold text-white/90"
               />
               <textarea
                 rows={4}
@@ -83,10 +85,10 @@ export default function Contact() {
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-gold/30 rounded-lg focus:outline-none focus:border-gold resize-none text-white"
+                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold resize-none text-white/90"
               />
 
-              <GoldButton type="submit" className="w-full py-3 flex items-center justify-center gap-2" disabled={status === 'loading'}>
+              <GoldButton type="submit" className="w-full py-3 flex items-center justify-center text-black gap-2" disabled={status === 'loading'}>
                 <Send size={18} /> {status === 'loading' ? t('contact.enviando') : t('contact.enviar')}
               </GoldButton>
 
@@ -128,7 +130,7 @@ export default function Contact() {
               </div>
             </div>
 
-            {/* Horários */}
+            {/* HorÃ¡rios */}
             <div className="glass-strong border-gradient p-6 rounded-3xl">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Clock size={18} className="text-gold" /> {t('contact.horario')}
@@ -136,55 +138,55 @@ export default function Contact() {
               <div className="space-y-3 text-sm">
                 <div>
                   <div className="flex items-center gap-2 text-gold font-medium">
-                    🇵🇹 {t('contact.portugal')}
+                        {t('contact.portugal')}
                   </div>
-                  <p className="text-white/70 mt-1">
-                    {t('contact.horarioPT')}
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-gold font-medium">
-                    🇦🇴 {t('contact.angola')}
-                  </div>
-                  <p className="text-white/70 mt-1">
-                    {t('contact.horarioAO')}
-                  </p>
-                </div>
+                   <p className="text-white/90 mt-1">
+                     {t('contact.horarioPT')}
+                   </p>
+                 </div>
+                 <div>
+                   <div className="flex items-center gap-2 text-gold font-medium">
+                        {t('contact.angola')}
+                   </div>
+                   <p className="text-white/90 mt-1">
+                     {t('contact.horarioAO')}
+                   </p>
+                 </div>
               </div>
             </div>
 
             {/* Moradas */}
             <div className="glass-strong border-gradient p-6 rounded-3xl">
-              <h3 className="text-xl font-bold mb-4">📍 Moradas</h3>
+               <h3 className="text-xl font-bold mb-4">{t('contact.moradas')}</h3>
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2 text-gold font-medium text-sm">
                     <MapPin size={16} /> {t('contact.luanda')}
                   </div>
-                  <p className="text-sm text-white/70 mt-1">
-                    {t('contact.moradaLuanda1')}<br />
-                    {t('contact.moradaLuanda2')}
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-gold font-medium text-sm">
-                    <MapPin size={16} /> {t('contact.lisboa')}
-                  </div>
-                  <p className="text-sm text-white/70 mt-1">
-                    {t('contact.moradaLisboa1')}<br />
-                    {t('contact.moradaLisboa2')}
-                  </p>
-                </div>
+                   <p className="text-sm text-white/90 mt-1">
+                     {t('contact.moradaLuanda1')}<br />
+                     {t('contact.moradaLuanda2')}
+                   </p>
+                 </div>
+                 <div>
+                   <div className="flex items-center gap-2 text-gold font-medium text-sm">
+                     <MapPin size={16} /> {t('contact.lisboa')}
+                   </div>
+                   <p className="text-sm text-white/90 mt-1">
+                     {t('contact.moradaLisboa1')}<br />
+                     {t('contact.moradaLisboa2')}
+                   </p>
+                 </div>
               </div>
             </div>
 
             <div className="glass-strong border-gradient p-6 text-center rounded-3xl">
               <h3 className="font-bold mb-2">{t('contact.whatsappTitle')}</h3>
               <a
-                href={whatsappUrl}
+                href={whatsappUrl(t('contact.whatsapp'))}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block bg-green-600 text-white w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+                className="block bg-green-600 text-gold w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
               >
                 {t('contact.whatsapp')}
               </a>
@@ -195,3 +197,6 @@ export default function Contact() {
     </section>
   );
 }
+
+
+

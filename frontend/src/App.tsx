@@ -21,7 +21,7 @@ import { LanguageProvider, useT } from './i18n/LanguageContext';
 
 function PageLoader() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#1a1133]">
       <div className="w-10 h-10 rounded-full border-2 border-t-gold border-lilac-500/20 animate-spin" />
     </div>
   );
@@ -44,7 +44,7 @@ function HomePage() {
       <main className="relative z-10">
         <div id="main-wrapper">
           <Hero key={lang} />
-          <div className="relative z-10 container mx-auto px-4 -mt-4 sm:-mt-8">
+          <div className="relative z-10 container mx-auto max-w-7xl px-4 -mt-4 sm:-mt-8">
             <AeroStripe />
           </div>
 
@@ -106,3 +106,6 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+
+

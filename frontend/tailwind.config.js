@@ -13,19 +13,47 @@ export default {
       },
       colors: {
         gold: "#D4AF37",
+        "gold-light": "#E5C158",
+        brand: {
+          purple: {
+            500: "#8B2FC9",
+            600: "#7B2FBF",
+          },
+          lilac: {
+            200: "#F9F0FF",
+            300: "#F0E6FF",
+            400: "#E4D4FF",
+            500: "#D4B5FF",
+            600: "#B384FF",
+            700: "#8B2FC9",
+            DEFAULT: "#B384FF",
+          },
+          gold: {
+            DEFAULT: "#D4AF37",
+            light: "#E5C158",
+          },
+        },
         aero: {
-          black: "#08080a",
-          panel: "#0f0f14",
-          border: "#221f2d",
-          muted: "#9e9cb0",
-          lilas: "#a855f7",
-          'lilas-dark': "#3b185f",
-          gold: "#f59e0b",
+          panel: "#2b1f4a",
+          border: "#4b3a7a",
+          muted: "#6b5b8a",
+          lilas: "#DDB8FA",
+          "lilas-dark": "#8B2FC9",
+          gold: "#D4AF37",
         },
         lilac: {
-          300: "#BE93FF",
-          500: "#7C3AED",
-          700: "#5B21B6",
+          200: "#F9F0FF",
+          300: "#F0E6FF",
+          400: "#E4D4FF",
+          500: "#D4B5FF",
+          600: "#B384FF",
+          700: "#8B2FC9",
+          DEFAULT: "#B384FF",
+        },
+        surface: {
+          DEFAULT: "#ffffff",
+          muted: "#f3ecff",
+          border: "#e3d9ff",
         }
       },
       animation: {
@@ -39,5 +67,5 @@ export default {
       }
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [],
 }

@@ -1,4 +1,4 @@
-import React, { Suspense, useLayoutEffect } from 'react';
+﻿import React, { Suspense, useLayoutEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Float, ContactShadows, Environment, Stars } from '@react-three/drei';
 import gsap from 'gsap';
@@ -7,7 +7,7 @@ import type { Camera } from 'three'; // Importar o tipo Camera do three
 
 gsap.registerPlugin(ScrollTrigger);
 
-function SceneContent(): JSX.Element {
+function SceneContent(): React.ReactNode {
   const { camera } = useThree();
 
   useLayoutEffect(() => {
@@ -38,20 +38,23 @@ function SceneContent(): JSX.Element {
 export default function LogisticFlow3D(): JSX.Element {
   return (
     <Canvas shadows camera={{ position: [0, 0, 5], fov: 45 }}>
-      <color attach="background" args={['#000000']} />
+      <color attach="background" args={['#1a1133']} />
 
       <ambientLight intensity={0.2} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1.5} castShadow color="#F6EBBF" />
-      <pointLight position={[-10, -10, -10]} color="#7C3AED" intensity={1} />
+      <pointLight position={[-10, -10, -10]} color="#b68dd6" intensity={1} />
       
       <Suspense fallback={null}>
         <SceneContent />
-        <ContactShadows position={[0, -1.6, 0]} opacity={0.4} scale={10} blur={2.5} far={4} color="#7C3AED" />
+        <ContactShadows position={[0, -1.6, 0]} opacity={0.4} scale={10} blur={2.5} far={4} color="#ab7dce" />
         <Environment preset="city" />
-        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0.9} fade speed={1} />
       </Suspense>
 
       <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
     </Canvas>
   );
 }
+
+
+

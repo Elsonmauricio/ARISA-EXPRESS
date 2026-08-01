@@ -1,4 +1,4 @@
-// src/pages/SettingsPage.tsx
+﻿// src/pages/SettingsPage.tsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -66,23 +66,23 @@ export default function SettingsPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-black pt-28 pb-20 px-4">
+      <div className="min-h-screen bg-[#1a1133] pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="font-display text-3xl font-bold text-white mb-2">{t('settings.title')}</h1>
-            <p className="text-white/60 text-sm mb-6">{t('settings.subtitle')}</p>
+            <h1 className="font-display text-3xl font-bold text-white/90 mb-2">{t('settings.title')}</h1>
+            <p className="text-white/70 text-sm mb-6">{t('settings.subtitle')}</p>
 
             {success && (
-              <div className="flex items-center gap-2 text-green-400 bg-green-500/10 p-3 rounded-lg mb-4">
+              <div className="flex items-center gap-2 text-green-600 bg-green-500/10 p-3 rounded-lg mb-4">
                 <CheckCircle2 size={18} /> {t('settings.senhaSucesso')}
               </div>
             )}
 
             {error && (
-              <div className="flex items-center gap-2 text-red-400 bg-red-500/10 p-3 rounded-lg mb-4">
+              <div className="flex items-center gap-2 text-red-600 bg-red-500/10 p-3 rounded-lg mb-4">
                 <AlertCircle size={18} /> {error}
               </div>
             )}
@@ -90,37 +90,37 @@ export default function SettingsPage() {
             {/* Alterar Senha */}
             <div className="glass-strong border-gradient p-6 rounded-2xl mb-6">
               <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <Lock className="w-5 h-5 text-gold" /> {t('settings.alterarSenha')}
+                <Lock className="w-5 h-5 text-white/90" /> {t('settings.alterarSenha')}
               </h2>
               <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('settings.senhaAtual')}</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('settings.senhaAtual')}</label>
                   <input
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                     required
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                    className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('settings.novaSenha')}</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('settings.novaSenha')}</label>
                   <input
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                     required
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                    className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('settings.confirmarSenha')}</label>
+                  <label className="block text-sm text-white/70 mb-1">{t('settings.confirmarSenha')}</label>
                   <input
                     type="password"
                     value={passwordData.confirmNewPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, confirmNewPassword: e.target.value })}
                     required
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-gold outline-none text-white"
+                    className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
                   />
                 </div>
                 <GoldButton type="submit" className="w-full" disabled={loading}>
@@ -132,25 +132,25 @@ export default function SettingsPage() {
             {/* Preferências */}
             <div className="glass-strong border-gradient p-6 rounded-2xl mb-6">
               <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <Bell className="w-5 h-5 text-gold" /> Preferências
+                <Bell className="w-5 h-5 text-white/90" /> {t('settings.preferenciasTitle')}
               </h2>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-white/80">{t('settings.notificacoes')}</span>
                   <button
                     onClick={() => setNotifications(!notifications)}
-                    className={`w-12 h-6 rounded-full transition-colors ${notifications ? 'bg-gold' : 'bg-white/20'}`}
+                    className={`w-12 h-6 rounded-full transition-colors ${notifications ? 'bg-gold' : 'bg-lilac/30'}`}
                   >
-                    <div className={`w-5 h-5 rounded-full bg-white transition-transform ${notifications ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                    <div className={`w-5 h-5 rounded-full bg-[#2b1f4a]/40 transition-transform ${notifications ? 'translate-x-6' : 'translate-x-0.5'}`} />
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-white/80">{t('settings.modoEscuro')}</span>
                   <button
                     onClick={() => setDarkMode(!darkMode)}
-                    className={`w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-gold' : 'bg-white/20'}`}
+                    className={`w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-gold' : 'bg-lilac/30'}`}
                   >
-                    <div className={`w-5 h-5 rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                    <div className={`w-5 h-5 rounded-full bg-[#2b1f4a]/40 transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
@@ -158,13 +158,13 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setLang('pt')}
-                      className={`px-3 py-1 rounded-lg text-sm transition-colors ${lang === 'pt' ? 'bg-gold text-black' : 'bg-white/10 text-white/80 hover:bg-white/20'}`}
+                      className={`px-3 py-1 rounded-lg text-sm transition-colors ${lang === 'pt' ? 'bg-gold text-lilac/30' : 'bg-[#2b1f4a]/40 text-white/80 hover:bg-lilac/30'}`}
                     >
                       {t('settings.idiomaPt')}
                     </button>
                     <button
                       onClick={() => setLang('en')}
-                      className={`px-3 py-1 rounded-lg text-sm transition-colors ${lang === 'en' ? 'bg-gold text-black' : 'bg-white/10 text-white/80 hover:bg-white/20'}`}
+                      className={`px-3 py-1 rounded-lg text-sm transition-colors ${lang === 'en' ? 'bg-gold text-lilac/30' : 'bg-[#2b1f4a]/40 text-white/80 hover:bg-lilac/30'}`}
                     >
                       {t('settings.idiomaEn')}
                     </button>
@@ -176,10 +176,10 @@ export default function SettingsPage() {
             {/* Ações */}
             <div className="glass-strong border-gradient p-6 rounded-2xl">
               <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <Shield className="w-5 h-5 text-gold" /> Ações
+                 <Shield className="w-5 h-5 text-white/90" /> {t('settings.acoes')}
               </h2>
               <div className="space-y-2">
-                <Link to="/perfil" className="block text-sm text-gold hover:underline">
+                <Link to="/perfil" className="block text-sm text-white/90 hover:underline">
                   {t('settings.voltarPerfil')}
                 </Link>
                 <button

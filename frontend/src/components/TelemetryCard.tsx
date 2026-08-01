@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { AeroTag } from "./AeroTag";
 import React from "react";
 
@@ -13,7 +13,7 @@ export function TelemetryCard({
   description,
   className = "",
 }: {
-  tag: string;
+  tag?: string;
   tagTone?: AeroTagTone;
   value: React.ReactNode;
   unit?: string;
@@ -27,7 +27,7 @@ export function TelemetryCard({
       className={`aero-chamfer glass-strong p-6 relative transition-colors hover:border-aero-lilas border border-aero-border ${className}`}
     >
       <AeroTag tone={tagTone}>{tag}</AeroTag>
-      <div className="font-display text-4xl sm:text-5xl my-2.5 text-white flex items-baseline gap-2">
+      <div className="font-display text-4xl sm:text-5xl my-2.5 text-gold flex items-baseline gap-2">
         {value}
         {unit && (
           <span className="text-sm text-aero-gold font-data font-normal">{unit}</span>
@@ -40,3 +40,6 @@ export function TelemetryCard({
     </motion.div>
   );
 }
+
+
+

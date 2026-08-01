@@ -1,4 +1,4 @@
-// src/components/Gallery.tsx
+﻿// src/components/Gallery.tsx
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -17,7 +17,7 @@ interface GalleryImage {
   category: string;
 }
 
-const getGalleryImages = (t) => ([
+const getGalleryImages = (t: (key: string) => string): GalleryImage[] => ([
   {
     url: entradaImg,
     title: t('gallery.entrada'),
@@ -63,19 +63,19 @@ export default function Gallery() {
   return (
     <section
       id="gallery"
-      className="py-20 bg-gradient-to-br from-[#0a0015] via-black to-[#0a0015] relative overflow-hidden"
+      className="py-20 bg-gradient-to-br from-[#f0e6ff] via-lilac-100 to-[#f0e6ff] relative overflow-hidden"
     >
       <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#9b59b6] rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#DDB8FA] rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#D4AF37] rounded-full blur-3xl" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto max-w-7xl px-4 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#9b59b6] to-[#D4AF37] bg-clip-text text-transparent">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#DDB8FA] to-[#D4AF37] bg-clip-text text-transparent">
             {t('gallery.title')}
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-black/70 max-w-3xl mx-auto">
             {t('gallery.subtitle')}
           </p>
         </div>
@@ -97,11 +97,11 @@ export default function Gallery() {
                   className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                <div className="absolute inset-0 bg-gradient-to-t from-lilac/80 via-lilac/40 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
                   <span className="text-[#D4AF37] text-sm font-semibold mb-2">
                     {image.category}
                   </span>
-                  <h3 className="text-white text-xl font-bold">{image.title}</h3>
+                  <h3 className="text-gold text-xl font-bold">{image.title}</h3>
                 </div>
               </div>
             ))}
@@ -111,3 +111,6 @@ export default function Gallery() {
     </section>
   );
 }
+
+
+

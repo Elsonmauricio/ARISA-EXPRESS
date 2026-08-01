@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { db } from '../config/firebase';
 import bcrypt from 'bcryptjs';
 import { FieldValue } from 'firebase-admin/firestore';
+import { fixEncodingObject } from '../utils/encoding';
 
 export const UserController = {
   getProfile: async (req: Request, res: Response) => {
@@ -14,7 +15,7 @@ export const UserController = {
       }
       const data = userDoc.data();
       const { password, ...userData } = data || {};
-      res.json({ success: true, data: { id: userDoc.id, ...userData } });
+      res.json({ success: true, data: fixEncodingObject({ id: userDoc.id, ...userData }) });
     } catch (error) {
       res.status(500).json({ error: 'Erro ao buscar perfil' });
     }
@@ -83,7 +84,7 @@ export const UserController = {
         .orderBy('createdAt', 'desc')
         .get();
       const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      res.json({ success: true, data: notifications });
+      res.json({ success: true, data: fixEncodingObject(notifications) });
     } catch (error) {
       res.status(500).json({ error: 'Erro ao buscar notificações' });
     }

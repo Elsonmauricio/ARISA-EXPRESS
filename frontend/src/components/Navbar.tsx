@@ -1,4 +1,4 @@
-// src/components/Navbar.tsx
+﻿// src/components/Navbar.tsx
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronDown, User, Settings, LogOut, Package, Search } from 'lucide-react';
@@ -9,13 +9,21 @@ import { scrollToAnchor } from '../lib/scroll';
 import { useT } from '../i18n/LanguageContext';
 import { api } from '../lib/api';
 
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  phone?: string;
+  company?: string;
+}
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<null | any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [dropdowns, setDropdowns] = useState({
     brand: false,
     shipments: false,
@@ -24,9 +32,9 @@ export default function Navbar() {
   const { t } = useT();
 
   const BRAND_LINKS = [
-    { href: '/sobre', label: t('nav.sobre') },
-    { href: '/servicos', label: t('nav.servicos') },
-    { href: '/contactos', label: t('nav.contactos') },
+    { href: '#sobre', label: t('nav.sobre') },
+    { href: '#servicos', label: t('nav.servicos') },
+    { href: '#contactos', label: t('nav.contactos') },
   ];
   const SHIPMENT_LINKS = [
     { href: '/encomendas?tab=reservar', label: t('nav.reservar') },
@@ -46,7 +54,7 @@ export default function Navbar() {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      // Tentar buscar da API se houver token mas não user (fallback)
+      // Tentar buscar da API se houver token mas nÃ£o user (fallback)
       const token = localStorage.getItem('token');
       if (token) {
         fetch(api('/api/auth/me'), {
@@ -136,7 +144,7 @@ export default function Navbar() {
           <img
             src={ARISAEXPRESStLogo}
              alt={t('nav.logoAlt')}
-              className="h-10 sm:h-14 md:h-16 lg:h-20 w-auto max-w-[70vw] sm:max-w-[50vw] drop-shadow-[0_0_14px_rgba(168,85,247,0.5)] brightness-110 group-hover:brightness-125 transition-all duration-300"
+              className="h-10 sm:h-14 md:h-16 lg:h-20 w-auto max-w-[70vw] sm:max-w-[50vw] drop-shadow-[0_0_14px_rgba(168,85,247,0.5)] brightness-110 group-hover:brightness-125 transition-all duration-300" width={80} height={80}
           />
         </Link>
 
@@ -146,7 +154,7 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={() => toggleDropdown('brand')}
-              className="flex items-center gap-1 text-sm text-white/80 hover:text-white transition-colors group"
+              className="flex items-center gap-1 text-sm text-white/80 hover:text-gold transition-colors group"
             >
               {t('nav.marca')}
               <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.brand ? 'rotate-180' : ''}`} />
@@ -157,7 +165,7 @@ export default function Navbar() {
                    initial={{ opacity: 0, y: -10 }}
                    animate={{ opacity: 1, y: 0 }}
                    exit={{ opacity: 0, y: -10 }}
-                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/10"
+                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/20"
                    style={{ zIndex: 9999 }}
                  >
                   {BRAND_LINKS.map((link) => (
@@ -179,7 +187,7 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={() => toggleDropdown('shipments')}
-              className="flex items-center gap-1 text-sm text-white/80 hover:text-white transition-colors group"
+              className="flex items-center gap-1 text-sm text-white/80 hover:text-gold transition-colors group"
             >
               {t('nav.encomendas')}
               <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.shipments ? 'rotate-180' : ''}`} />
@@ -190,7 +198,7 @@ export default function Navbar() {
                    initial={{ opacity: 0, y: -10 }}
                    animate={{ opacity: 1, y: 0 }}
                    exit={{ opacity: 0, y: -10 }}
-                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/10"
+                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-white/20"
                    style={{ zIndex: 9999 }}
                  >
                   {SHIPMENT_LINKS.map((link) => (
@@ -213,9 +221,9 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => toggleDropdown('profile')}
-                className="flex items-center gap-2 text-sm text-white/80 hover:text-white transition-colors group"
+                className="flex items-center gap-2 text-sm text-white/80 hover:text-gold transition-colors group"
               >
-                <span className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-semibold">
+                <span className="w-8 h-8 rounded-full bg-lilac/20 flex items-center justify-center text-gold font-semibold">
                   {user.name?.charAt(0).toUpperCase() || 'U'}
                 </span>
                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.profile ? 'rotate-180' : ''}`} />
@@ -226,13 +234,13 @@ export default function Navbar() {
                    initial={{ opacity: 0, y: -10 }}
                    animate={{ opacity: 1, y: 0 }}
                    exit={{ opacity: 0, y: -10 }}
-                   className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] max-w-[80vw] border border-white/10"
+                   className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] max-w-[80vw] border border-white/20"
                    style={{ zIndex: 9999 }}
                  >
                     {adminLink && (
                       <>
                         {adminLink}
-                        <div className="border-t border-white/10 my-2" />
+                        <div className="border-t border-white/20 my-2" />
                       </>
                     )}
                     {profileLinks.map((link) => (
@@ -251,7 +259,7 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Link to="/login" className="text-sm text-white/80 hover:text-white transition-colors">
+              <Link to="/login" className="text-sm text-white/80 hover:text-gold transition-colors">
                 {t('nav.entrar')}
               </Link>
               <GoldButton className="px-5 py-2 text-sm" onClick={() => navigate('/registar')}>
@@ -262,7 +270,7 @@ export default function Navbar() {
         </nav>
 
         {/* Mobile menu button */}
-        <button className="md:hidden text-white" onClick={() => setOpen(!open)} aria-label={t('nav.menu')}>
+        <button className="md:hidden text-gold" onClick={() => setOpen(!open)} aria-label={t('nav.menu')}>
           {open ? <X /> : <Menu />}
         </button>
       </div>
@@ -287,7 +295,7 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            <hr className="border-white/10" />
+            <hr className="border-white/20" />
             {SHIPMENT_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -298,13 +306,13 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <hr className="border-white/10" />
+            <hr className="border-white/20" />
             {user ? (
               <>
                 {adminLink && (
                   <>
                     {adminLink}
-                    <hr className="border-white/10" />
+                    <hr className="border-white/20" />
                   </>
                 )}
                  <Link to="/perfil" onClick={() => setOpen(false)} className="text-white/80 hover:text-gold transition-colors">
@@ -336,3 +344,5 @@ export default function Navbar() {
     </motion.header>
   );
 }
+
+

@@ -8,11 +8,6 @@ declare module '*.js' {
   export default value
 }
 
-declare module '*.jsx' {
-  const component: any
-  export default component
-}
-
 declare module '*.jsx?react' {
   const component: any
   export default component

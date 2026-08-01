@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { db } from '../config/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { generateTrackingCode } from '../utils/trackingCode';
+import { fixEncodingObject } from '../utils/encoding';
 import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
 
@@ -145,8 +146,8 @@ export const ShipmentController = {
           return tb - ta;
         });
 
-      logger.info(`Encontradas ${shipments.length} encomendas para o utilizador ${userId}`);
-      res.json({ success: true, data: shipments });
+logger.info(`Encontradas ${shipments.length} encomendas para o utilizador ${userId}`);
+       res.json({ success: true, data: fixEncodingObject(shipments) });
     } catch (error: any) {
       logger.error('Erro ao buscar encomendas:', error.message, error.stack);
       if (error.message && error.message.includes('requires an index')) {
@@ -170,7 +171,7 @@ export const ShipmentController = {
       if (shipment.userId !== user.id && user.role !== 'ADMIN') {
         return res.status(403).json({ error: 'Acesso negado' });
       }
-      res.json({ success: true, data: shipment });
+      res.json({ success: true, data: fixEncodingObject(shipment) });
     } catch (error: any) {
       logger.error('Erro ao buscar encomenda:', error);
       res.status(500).json({ error: 'Erro ao buscar encomenda' });

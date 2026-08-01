@@ -11,8 +11,9 @@ export interface User {
 export interface Shipment {
   id: string;
   trackingCode: string;
-  status: 'PENDING' | 'COLLECTED' | 'IN_TRANSIT' | 'CUSTOMS' | 'IN_PORTUGAL' |'IN_ANGOLA'| 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED'
-    | 'REGISTERED' | 'SHIPPED' | 'IN_CUSTOMS' | 'READY_FOR_PICKUP' | 'PICKED_UP';
+
+  status: 'PENDING' | 'COLLECTED' | 'IN_TRANSIT' | 'CUSTOMS' | 'IN_PORTUGAL' |'IN_ANGOLA'| 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'READY_FOR_PICKUP' | 'PICKED_UP';
+
   origin: string;
   destination: string;
   route?: string;
@@ -38,6 +39,7 @@ export interface Shipment {
   history?: any[];
   currentLocation?: string;
   progress?: number;
+
 }
 
 export interface TrackingUpdate {

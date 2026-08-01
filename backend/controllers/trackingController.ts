@@ -2,23 +2,17 @@
 import { Request, Response } from 'express';
 import { db } from '../config/firebase';
 import { logger } from '../utils/logger';
+import { calculateFine, calculateWeeksOverdue, formatDate } from '../utils/businessDays';
+import { fixEncodingObject } from '../utils/encoding';
 
 export const TrackingController = {
-  /**
-   * Obtém informações de rastreamento de uma encomenda pelo código
-   * @route GET /api/tracking/:code
-   */
-  getTrackingInfo: async (req: Request, res: Response) => {
+  getTracking: async (req: Request, res: Response) => {
     try {
       const { code } = req.params;
+      const normalizedCode = String(code || '').trim();
 
-      if (!code || code.trim() === '') {
-        return res.status(400).json({ error: 'Código de rastreio inválido' });
-      }
-
-      // Buscar a encomenda pelo código
       const snapshot = await db.collection('shipments')
-        .where('trackingCode', '==', code.trim().toUpperCase())
+        .where('trackingCode', '==', normalizedCode)
         .limit(1)
         .get();
 
@@ -29,25 +23,40 @@ export const TrackingController = {
       const shipmentDoc = snapshot.docs[0];
       const shipment = shipmentDoc.data();
 
-      // Buscar o histórico de tracking
       const trackingSnapshot = await db.collection('shipments')
         .doc(shipmentDoc.id)
         .collection('trackingUpdates')
         .orderBy('timestamp', 'desc')
         .get();
 
-      const trackingUpdates = trackingSnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          status: data.status || 'PENDING',
-          location: data.location || 'N/A',
-          description: data.description || '',
-          timestamp: data.timestamp ? data.timestamp.toDate() : new Date()
-        };
-      });
+      const trackingUpdates = trackingSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Construir resposta com dados completos + datas de cada etapa
+      let fineInfo: any = null;
+      if (shipment.pickupDeadline && shipment.status === 'READY_FOR_PICKUP') {
+        const deadline = new Date(shipment.pickupDeadline.toDate ? shipment.pickupDeadline.toDate() : shipment.pickupDeadline);
+        const now = new Date();
+        const fine = calculateFine(deadline, now);
+        const weeksOverdue = calculateWeeksOverdue(deadline, now);
+
+        if (fine > 0) {
+          fineInfo = {
+            hasFine: true,
+            deadline: formatDate(deadline),
+            weeksOverdue,
+            fine,
+            currency: 'EUR'
+          };
+        } else {
+          fineInfo = {
+            hasFine: false,
+            deadline: formatDate(deadline),
+            weeksOverdue: 0,
+            fine: 0,
+            currency: 'EUR'
+          };
+        }
+      }
+
       const responseData = {
         trackingCode: shipment.trackingCode || code,
         origin: shipment.origin || 'N/A',
@@ -65,6 +74,7 @@ export const TrackingController = {
         status: shipment.status || 'PENDING',
         createdAt: shipment.createdAt ? shipment.createdAt.toDate() : new Date(),
         shipmentDate: shipment.shipmentDate ? shipment.shipmentDate.toDate() : null,
+
         // ✅ Datas reais de cada etapa (vindas do Firestore)
         collectedAt: shipment.collectedAt?.toMillis?.() || shipment.collectedAt?.toDate?.()?.getTime?.() || null,
         inTransitAt: shipment.inTransitAt?.toMillis?.() || shipment.inTransitAt?.toDate?.()?.getTime?.() || null,
@@ -72,17 +82,17 @@ export const TrackingController = {
         outForDeliveryAt: shipment.outForDeliveryAt?.toMillis?.() || shipment.outForDeliveryAt?.toDate?.()?.getTime?.() || null,
         deliveredAt: shipment.deliveredAt?.toMillis?.() || shipment.deliveredAt?.toDate?.()?.getTime?.() || null,
         trackingUpdates,
-        // CTT
         cttCode: shipment.cttCode || '',
         cttLink: shipment.cttLink || '',
-        // Progresso (opcional, pode ser calculado com base no status)
+        fine: fineInfo,
+
         progress: shipment.progress || 0,
       };
 
-      logger.info(`Rastreamento encontrado para o código: ${code}`);
+logger.info(`Rastreamento encontrado para o código: ${code}`);
       res.json({
         success: true,
-        data: responseData
+        data: fixEncodingObject(responseData)
       });
     } catch (error: any) {
       logger.error('Erro ao buscar rastreamento:', error.message, error.stack);

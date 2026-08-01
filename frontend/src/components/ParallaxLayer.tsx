@@ -1,4 +1,4 @@
-import React, { ElementType } from 'react';
+﻿import React, { ElementType } from 'react';
 import useParallax from '../hooks/useParallax';
 
 interface ParallaxLayerProps {
@@ -14,7 +14,7 @@ interface ParallaxLayerProps {
 
 /**
  * Wrapper que aplica um efeito de parallax GSAP a um grupo de elementos,
- * criando sensação de profundidade (camadas a velocidades diferentes).
+ * criando sensaÃ§Ã£o de profundidade (camadas a velocidades diferentes).
  */
 export default function ParallaxLayer({
   children,
@@ -33,3 +33,6 @@ export default function ParallaxLayer({
     </Tag>
   );
 }
+
+
+

@@ -4,6 +4,6 @@ import { TrackingController } from '../../controllers/trackingController';
 
 const router = Router();
 
-router.get('/:code', TrackingController.getTrackingInfo);
+router.get('/:code', TrackingController.getTracking);
 
 export default router;

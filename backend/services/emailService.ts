@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport({
 
 const templates: Record<EmailOptions['template'], (data: any) => string> = {
   welcome: (data: any) => `
-    <h1>🌟 Bem-vindo à Arisa Express</h1>
+    <h1> Bem-vindo à Arisa Express</h1>
     <p><strong>Olá ${data.name},</strong></p>
     <p>Obrigado por se registar na Arisa Express! Estamos felizes em tê-lo connosco.</p>
     <p>Com a Arisa Express, pode enviar encomendas entre Angola e Portugal com rapidez, segurança e total transparência.</p>
