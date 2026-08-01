@@ -142,6 +142,203 @@ function StatsCards({ stats }: { stats: any }) {
   );
 }
 
+// ======================== NOVA ENCOMENDA (ADMIN) ========================
+function NewShipmentForm() {
+  const [form, setForm] = useState({
+    origin: 'Lisboa',
+    destination: 'Luanda',
+    route: 'Lisboa » Luanda',
+    senderName: '',
+    senderContact: '',
+    senderPhone: '',
+    receiverName: '',
+    receiverContact: '',
+    receiverPhone: '',
+    weight: '',
+    category: '',
+    freightValue: '',
+    price: '',
+    paymentStatus: 'PENDING',
+    status: 'REGISTERED',
+    description: '',
+    cttCode: '',
+    cttLink: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { t } = useT();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const payload: any = {
+        ...form,
+        weight: parseFloat(form.weight) || 0,
+        freightValue: form.freightValue ? parseFloat(form.freightValue) : 0,
+        price: form.price ? parseFloat(form.price) : 0,
+        cttLink: form.cttLink || ''
+      };
+
+      const response = await fetch(api('/api/admin/shipments'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await response.json();
+      if (json.success) {
+        setSuccess(t('admin.encomendaCriada'));
+        setForm({
+          origin: 'Lisboa', destination: 'Luanda', route: 'Lisboa » Luanda',
+          senderName: '', senderContact: '', senderPhone: '',
+          receiverName: '', receiverContact: '', receiverPhone: '',
+          weight: '', category: '', freightValue: '', price: '',
+          paymentStatus: 'PENDING', status: 'REGISTERED',
+          description: '', cttCode: '', cttLink: ''
+        });
+      } else {
+        setError(json.error || t('admin.erroCriarEncomenda'));
+      }
+    } catch (err) {
+      setError(t('admin.erroConexao'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
+      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.novaEncomenda')}</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.origem')}</label>
+            <select value={form.origin} onChange={e => setForm({...form, origin: e.target.value, route: `${e.target.value} » ${form.destination}`})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none">
+              <option value="Lisboa">Lisboa</option>
+              <option value="Luanda">Luanda</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.destino')}</label>
+            <select value={form.destination} onChange={e => setForm({...form, destination: e.target.value, route: `${form.origin} » ${e.target.value}`})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none">
+              <option value="Lisboa">Lisboa</option>
+              <option value="Luanda">Luanda</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.status')}</label>
+            <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none">
+              <option value="REGISTERED">{t('status.REGISTERED')}</option>
+              <option value="SHIPPED">{t('status.SHIPPED')}</option>
+              <option value="IN_CUSTOMS">{t('status.IN_CUSTOMS')}</option>
+              <option value="READY_FOR_PICKUP">{t('status.READY_FOR_PICKUP')}</option>
+              <option value="PICKED_UP">{t('status.PICKED_UP')}</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.peso')} (kg)</label>
+            <input type="number" value={form.weight} onChange={e => setForm({...form, weight: e.target.value})} required className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.remetente')}</label>
+            <input type="text" value={form.senderName} onChange={e => setForm({...form, senderName: e.target.value})} required className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('ship.remetenteTel')}</label>
+            <input type="tel" value={form.senderPhone} onChange={e => setForm({...form, senderPhone: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('ship.destinatario')}</label>
+            <input type="text" value={form.receiverName} onChange={e => setForm({...form, receiverName: e.target.value})} required className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('ship.destinatarioTel')}</label>
+            <input type="tel" value={form.receiverPhone} onChange={e => setForm({...form, receiverPhone: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.categoria')}</label>
+            <input type="text" value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder="Ex: Eletrónicos, Roupas..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.valorFrete')}</label>
+            <input type="number" value={form.freightValue} onChange={e => setForm({...form, freightValue: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.preco')}</label>
+            <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.estadoFinanceiro')}</label>
+            <select value={form.paymentStatus} onChange={e => setForm({...form, paymentStatus: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none">
+              <option value="PENDING">{t('admin.pendente')}</option>
+              <option value="PAID">{t('admin.pago')}</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.codigoCtt')}</label>
+            <input type="text" value={form.cttCode} onChange={e => setForm({...form, cttCode: e.target.value})} placeholder="Ex: XX123456789PT" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.linkCtt')}</label>
+            <input type="url" value={form.cttLink} onChange={e => setForm({...form, cttLink: e.target.value})} placeholder="https://www.ctt.pt/..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs text-white/60 mb-1">{t('ship.descricao')}</label>
+          <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none resize-none" />
+        </div>
+
+        {error && <div className="text-red-400 text-sm bg-red-500/10 p-3 rounded-lg">{error}</div>}
+        {success && <div className="text-green-400 text-sm bg-green-500/10 p-3 rounded-lg">{success}</div>}
+
+        <button type="submit" disabled={loading} className="px-6 py-2.5 bg-gold text-black rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm">
+          {loading ? t('admin.aProcessar') : t('admin.registarEncomenda')}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function getStatusColor(status: string) {
+  const colors: Record<string, string> = {
+    PENDING: 'text-yellow-400 bg-yellow-400/10',
+    COLLECTED: 'text-blue-400 bg-blue-400/10',
+    IN_TRANSIT: 'text-lilac-400 bg-lilac-400/10',
+    CUSTOMS: 'text-orange-400 bg-orange-400/10',
+    IN_PORTUGAL: 'text-cyan-400 bg-cyan-400/10',
+    IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
+    OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
+    DELIVERED: 'text-green-400 bg-green-400/10',
+    CANCELLED: 'text-red-400 bg-red-400/10',
+    REGISTERED: 'text-gray-400 bg-gray-400/10',
+    SHIPPED: 'text-blue-400 bg-blue-400/10',
+    IN_CUSTOMS: 'text-orange-400 bg-orange-400/10',
+    READY_FOR_PICKUP: 'text-cyan-400 bg-cyan-400/10',
+    PICKED_UP: 'text-green-400 bg-green-400/10'
+  };
+  return colors[status] || 'text-white/60 bg-white/10';
+}
+
 // ======================== ADMIN SHIPMENT LIST ========================
 function AdminShipmentList() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -1398,7 +1595,7 @@ function AdminLeadsList() {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { t } = useT();
-  const [activeTab, setActiveTab] = useState<'overview' | 'shipments' | 'users' | 'routes' | 'messages'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'newShipment' | 'shipments' | 'users' | 'routes' | 'messages'>('overview');
   const [stats, setStats] = useState({ totalShipments: 0, activeShipments: 0, deliveredToday: 0, totalUsers: 0 });
   const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
   const [statusDistribution, setStatusDistribution] = useState<Record<string, number>>({});
@@ -1480,29 +1677,26 @@ export default function AdminDashboard() {
         setStatusDistribution(dist);
       }
     } catch (err) {
-      // dashboard fetch error - silently handled
+      console.error('Erro ao carregar dashboard:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // Atualização automática a cada 30 segundos (apenas quando a aba está visível)
+  // Atualização automática a cada 30 segundos
   useEffect(() => {
-    if (activeTab !== 'overview') return;
-
-    const poll = () => {
-      if (document.visibilityState === 'visible') {
+    const interval = setInterval(() => {
+      if (activeTab === 'overview') {
         fetchDashboardData();
       }
-    };
-
-    const interval = setInterval(poll, 30000);
+    }, 30000);
     return () => clearInterval(interval);
   }, [activeTab]);
 
   const tabs = [
     { id: 'overview', label: t('admin.tabVisao'), icon: TrendingUp },
+    { id: 'newShipment', label: t('admin.tabNovaEncomenda'), icon: Plus },
     { id: 'shipments', label: t('admin.tabEncomendas'), icon: Package },
     { id: 'users', label: t('admin.tabUtilizadores'), icon: Users },
     { id: 'routes', label: t('admin.tabRotas'), icon: MapPin },
@@ -1513,7 +1707,7 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#D8B9FF] pt-24 sm:pt-28 pb-20 px-4">
+      <div className="min-h-screen bg-black pt-24 sm:pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1522,16 +1716,16 @@ export default function AdminDashboard() {
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold text-gold flex flex-wrap items-center gap-2">
+                <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold text-white flex flex-wrap items-center gap-2">
                   <span className="text-gradient-gold">{t('admin.titulo')}</span>
-                  <span className="text-sm text-gold/40">{t('admin.subtitle')}</span>
+                  <span className="text-sm text-white/40">{t('admin.subtitle')}</span>
                 </h1>
-                <p className="text-gold/60 mt-1 text-sm sm:text-base">{t('admin.desc')}</p>
+                <p className="text-white/60 mt-1 text-sm sm:text-base">{t('admin.desc')}</p>
               </div>
               <button
                 onClick={fetchDashboardData}
                 disabled={refreshing}
-                className="px-4 py-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-lg text-gold hover:bg-[#D8B9FF]/20 transition-colors flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                 {refreshing ? t('admin.atualizando') : t('admin.atualizar')}
@@ -1540,15 +1734,15 @@ export default function AdminDashboard() {
           </motion.div>
 
           {/* Tabs - Desktop */}
-          <div className="hidden md:flex flex-wrap gap-2 mb-8 border-b border-[#D8B9FF]/30 pb-4">
+          <div className="hidden md:flex flex-wrap gap-2 mb-8 border-b border-white/10 pb-4">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? 'bg-gold text-gold'
-                    : 'bg-[#D8B9FF] text-gold/60 hover:bg-[#D8B9FF]/20'
+                    ? 'bg-gold text-black'
+                    : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -1561,7 +1755,7 @@ export default function AdminDashboard() {
           <div className="md:hidden mb-6">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-full flex items-center justify-between min-h-[48px] px-4 py-3 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-xl text-gold"
+              className="w-full flex items-center justify-between min-h-[48px] px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white"
             >
               <span className="flex items-center gap-2">
                 {currentTab && <currentTab.icon className="w-4 h-4" />}
@@ -1570,7 +1764,7 @@ export default function AdminDashboard() {
               <ChevronDown className={`w-4 h-4 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`} />
             </button>
             {mobileMenuOpen && (
-              <div className="mt-2 bg-[#D8B9FF] border border-[#D8B9FF]/30 rounded-xl overflow-hidden">
+              <div className="mt-2 bg-white/5 border border-white/10 rounded-xl overflow-hidden">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -1578,7 +1772,7 @@ export default function AdminDashboard() {
                     className={`w-full flex items-center gap-2 min-h-[48px] px-4 py-3 text-sm transition-colors ${
                       activeTab === tab.id
                         ? 'bg-gold/20 text-gold'
-                        : 'text-gold/60 hover:bg-[#D8B9FF]'
+                        : 'text-white/60 hover:bg-white/5'
                     }`}
                   >
                     <tab.icon className="w-4 h-4" />
@@ -1600,17 +1794,17 @@ export default function AdminDashboard() {
                      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.ultimasEncomendas')}</h3>
                      <div className="space-y-3">
                        {recentShipments.length === 0 ? (
-                         <p className="text-gold/40 text-sm">{t('admin.nenhumaRecente')}</p>
+                         <p className="text-white/40 text-sm">{t('admin.nenhumaRecente')}</p>
                       ) : (
                         recentShipments.map((s) => (
-                          <div key={s.id} className="flex justify-between items-center border-b border-lilac/10 pb-2 last:border-0">
+                          <div key={s.id} className="flex justify-between items-center border-b border-white/5 pb-2 last:border-0">
                             <div>
                               <div className="font-mono text-xs text-gold">{s.trackingCode}</div>
-                              <div className="text-xs text-gold/60">{s.origin} - {s.destination}</div>
-                              <div className="text-[10px] text-gold/40">{formatDate(s.createdAt)}</div>
+                              <div className="text-xs text-white/60">{s.origin} → {s.destination}</div>
+                              <div className="text-[10px] text-white/40">{formatDate(s.createdAt)}</div>
                             </div>
                             <div className="text-right">
-                              <div className="text-xs font-semibold">kg {s.price?.toFixed(2) || '€—'}</div>
+                              <div className="text-xs font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
                               <div className={`text-[10px] px-2 py-0.5 rounded-full ${s.status === 'DELIVERED' ? 'text-green-400 bg-green-400/10' : 'text-yellow-400 bg-yellow-400/10'}`}>
                       {t(`status.${s.status}`)}
                               </div>
@@ -1625,13 +1819,13 @@ export default function AdminDashboard() {
                   <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
                      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.distribuicao')}</h3>
                      {Object.keys(statusDistribution).length === 0 ? (
-                       <p className="text-gold/40 text-sm">{t('admin.nenhumaEncomenda2')}</p>
+                       <p className="text-white/40 text-sm">{t('admin.nenhumaEncomenda2')}</p>
                     ) : (
                       <div className="space-y-2">
                         {Object.entries(statusDistribution).map(([status, count]) => (
                           <div key={status} className="flex justify-between items-center">
-                            <span className="text-sm text-gold/60">{status.replace('_', ' ')}</span>
-                            <span className="text-sm font-semibold text-gold">{count}</span>
+                            <span className="text-sm text-white/60">{status.replace('_', ' ')}</span>
+                            <span className="text-sm font-semibold text-white">{count}</span>
                           </div>
                         ))}
                       </div>
@@ -1641,6 +1835,7 @@ export default function AdminDashboard() {
               </>
             )}
 
+            {activeTab === 'newShipment' && <NewShipmentForm />}
             {activeTab === 'shipments' && <AdminShipmentList />}
             {activeTab === 'users' && <AdminUserList />}
             {activeTab === 'routes' && <AdminRouteManager />}
@@ -1651,5 +1846,3 @@ export default function AdminDashboard() {
     </Layout>
   );
 }
-
-
