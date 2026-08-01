@@ -246,7 +246,7 @@ function NewShipmentForm() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-white/60 mb-1">{t('admin.peso')} (kg)</label>
+            <label className="block text-xs text-white/60 mb-1">{t('admin.pesoKg')}</label>
             <input type="number" value={form.weight} onChange={e => setForm({...form, weight: e.target.value})} required className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
           </div>
         </div>
@@ -273,7 +273,7 @@ function NewShipmentForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
             <label className="block text-xs text-white/60 mb-1">{t('admin.categoria')}</label>
-            <input type="text" value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder="Ex: Eletrónicos, Roupas..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+            <input type="text" value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder={t('admin.categoriaPlaceholder')} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
           </div>
           <div>
             <label className="block text-xs text-white/60 mb-1">{t('admin.valorFrete')}</label>
@@ -295,7 +295,7 @@ function NewShipmentForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-white/60 mb-1">{t('admin.codigoCtt')}</label>
-            <input type="text" value={form.cttCode} onChange={e => setForm({...form, cttCode: e.target.value})} placeholder="Ex: XX123456789PT" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
+            <input type="text" value={form.cttCode} onChange={e => setForm({...form, cttCode: e.target.value})} placeholder={t('admin.cttExemplo')} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-gold outline-none" />
           </div>
           <div>
             <label className="block text-xs text-white/60 mb-1">{t('admin.linkCtt')}</label>
