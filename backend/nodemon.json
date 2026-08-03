@@ -1,0 +1,8 @@
+{
+  "watch": ["src", "dev.ts", "server.ts", "api", "controllers", "middleware", "services", "utils", "types"],
+  "ignore": ["_IGNORE_", "_IGNORE_arisa_express", "node_modules", "dist", "arisa-express-firebase-adminsdk-fbsvc-ca20ad872f.json"],
+  "ext": "ts,json",
+  "execMap": {
+    "ts": "ts-node"
+  }
+}

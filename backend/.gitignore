@@ -1,14 +1,12 @@
 # Dependências (Node.js)
 node_modules/
 jspm_packages/
-
 # Build e Saída
 dist/
 build/
 .next/
 out/
 .cache/
-
 # Variáveis de Ambiente e Segredos (MUITO IMPORTANTE)
 .env
 .env.example
@@ -17,7 +15,6 @@ out/
 .env.test.local
 .env.production.local
 *.pem
-
 # Logs
 *.log
 npm-debug.log*
@@ -25,30 +22,30 @@ yarn-debug.log*
 yarn-error.log*
 combined.log
 error.log
-
 # Firebase (Logs e cache local)
 .firebase/
 firebase-debug.log*
 firestore-debug.log*
 ui-debug.log*
-
 # IDEs e Editores
 .vscode/
 .idea/
 *.swp
 *.swo
-
 # Arquivos do Sistema Operacional
 .DS_Store
 Thumbs.db
-
 *.zip
 backend.zip
 frontend.zip
-
 # Ignorar arquivos de chave do Firebase / Google Cloud
 *-firebase-adminsdk-*.json
 *.json.key
-
 package-lock.json
 package.json
+
+# managed
+**.data.json
+**.node-persist**
+**_IGNORE_**
+# end managed

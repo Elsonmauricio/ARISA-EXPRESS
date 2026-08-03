@@ -177,7 +177,7 @@ export default function Profile() {
                   </div>
                 )}
 
-                <GoldButton type="submit" className="w-full py-3" disabled={loading}>
+                <GoldButton type="submit" className="w-full text-black py-3" disabled={loading}>
                   {loading ? t('profile.aGuardar') : t('profile.guardar')}
                 </GoldButton>
               </form>

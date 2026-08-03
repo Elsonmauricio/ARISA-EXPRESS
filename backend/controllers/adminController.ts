@@ -5,10 +5,57 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
 import { addBusinessDays, calculateFine, formatDate, getBusinessDaysBetween, calculateWeeksOverdue } from '../utils/businessDays';
-import { generateWhatsAppLink, generateWhatsAppMessage } from '../utils/whatsapp';
+import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, isLuandaDestination } from '../utils/whatsapp';
+import { WhatsAppService } from '../services/whatsappService';
 import { fixEncodingObject } from '../utils/encoding';
+import { LocationType } from '../utils/whatsapp';
 
 export const AdminController = {
+  tryRegisterClient: async (body: any, shipmentId: string, trackingCode: string) => {
+    try {
+      const receiverPhone = (body.receiverPhone || '').replace(/\D/g, '');
+      const senderPhone = (body.senderPhone || '').replace(/\D/g, '');
+      const phoneToFind = receiverPhone || senderPhone;
+      if (!phoneToFind || phoneToFind.length < 9) return null;
+
+      let existingUser: any = null;
+      const usersSnapshot = await db.collection('users').where('phone', '==', phoneToFind).limit(1).get();
+      if (!usersSnapshot.empty) {
+        existingUser = usersSnapshot.docs[0];
+      }
+
+      if (!existingUser) {
+        const clientPhone = phoneToFind.length === 9
+          ? (body.destination && String(body.destination).toLowerCase().includes('luanda') ? '244' : '351') + phoneToFind
+          : phoneToFind;
+
+        const newUser: any = {
+          name: body.receiverName || body.senderName || 'Cliente',
+          phone: clientPhone,
+          email: body.receiverContact || body.senderContact || '',
+          role: 'CLIENT',
+          createdAt: FieldValue.serverTimestamp(),
+          shipmentsCreated: FieldValue.arrayUnion(shipmentId),
+          shipmentCount: 1
+        };
+
+        const userDoc = await db.collection('users').add(newUser);
+        logger.info('Created new client user for shipment ' + trackingCode);
+        return { id: userDoc.id, ...newUser };
+      }
+
+      await db.collection('users').doc(existingUser.id).update({
+        shipmentsCreated: FieldValue.arrayUnion(shipmentId),
+        shipmentCount: FieldValue.increment(1)
+      });
+      logger.info('Found existing client user for shipment ' + trackingCode);
+      return { id: existingUser.id, ...existingUser.data() };
+    } catch (err: any) {
+      logger.warn('tryRegisterClient failed:', err.message);
+      return null;
+    }
+  },
+
   getStats: async (req: Request, res: Response) => {
     try {
       const [totalShipments, activeShipments, totalUsers] = await Promise.all([
@@ -133,6 +180,50 @@ export const AdminController = {
         description: 'Encomenda registada pela equipa',
         timestamp: FieldValue.serverTimestamp()
       });
+
+       await AdminController.tryRegisterClient(body, docRef.id, trackingCode);
+
+      if (body.status === 'READY_FOR_PICKUP') {
+        const now = new Date();
+        const deadline = addBusinessDays(now, 5);
+        const isLuanda = isLuandaDestination(body.destination || '');
+        const locType: LocationType = isLuanda ? 'luanda' : 'lisbon';
+
+        await db.collection('shipments').doc(docRef.id).update({
+          readyForPickupAt: FieldValue.serverTimestamp(),
+          pickupDeadline: deadline,
+          pickupAddress: isLuanda
+            ? 'Morro Bento\nAvenida 21 de Janeiro\nDefronte ao Hotel Ágatha\nNo lado oposto ao Hotel Ágatha\nNa entrada à esquerda da farmácia Elvice, antes do Colégio GAB 2 está a Arisa Express'
+            : 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros',
+          pickupContact: isLuanda ? '+244 948 440 920' : '+351 934 292 082',
+          pickupSchedule: isLuanda
+            ? 'Segunda a sexta-feira\n08:00 a 12:00\n13:00 a 17:00\nEncerrados aos finais de semana e feriados'
+            : 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00'
+        });
+
+        const phone = body.receiverPhone || body.senderPhone || '';
+        if (phone) {
+          WhatsAppService.sendPickupNotification({
+            phone,
+            trackingCode,
+            shipmentDate: formatDate(now),
+            deadline: formatDate(deadline),
+            senderName: body.senderName || 'N/A',
+            receiverName: body.receiverName || 'N/A',
+            pickupAddress: isLuanda
+              ? 'Morro Bento\nAvenida 21 de Janeiro\nDefronte ao Hotel Ágatha'
+              : 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros',
+            pickupContact: isLuanda ? '+244 948 440 920' : '+351 934 292 082',
+            pickupSchedule: isLuanda
+              ? 'Segunda a sexta-feira\n08:00 a 12:00\n13:00 a 17:00'
+              : 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00',
+            location: locType,
+            destination: body.destination || ''
+          }).catch(waErr => {
+            logger.warn('Failed to send WhatsApp notification on shipment creation:', waErr.message);
+          });
+        }
+      }
 
       res.status(201).json({ success: true, data: { id: docRef.id, ...shipmentData } });
     } catch (error: any) {
@@ -261,13 +352,28 @@ export const AdminController = {
         pickupSchedule: shipment.pickupSchedule
       });
 
-      const link = generateWhatsAppLink(phone, message);
+      const waResult = await WhatsAppService.sendPickupNotification({
+        phone,
+        trackingCode: shipment.trackingCode,
+        shipmentDate: formatDate(readyDate),
+        deadline: formatDate(deadline),
+        senderName: shipment.senderName || 'N/A',
+        receiverName: shipment.receiverName || 'N/A',
+        pickupAddress: shipment.pickupAddress || '',
+        pickupContact: shipment.pickupContact || '',
+        pickupSchedule: shipment.pickupSchedule || '',
+        location: getLocationType(shipment.destination || ''),
+        destination: shipment.destination || ''
+      });
 
       res.json({
-        success: true,
+        success: waResult.success,
         data: {
           message,
-          link,
+          link: waResult.link || null,
+          sent: waResult.sent ?? waResult.success,
+          messageId: waResult.messageId || null,
+          error: waResult.error || null,
           phone,
           trackingCode: shipment.trackingCode
         }
@@ -373,6 +479,31 @@ export const AdminController = {
 
       await db.collection('shipments').doc(id).update(updateData);
 
+      if (status === 'READY_FOR_PICKUP') {
+        const phone = shipment.receiverPhone || shipment.senderPhone || '';
+        if (phone) {
+          const readyDate = new Date();
+          const deadline = addBusinessDays(readyDate, 5);
+          const locType = isLuandaDestination(shipment.destination || '') ? 'luanda' : 'lisbon';
+
+          WhatsAppService.sendPickupNotification({
+            phone,
+            trackingCode: shipment.trackingCode,
+            shipmentDate: formatDate(readyDate),
+            deadline: formatDate(deadline),
+            senderName: shipment.senderName || 'N/A',
+            receiverName: shipment.receiverName || 'N/A',
+            pickupAddress: updateData.pickupAddress || '',
+            pickupContact: updateData.pickupContact || '',
+            pickupSchedule: updateData.pickupSchedule || '',
+            location: locType,
+            destination: shipment.destination || ''
+          }).catch(waErr => {
+            logger.warn('Failed to send WhatsApp notification:', waErr.message);
+          });
+        }
+      }
+
       await db.collection('shipments').doc(id).collection('trackingUpdates').add({
         status,
         location: location || shipment.destination,
@@ -387,7 +518,7 @@ export const AdminController = {
           if (user?.email) {
             await sendEmail({
               to: user.email,
-              subject: `?? Atualização da Encomenda ${trackingCode}`,
+              subject: ` Atualização da Encomenda ${trackingCode}`,
               template: 'shipment-updated',
               data: {
                 name: user.name || 'Cliente',

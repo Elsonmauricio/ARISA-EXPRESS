@@ -123,7 +123,7 @@ export default function SettingsPage() {
                     className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
                   />
                 </div>
-                <GoldButton type="submit" className="w-full" disabled={loading}>
+                <GoldButton type="submit" className="w-full text-black py-3" disabled={loading}>
                   {loading ? t('settings.aAlterar') : t('settings.alterarSenha')}
                 </GoldButton>
               </form>

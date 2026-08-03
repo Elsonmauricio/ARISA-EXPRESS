@@ -41,9 +41,9 @@ interface Shipment {
   cttLink?: string;
 }
 
-// ======================== FUNÃ‡ÃƒO AUXILIAR PARA FORMATAR DATAS ========================
+// ======================== FUNÇÃO AUXILIAR PARA FORMATAR DATAS ========================
 function formatDate(dateValue: any): string {
-  if (!dateValue) return 'â€”';
+  if (!dateValue) return '-';
   try {
     // Se for Timestamp do Firestore (objeto com toDate)
     if (typeof dateValue === 'object' && dateValue.toDate) {
@@ -52,15 +52,15 @@ function formatDate(dateValue: any): string {
     // Se for string ISO
     if (typeof dateValue === 'string') {
       const d = new Date(dateValue);
-      return isNaN(d.getTime()) ? 'â€”' : d.toLocaleDateString('pt-PT');
+      return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('pt-PT');
     }
     // Se for objeto Date
     if (dateValue instanceof Date) {
       return dateValue.toLocaleDateString('pt-PT');
     }
-    return 'â€”';
+    return '-';
   } catch {
-    return 'â€”';
+    return '-';
   }
 }
 
@@ -198,7 +198,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
         <p className="text-white/60 mb-4">
           {t('ship.reservaSucesso')}
         </p>
-        <GoldButton onClick={() => {
+        <GoldButton className='text-black' onClick={() => {
           setStep('simulate');
           setSelectedRoute(null);
           setWeight(1);
@@ -235,7 +235,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-semibold">{route.origin} â†’ {route.destination}</div>
+                        <div className="font-semibold">{route.origin} - {route.destination}</div>
                         <div className="text-sm text-white/60">
                           {route.serviceType.replace('_', ' ')}
                         </div>
@@ -285,7 +285,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
                 <div className="space-y-2 text-sm w-full">
                   <div className="flex justify-between">
                     <span>{t('ship.precoBase', { pricePerKg: selectedRoute.pricePerKg, weight })}</span>
-                    <span>â‚¬ {(selectedRoute.pricePerKg * weight).toFixed(2)}</span>
+                    <span>€ {(selectedRoute.pricePerKg * weight).toFixed(2)}</span>
                   </div>
                   {selectedRoute.flightDate && (
                     <div className="flex justify-between text-white/60">
@@ -308,7 +308,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
                 <div className="text-center text-white/40 py-8">{t('ship.selecionarRota')}</div>
               )}
               <GoldButton
-                className="w-full mt-4"
+                className="w-full text-black mt-4"
                 disabled={!canReserve}
                 onClick={() => selectedRoute && handleRouteSelect(selectedRoute)}
               >
@@ -333,7 +333,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
 
             <div className="bg-[#2b1f4a] p-4 rounded-xl mb-6 text-sm">
               <div className="flex justify-between">
-                <span><strong>{t('ship.rota')}</strong> {selectedRoute.origin} â†’ {selectedRoute.destination}</span>
+                <span><strong>{t('ship.rota')}</strong> {selectedRoute.origin} - {selectedRoute.destination}</span>
                 <span><strong>{t('ship.servico')}</strong> {selectedRoute.serviceType.replace('_', ' ')}</span>
               </div>
               {selectedRoute.flightDate && (
@@ -344,7 +344,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
               )}
               <div className="flex justify-between mt-1">
                   <span><strong>{t('ship.peso2')}</strong> {weight} kg</span>
-                  <span><strong>{t('ship.preco')}</strong> â‚¬ {estimatedPrice.toFixed(2)}</span>
+                  <span><strong>{t('ship.preco')}</strong> € {estimatedPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between mt-1">
                   <span><strong>{t('ship.disponivel2')}</strong> {available} kg</span>
@@ -400,7 +400,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
                 </div>
               )}
 
-              <GoldButton type="submit" className="w-full py-3" disabled={loading || !canReserve}>
+              <GoldButton type="submit" className="w-full text-black py-3" disabled={loading || !canReserve}>
                 {loading ? t('ship.aProcessar') : t('ship.confirmarReserva')}
               </GoldButton>
             </form>
@@ -429,6 +429,13 @@ function ShipmentList() {
       const response = await fetch(api('/api/shipments'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setLoading(false);
+        return;
+      }
 
       if (!response.ok) {
         setError(t('ship.erroStatus', { status: response.status }));
@@ -552,12 +559,11 @@ function ShipmentList() {
   );
 }
 
-// src/pages/ShipmentsPage.tsx â€“ componente PriceTable refatorado
 
 // ======================== PRICE TABLE ========================
 function PriceTable() {
   const { t } = useT();
-  // Dados estÃ¡ticos baseados nas imagens fornecidas
+  // Dados estáticos baseados nas imagens fornecidas
   const baseItems = [
     { item: t('ship.kg'), euro: '13,00', kz: '16.900,00' },
     { item: t('ship.alimentos'), euro: t('ship.porKg'), kz: '-' },
@@ -865,7 +871,7 @@ function TrackingForm() {
               </div>
               <div className="flex justify-between">
                 <span className="text-white/60">{t('ship.precoLabel')}</span>
-                <span className="text-gold">{result.price?.toFixed(2) || 'â€”'}</span>
+                <span className="text-gold">{result.price?.toFixed(2) || '->'}</span>
               </div>
               {result.trackingUpdates && result.trackingUpdates.length > 0 && (
                 <div className="mt-4">

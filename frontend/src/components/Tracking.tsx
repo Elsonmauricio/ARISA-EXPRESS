@@ -47,15 +47,22 @@ interface ApiResponse {
   error?: string;
 }
 
-// ======================== FUNÃ‡ÃƒO AUXILIAR ========================
-function formatDate(dateValue: Date | string | undefined | null): string {
-  if (!dateValue) return 'â€”';
+// ======================== FUNÇÃO AUXILIAR ========================
+function formatDate(dateValue: Date | string | number | undefined | null): string {
+  if (!dateValue) return '-';
   try {
-    const d = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
-    if (isNaN(d.getTime())) return 'â€”';
+    let d: Date;
+    if (typeof dateValue === 'number') {
+      d = new Date(dateValue);
+    } else if (typeof dateValue === 'string') {
+      d = new Date(dateValue);
+    } else {
+      d = dateValue;
+    }
+    if (isNaN(d.getTime())) return '-';
     return d.toLocaleDateString('pt-PT') + ' ' + d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
   } catch {
-    return 'â€”';
+    return '-';
   }
 }
 
@@ -221,7 +228,7 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
         id: 'step-5',
         icon: 'Check',
         title: t('track.levantada'),
-        description: t('track.levantadaDesc') || 'Encomenda levantada pelo destinatÃ¡rio',
+        description: t('track.levantadaDesc') || 'Encomenda levantada pelo destinatário',
         date: formatDate(data.pickedUpAt || data.arrivedAt),
       });
     }
@@ -343,7 +350,7 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
                  </div>
                  <div>
                    <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelPreco')}</div>
-                   <div className="text-sm text-gold font-medium">{t('track.euro')} {result.price?.toFixed(2) ?? 'â€”'}</div>
+                   <div className="text-sm text-gold font-medium">{t('track.euro')} {result.price?.toFixed(2) ?? '€—'}</div>
                  </div>
                </div>
 

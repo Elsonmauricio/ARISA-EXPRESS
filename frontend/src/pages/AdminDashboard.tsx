@@ -415,10 +415,7 @@ function AdminShipmentList() {
       const json = await response.json();
       if (json.success) {
         if (status === 'READY_FOR_PICKUP') {
-          const current = shipments.find(x => x.id === id);
-          if (current) {
-            await sendWhatsApp(current);
-          }
+          alert(t('admin.whatsappAutoEnviado'));
         }
         fetchShipments();
       }
@@ -431,11 +428,18 @@ function AdminShipmentList() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(api(`/api/admin/shipments/${shipment.id}/whatsapp`), {
+        method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const json = await response.json();
-      if (json.success && json.data?.link) {
-        window.open(json.data.link, '_blank');
+      if (json.success) {
+        if (json.data?.link && !json.data?.sent) {
+          window.open(json.data.link, '_blank');
+        } else if (json.data?.sent) {
+          alert(t('admin.whatsappEnviadoSucesso'));
+        } else {
+          alert(t('admin.erroWhatsapp'));
+        }
       } else {
         alert(json.error || t('admin.erroWhatsapp'));
       }
@@ -991,7 +995,7 @@ function AdminRouteManager() {
             className="px-3 py-2 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-gold text-sm min-h-[44px]"
           />
           <div className="lg:col-span-6 flex flex-col sm:flex-row gap-2">
-            <GoldButton type="submit" className="py-2 px-4 text-sm">
+            <GoldButton type="submit" className="py-2 px-4 text-black">
               {editingId ? t('admin.atualizar') : t('admin.adicionar')}
             </GoldButton>
             {editingId && (

@@ -5,6 +5,20 @@ import { logger } from '../utils/logger';
 import { calculateFine, calculateWeeksOverdue, formatDate } from '../utils/businessDays';
 import { fixEncodingObject } from '../utils/encoding';
 
+function toIsoDate(ts: any): string | null {
+  if (!ts) return null;
+  try {
+    if (ts.toDate) return ts.toDate().toISOString();
+    if (ts.toMillis) return new Date(ts.toMillis()).toISOString();
+    if (ts instanceof Date) return ts.toISOString();
+    if (typeof ts === 'string') return new Date(ts).toISOString();
+    if (typeof ts === 'number') return new Date(ts).toISOString();
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export const TrackingController = {
   getTracking: async (req: Request, res: Response) => {
     try {
@@ -29,7 +43,16 @@ export const TrackingController = {
         .orderBy('timestamp', 'desc')
         .get();
 
-      const trackingUpdates = trackingSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      const trackingUpdates = trackingSnapshot.docs.map(d => {
+    const data = d.data();
+    return {
+      id: d.id,
+      status: data.status,
+      location: data.location,
+      description: data.description,
+      timestamp: toIsoDate(data.timestamp)
+    };
+  });
 
       let fineInfo: any = null;
       if (shipment.pickupDeadline && shipment.status === 'READY_FOR_PICKUP') {
@@ -76,11 +99,13 @@ export const TrackingController = {
         shipmentDate: shipment.shipmentDate ? shipment.shipmentDate.toDate() : null,
 
         // ✅ Datas reais de cada etapa (vindas do Firestore)
-        collectedAt: shipment.collectedAt?.toMillis?.() || shipment.collectedAt?.toDate?.()?.getTime?.() || null,
-        inTransitAt: shipment.inTransitAt?.toMillis?.() || shipment.inTransitAt?.toDate?.()?.getTime?.() || null,
-        arrivedAt: shipment.arrivedAt?.toMillis?.() || shipment.arrivedAt?.toDate?.()?.getTime?.() || null,
-        outForDeliveryAt: shipment.outForDeliveryAt?.toMillis?.() || shipment.outForDeliveryAt?.toDate?.()?.getTime?.() || null,
-        deliveredAt: shipment.deliveredAt?.toMillis?.() || shipment.deliveredAt?.toDate?.()?.getTime?.() || null,
+        collectedAt: toIsoDate(shipment.collectedAt),
+        inTransitAt: toIsoDate(shipment.inTransitAt),
+        arrivedAt: toIsoDate(shipment.arrivedAt),
+        outForDeliveryAt: toIsoDate(shipment.outForDeliveryAt),
+        deliveredAt: toIsoDate(shipment.deliveredAt),
+        pickedUpAt: toIsoDate(shipment.pickedUpAt),
+        readyForPickupAt: toIsoDate(shipment.readyForPickupAt),
         trackingUpdates,
         cttCode: shipment.cttCode || '',
         cttLink: shipment.cttLink || '',

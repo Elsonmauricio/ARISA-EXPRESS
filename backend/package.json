@@ -2,7 +2,7 @@
   "name": "arisa-express-backend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "nodemon dev.ts",
+    "dev": "nodemon -e ts,json --ignore _IGNORE_arisa_express --ignore node_modules dev.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
@@ -11,6 +11,7 @@
     "fix-encoding": "ts-node scripts/fixEncoding.ts"
   },
   "dependencies": {
+    "@open-wa/wa-automate": "^4.76.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
@@ -40,5 +41,10 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
+  },
+  "nodemonConfig": {
+    "watch": ["dev.ts", "server.ts", "src", "api", "controllers", "middleware", "services", "utils", "types"],
+    "ignore": ["_IGNORE_arisa_express", "node_modules", "dist"],
+    "ext": "ts,json"
   }
 }
