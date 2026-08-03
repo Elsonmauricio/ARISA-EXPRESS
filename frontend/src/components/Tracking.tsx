@@ -192,11 +192,12 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
           date: formatDate(data.outForDeliveryAt),
         });
       } else if (status === 'READY_FOR_PICKUP' || status === 'PICKED_UP') {
+        const isAngola = data.destination?.toLowerCase().includes('angola') || data.destination?.toLowerCase().includes('luanda') || data.destination?.toLowerCase().includes('benguela');
         steps.push({
           id: 'step-4',
           icon: 'MapPin',
           title: t('track.disponivelLevantamento'),
-          description: t('track.hubPortugal'),
+          description: isAngola ? t('track.hubAngola') : t('track.hubPortugal'),
           date: formatDate(data.arrivedAt),
         });
       } else {
@@ -240,8 +241,6 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
 
   return (
     <section id="rastrear" className="relative py-28 min-h-screen flex flex-col justify-center">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/60 via-transparent to-[#1a1133]/30 z-[1]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/40 via-transparent to-[#1a1133]/70 z-[1]" />
       <div className="container mx-auto max-w-5xl px-4">
         <SectionHeading
           align="center"
@@ -261,8 +260,8 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
           viewport={{ once: true }}
           className="mt-10 mx-auto max-w-xl"
         >
-          <div className="flex items-center gap-2 glass-strong rounded-full p-2 border-gradient focus-within:shadow-glow transition-shadow">
-            <Search className="w-5 h-5 text-white/40 ml-4 shrink-0" />
+          <div className="flex items-center gap-2 bg-white rounded-full p-2 shadow-md border border-gray-200 focus-within:shadow-lg transition-shadow">
+            <Search className="w-5 h-5 text-gray-400 ml-4 shrink-0" />
             <input
               type="text"
               value={code}
@@ -271,10 +270,10 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
                 if (error) setError('');
               }}
               placeholder={t('track.inputPlaceholder')}
-              className="flex-1 bg-transparent outline-none px-2 py-2 text-sm placeholder:text-white/30 text-white/90"
+              className="flex-1 bg-transparent outline-none px-2 py-2 text-sm placeholder:text-gray-400 text-gray-800"
               disabled={loading}
             />
-            <GoldButton type="submit" className="px-5 py-2.5 text-black" disabled={loading}>
+            <GoldButton type="submit" className="px-5 text-black py-2.5" disabled={loading}>
               {loading ? t('track.buscando') : t('track.botao')}
             </GoldButton>
           </div>
@@ -301,57 +300,57 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5 }}
-              className="mt-14 glass-strong rounded-3xl p-6 md:p-10 border-gradient"
+              className="mt-14 bg-white rounded-3xl p-6 md:p-10 shadow-lg border border-gray-200"
             >
               <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
                 <div>
-                     <div className="text-[10px] tracking-[0.3em] uppercase text-gold mb-1">
+                     <div className="text-[10px] tracking-[0.3em] uppercase text-[#7B2FBF] mb-1">
                      {t('track.labelCodigo')}
                    </div>
-                  <div className="font-display text-2xl md:text-3xl text-gold">
-                    {result.trackingCode}
-                  </div>
+                   <div className="font-display text-2xl md:text-3xl text-[#4B2170]">
+                     {result.trackingCode}
+                   </div>
                 </div>
                  <div className="text-right">
-                    <div className="text-[10px] tracking-[0.3em] uppercase text-white/40 mb-1">
+                    <div className="text-[10px] tracking-[0.3em] uppercase text-gray-500 mb-1">
                       {t('track.labelEstado')}
                     </div>
-                   <div className="text-gold font-semibold">
+                   <div className="text-[#7B2FBF] font-semibold">
                      {t(`status.${result.status}`)}
                    </div>
                  </div>
                </div>
 
                {result.cttLink && (
-                 <div className="mb-6">
-                   <a
-                     href={result.cttLink}
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     className="inline-flex items-center gap-2 px-4 py-2 bg-gold text-[#1a1133] rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
-                   >
-                     <ExternalLink className="w-4 h-4" /> {t('track.acompanharCtt')}
-                   </a>
+                  <div className="mb-6">
+                    <a
+                      href={result.cttLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#4B2170] text-white rounded-lg font-semibold text-sm hover:bg-[#7B2FBF] transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" /> {t('track.acompanharCtt')}
+                    </a>
                  </div>
                )}
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-[#2b1f4a] rounded-xl">
+               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-[#EFE4FA]/50 rounded-xl">
                  <div>
-                   <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelOrigem')}</div>
-                   <div className="text-sm text-gold font-medium">{result.origin}</div>
-                 </div>
-                 <div>
-                   <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelDestino')}</div>
-                   <div className="text-sm text-gold font-medium">{result.destination}</div>
-                 </div>
-                 <div>
-                   <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelPeso')}</div>
-                   <div className="text-sm text-gold font-medium">{result.weight} {t('track.kg')}</div>
-                 </div>
-                 <div>
-                   <div className="text-[10px] text-white/40 uppercase tracking-wider">{t('track.labelPreco')}</div>
-                   <div className="text-sm text-gold font-medium">{t('track.euro')} {result.price?.toFixed(2) ?? '€—'}</div>
-                 </div>
+                    <div className="text-[10px] text-[#7B2FBF] uppercase tracking-wider">{t('track.labelOrigem')}</div>
+                    <div className="text-sm text-[#4B2170] font-medium">{result.origin}</div>
+                   </div>
+                  <div>
+                    <div className="text-[10px] text-[#7B2FBF] uppercase tracking-wider">{t('track.labelDestino')}</div>
+                    <div className="text-sm text-[#4B2170] font-medium">{result.destination}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#7B2FBF] uppercase tracking-wider">{t('track.labelPeso')}</div>
+                    <div className="text-sm text-[#4B2170] font-medium">{result.weight} {t('track.kg')}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#7B2FBF] uppercase tracking-wider">{t('track.labelPreco')}</div>
+                    <div className="text-sm text-[#4B2170] font-medium">{t('track.euro')} {result.price?.toFixed(2) ?? '€—'}</div>
+                  </div>
                </div>
 
                <Timeline
@@ -360,13 +359,13 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
                />
 
               {result.trackingUpdates && result.trackingUpdates.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-white/20">
-                   <div className="text-xs text-white/40 uppercase tracking-wider mb-3">{t('track.historico')}</div>
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-2 scrollbar-thin">
-                    {result.trackingUpdates.map((update, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-sm border-b border-lilac/10 pb-2">
-                        <span className="text-white/80">{update.description || update.status.replace('_', ' ')}</span>
-                        <span className="text-xs text-white/40">{formatDate(update.timestamp)}</span>
+                <div className="mt-6 pt-4 border-t border-gray-300">
+                <div className="text-xs text-[#7B2FBF] uppercase tracking-wider mb-3">{t('track.historico')}</div>
+                   <div className="space-y-2 max-h-40 overflow-y-auto pr-2 scrollbar-thin">
+                     {result.trackingUpdates.map((update, idx) => (
+                       <div key={idx} className="flex justify-between items-center text-sm border-b border-gray-300 pb-2">
+                         <span className="text-gray-700">{update.description || update.status.replace('_', ' ')}</span>
+                         <span className="text-xs text-gray-500">{formatDate(update.timestamp)}</span>
                       </div>
                     ))}
                   </div>

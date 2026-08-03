@@ -1,6 +1,5 @@
 import app from './server';
 import { db } from './config/firebase';
-import { WhatsAppService } from './services/whatsappService';
 
 process.on('uncaughtException', (err: any) => {
   console.error('⚠️ Uncaught Exception:', err.message);
@@ -19,12 +18,4 @@ app.listen(PORT, () => {
     .catch((err: any) => {
       console.error(`❌ Falha ao conectar ao Cloud Firestore:`, err.message);
     });
-
-  if (WhatsAppService.isConfigured()) {
-    WhatsAppService.initialize()
-      .then(() => console.log(`✅ Servico de WhatsApp inicializado`))
-      .catch((err: any) => console.error(`❌ Whatsapp init recusado (usando link fallback)`, err.message));
-  } else {
-    console.log(`ℹ️ WhatsApp automation desativado - link fallback ativo`);
-  }
 });

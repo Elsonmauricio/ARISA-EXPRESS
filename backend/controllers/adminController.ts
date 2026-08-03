@@ -6,7 +6,6 @@ import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
 import { addBusinessDays, calculateFine, formatDate, getBusinessDaysBetween, calculateWeeksOverdue } from '../utils/businessDays';
 import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, isLuandaDestination } from '../utils/whatsapp';
-import { WhatsAppService } from '../services/whatsappService';
 import { fixEncodingObject } from '../utils/encoding';
 import { LocationType } from '../utils/whatsapp';
 
@@ -201,28 +200,6 @@ export const AdminController = {
             : 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00'
         });
 
-        const phone = body.receiverPhone || body.senderPhone || '';
-        if (phone) {
-          WhatsAppService.sendPickupNotification({
-            phone,
-            trackingCode,
-            shipmentDate: formatDate(now),
-            deadline: formatDate(deadline),
-            senderName: body.senderName || 'N/A',
-            receiverName: body.receiverName || 'N/A',
-            pickupAddress: isLuanda
-              ? 'Morro Bento\nAvenida 21 de Janeiro\nDefronte ao Hotel Ágatha'
-              : 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros',
-            pickupContact: isLuanda ? '+244 948 440 920' : '+351 934 292 082',
-            pickupSchedule: isLuanda
-              ? 'Segunda a sexta-feira\n08:00 a 12:00\n13:00 a 17:00'
-              : 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00',
-            location: locType,
-            destination: body.destination || ''
-          }).catch(waErr => {
-            logger.warn('Failed to send WhatsApp notification on shipment creation:', waErr.message);
-          });
-        }
       }
 
       res.status(201).json({ success: true, data: { id: docRef.id, ...shipmentData } });
@@ -317,7 +294,7 @@ export const AdminController = {
     }
   },
 
-  generateWhatsAppNotification: async (req: Request, res: Response) => {
+  generateWhatsAppLink: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
 
@@ -352,28 +329,19 @@ export const AdminController = {
         pickupSchedule: shipment.pickupSchedule
       });
 
-      const waResult = await WhatsAppService.sendPickupNotification({
+      const link = generateWhatsAppLink(
         phone,
-        trackingCode: shipment.trackingCode,
-        shipmentDate: formatDate(readyDate),
-        deadline: formatDate(deadline),
-        senderName: shipment.senderName || 'N/A',
-        receiverName: shipment.receiverName || 'N/A',
-        pickupAddress: shipment.pickupAddress || '',
-        pickupContact: shipment.pickupContact || '',
-        pickupSchedule: shipment.pickupSchedule || '',
-        location: getLocationType(shipment.destination || ''),
-        destination: shipment.destination || ''
-      });
+        message,
+        getLocationType(shipment.destination || '')
+      );
 
+      logger.info('WhatsApp link generated for ' + shipment.trackingCode);
       res.json({
-        success: waResult.success,
+        success: true,
         data: {
           message,
-          link: waResult.link || null,
-          sent: waResult.sent ?? waResult.success,
-          messageId: waResult.messageId || null,
-          error: waResult.error || null,
+          link,
+          sent: false,
           phone,
           trackingCode: shipment.trackingCode
         }
@@ -478,31 +446,6 @@ export const AdminController = {
       }
 
       await db.collection('shipments').doc(id).update(updateData);
-
-      if (status === 'READY_FOR_PICKUP') {
-        const phone = shipment.receiverPhone || shipment.senderPhone || '';
-        if (phone) {
-          const readyDate = new Date();
-          const deadline = addBusinessDays(readyDate, 5);
-          const locType = isLuandaDestination(shipment.destination || '') ? 'luanda' : 'lisbon';
-
-          WhatsAppService.sendPickupNotification({
-            phone,
-            trackingCode: shipment.trackingCode,
-            shipmentDate: formatDate(readyDate),
-            deadline: formatDate(deadline),
-            senderName: shipment.senderName || 'N/A',
-            receiverName: shipment.receiverName || 'N/A',
-            pickupAddress: updateData.pickupAddress || '',
-            pickupContact: updateData.pickupContact || '',
-            pickupSchedule: updateData.pickupSchedule || '',
-            location: locType,
-            destination: shipment.destination || ''
-          }).catch(waErr => {
-            logger.warn('Failed to send WhatsApp notification:', waErr.message);
-          });
-        }
-      }
 
       await db.collection('shipments').doc(id).collection('trackingUpdates').add({
         status,

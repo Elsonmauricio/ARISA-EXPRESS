@@ -21,8 +21,7 @@ router.post('/shipments', validate(adminCreateShipmentSchema), AdminController.c
 router.patch('/shipments/:id/status', AdminController.updateShipmentStatus);
 router.patch('/shipments/:id/ctt', validate(updateCttSchema), AdminController.updateCtt);
 
-router.post('/shipments/:id/whatsapp', AdminController.generateWhatsAppNotification);
-router.get('/shipments/:id/whatsapp', AdminController.generateWhatsAppNotification);
+router.get('/shipments/:id/whatsapp-link', AdminController.generateWhatsAppLink);
 router.get('/shipments/:id/fine', AdminController.calculateShipmentFine);
 router.get('/users', AdminController.getAllUsers);
 router.patch('/users/:id/role', AdminController.changeUserRole);

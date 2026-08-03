@@ -414,9 +414,6 @@ function AdminShipmentList() {
 
       const json = await response.json();
       if (json.success) {
-        if (status === 'READY_FOR_PICKUP') {
-          alert(t('admin.whatsappAutoEnviado'));
-        }
         fetchShipments();
       }
     } catch (err) {
@@ -427,16 +424,13 @@ function AdminShipmentList() {
   const sendWhatsApp = async (shipment: Shipment) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/admin/shipments/${shipment.id}/whatsapp`), {
-        method: 'POST',
+      const response = await fetch(api(`/api/admin/shipments/${shipment.id}/whatsapp-link`), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const json = await response.json();
       if (json.success) {
-        if (json.data?.link && !json.data?.sent) {
+        if (json.data?.link) {
           window.open(json.data.link, '_blank');
-        } else if (json.data?.sent) {
-          alert(t('admin.whatsappEnviadoSucesso'));
         } else {
           alert(t('admin.erroWhatsapp'));
         }

@@ -36,7 +36,7 @@ export function getPickupImage(location: LocationType): string {
 }
 
 export function generateWhatsAppMessage(data: WhatsAppMessageData): string {
-  const address = data.pickupAddress || 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo Ant�nio dos Cavaleiros';
+  const address = data.pickupAddress || 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros';
   const contact = data.pickupContact || '+351 934 292 082';
   const schedule = data.pickupSchedule || 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00';
   const location = isLuandaDestination(data.destination || '') ? 'Luanda' : 'Lisboa';
