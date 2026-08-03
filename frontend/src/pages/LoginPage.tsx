@@ -84,7 +84,7 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="w-full pl-10 pr-12 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder="********"
                   />
                   <button
                     type="button"
@@ -102,12 +102,12 @@ export default function Login() {
                 </div>
               )}
 
-              <GoldButton type="submit" className="w-full py-3" disabled={loading}>
+              <GoldButton type="submit" className="w-full text-black py-3" disabled={loading}>
                 {loading ? t('login.entrar') : t('login.botao')}
               </GoldButton>
             </form>
 
-            <div className="mt-6 text-center text-sm text-white/50">
+            <div className="mt-6 text-center text- text-white/50">
               {t('login.semConta')}{' '}
               <Link to="/registar" className="text-gold hover:underline">
                 {t('login.criarConta')}

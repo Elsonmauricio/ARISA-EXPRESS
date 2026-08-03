@@ -172,7 +172,7 @@ export default function Register() {
                 </div>
               )}
 
-              <GoldButton type="submit" className="w-full py-3" disabled={loading}>
+              <GoldButton type="submit" className="w-full text-black py-3" disabled={loading}>
                 {loading ? t('register.aRegistar') : t('register.botao')}
               </GoldButton>
             </form>

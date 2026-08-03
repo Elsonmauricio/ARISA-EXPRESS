@@ -262,7 +262,7 @@ export default function Navbar() {
               <Link to="/login" className="text-sm text-white/80 hover:text-gold transition-colors">
                 {t('nav.entrar')}
               </Link>
-              <GoldButton className="px-5 py-2 text-sm" onClick={() => navigate('/registar')}>
+              <GoldButton className="px-5 py-2 text-black" onClick={() => navigate('/registar')}>
                 {t('nav.criarConta')}
               </GoldButton>
             </div>

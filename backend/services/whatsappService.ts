@@ -25,7 +25,11 @@ let client: any = null;
 let isInitializing = false;
 
 function isWhatsAppEnabled(): boolean {
-  return process.env.WPPCONNECT_ENABLED === 'true' || process.env.WHATSAPP_ENABLED === 'true';
+  return process.env.WPPCONNECT_ENABLED === 'true';
+}
+
+function isFeatureEnabled(): boolean {
+  return process.env.WHATSAPP_ENABLED === 'true' || process.env.WPPCONNECT_ENABLED === 'true';
 }
 
 function getSessionName(): string {
@@ -148,7 +152,7 @@ export class WhatsAppService {
   }
 
   static isConfigured(): boolean {
-    return isWhatsAppEnabled();
+    return isFeatureEnabled();
   }
 
   static async initialize(): Promise<void> {
