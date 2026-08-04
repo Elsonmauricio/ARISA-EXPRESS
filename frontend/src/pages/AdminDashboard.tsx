@@ -1891,7 +1891,7 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#E8D9F5] pt-24 sm:pt-28 pb-20 px-4">
+      <div className="min-h-screen bg-[#1a1133] pt-24 sm:pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
