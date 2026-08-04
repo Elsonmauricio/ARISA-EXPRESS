@@ -6,13 +6,13 @@ export default function Privacy() {
   const { t } = useT();
   return (
     <Layout>
-      <div className="min-h-screen bg-[#1a1133] pt-28 pb-20 px-4">
+      <div className="min-h-screen bg-[#E8D9F5] pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-4xl">
           <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-gold mb-8">
             <span className="text-gradient-gold">{t('privacy.titulo')}</span>
           </h1>
-          <div className="glass-strong border-gradient p-8 rounded-2xl text-white/80 space-y-6">
-            <p className="text-sm text-white/60">{t('privacy.atualizado', { date: new Date().toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }) })}</p>
+          <div className="glass-strong border-gradient p-8 rounded-2xl text-gray-700 space-y-6">
+            <p className="text-sm text-gray-600">{t('privacy.atualizado', { date: new Date().toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }) })}</p>
 
             <h2 className="text-xl font-semibold text-gold">{t('privacy.s1')}</h2>
             <p>

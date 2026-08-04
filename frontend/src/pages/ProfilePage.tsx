@@ -89,8 +89,8 @@ export default function Profile() {
   if (loading && !user) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-[#1a1133]">
-          <div className="text-white/60">{t('profile.aCarregar')}</div>
+        <div className="min-h-screen flex items-center justify-center bg-[#E8D9F5]">
+          <div className="text-gray-600">{t('profile.aCarregar')}</div>
         </div>
       </Layout>
     );
@@ -98,68 +98,68 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#1a1133] pt-28 pb-20 px-4">
+      <div className="min-h-screen bg-[#E8D9F5] pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="font-display text-3xl sm:text-4xl font-bold text-white/90 mb-2">
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-gray-800 mb-2">
               <span className="text-gradient-gold">{t('profile.titulo')}</span>
             </h1>
-              <p className="text-white/70 mb-8">{t('profile.subtitle')}</p>
+              <p className="text-gray-500 mb-8">{t('profile.subtitle')}</p>
 
             <div className="glass-strong border-gradient p-8 rounded-2xl">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('profile.nome')}</label>
+                  <label className="block text-sm text-gray-500 mb-1">{t('profile.nome')}</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
+                      className="w-full pl-10 pr-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('profile.email')}</label>
+                  <label className="block text-sm text-gray-500 mb-1">{t('profile.email')}</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="email"
                       value={user?.email || ''}
                       disabled
-                      className="w-full pl-10 pr-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg outline-none text-white/50 cursor-not-allowed"
+                      className="w-full pl-10 pr-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg outline-none text-gray-400 cursor-not-allowed"
                     />
                   </div>
-                  <p className="text-xs text-white/40 mt-1">{t('profile.emailFixo')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('profile.emailFixo')}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('profile.telefone')}</label>
+                  <label className="block text-sm text-gray-500 mb-1">{t('profile.telefone')}</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
+                      className="w-full pl-10 pr-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm text-white/70 mb-1">{t('profile.empresa')}</label>
+                  <label className="block text-sm text-gray-500 mb-1">{t('profile.empresa')}</label>
                   <div className="relative">
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
                       value={formData.company}
                       onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
+                      className="w-full pl-10 pr-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800"
                       placeholder={t('profile.empresaPlaceholder')}
                     />
                   </div>

@@ -195,7 +195,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
       <div className="glass-strong border-gradient p-10 rounded-2xl text-center">
         <CheckCircle2 className="w-16 h-16 text-gold mx-auto mb-4" />
         <h3 className="text-2xl font-bold mb-2">{t('ship.reservaConfirmada')}</h3>
-        <p className="text-white/60 mb-4">
+        <p className="text-gray-600 mb-4">
           {t('ship.reservaSucesso')}
         </p>
         <GoldButton className='text-black' onClick={() => {
@@ -231,16 +231,16 @@ function BookingForm({ routes }: { routes: Route[] }) {
                   <div
                     key={route.id}
                     onClick={() => handleRouteSelect(route)}
-                    className="p-4 rounded-xl border border-white/20 hover:border-gold/50 cursor-pointer transition-all hover:bg-white/5"
+                    className="p-4 rounded-xl border border-gray-300 hover:border-gold/50 cursor-pointer transition-all hover:bg-white"
                   >
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="font-semibold">{route.origin} - {route.destination}</div>
-                        <div className="text-sm text-white/60">
+                        <div className="text-sm text-gray-600">
                           {route.serviceType.replace('_', ' ')}
                         </div>
                         {flightDate && (
-                          <div className="text-xs text-white/40 mt-1">
+                          <div className="text-xs text-gray-400 mt-1">
                             {t('ship.dataVoo2', { date: flightDate.toLocaleDateString('pt-PT') })}
                           </div>
                         )}
@@ -256,7 +256,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
                 );
               })}
               {routes.length === 0 && (
-                <div className="text-center text-white/40 py-8">
+                <div className="text-center text-gray-400 py-8">
                   {t('ship.semRotas')}
                 </div>
               )}
@@ -267,7 +267,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
             <div className="w-full max-w-sm">
               <h3 className="text-xl font-bold mb-4 text-center">{t('ship.simulacao')}</h3>
               <div className="mb-4">
-                <label className="block text-sm text-white/60 mb-1">{t('ship.peso')}</label>
+                <label className="block text-sm text-gray-600 mb-1">{t('ship.peso')}</label>
                 <input
                   type="number"
                   min="0.1"
@@ -278,7 +278,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
                     setWeight(val);
                     setFormData(prev => ({ ...prev, weight: val }));
                   }}
-                  className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
+                  className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800"
                 />
               </div>
               {selectedRoute ? (
@@ -288,24 +288,24 @@ function BookingForm({ routes }: { routes: Route[] }) {
                     <span>€ {(selectedRoute.pricePerKg * weight).toFixed(2)}</span>
                   </div>
                   {selectedRoute.flightDate && (
-                    <div className="flex justify-between text-white/60">
+                    <div className="flex justify-between text-gray-600">
                       <span>{t('ship.dataVoo')}</span>
                       <span>{new Date(selectedRoute.flightDate).toLocaleDateString('pt-PT')}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-white/60">
+                  <div className="flex justify-between text-gray-600">
                     <span>{t('ship.disponivel')}</span>
                     <span className={available >= weight ? 'text-green-400' : 'text-red-400'}>
                       {available} kg
                     </span>
                   </div>
-                  <div className="border-t border-white/20 pt-2 flex justify-between font-bold text-lg">
+                  <div className="border-t border-gray-300 pt-2 flex justify-between font-bold text-lg">
                     <span>{t('ship.total')}</span>
                     <span className="text-gold">{t('ship.totalValor', { estimatedPrice: estimatedPrice.toFixed(2) })}</span>
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-white/40 py-8">{t('ship.selecionarRota')}</div>
+                <div className="text-center text-gray-400 py-8">{t('ship.selecionarRota')}</div>
               )}
               <GoldButton
                 className="w-full text-black mt-4"
@@ -331,7 +331,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
               </button>
             </div>
 
-            <div className="bg-[#2b1f4a] p-4 rounded-xl mb-6 text-sm">
+            <div className="bg-[#E8D9F5] p-4 rounded-xl mb-6 text-sm">
               <div className="flex justify-between">
                 <span><strong>{t('ship.rota')}</strong> {selectedRoute.origin} - {selectedRoute.destination}</span>
                 <span><strong>{t('ship.servico')}</strong> {selectedRoute.serviceType.replace('_', ' ')}</span>
@@ -357,41 +357,41 @@ function BookingForm({ routes }: { routes: Route[] }) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('ship.remetente')}</label>
-                  <input type="text" name="senderName" value={formData.senderName} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90" />
+                  <label className="block text-sm text-gray-600 mb-1">{t('ship.remetente')}</label>
+                  <input type="text" name="senderName" value={formData.senderName} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
                 </div>
                  <div>
-                   <label className="block text-sm text-white/60 mb-1">{t('ship.remetenteTel')}</label>
-                   <input type="tel" name="senderPhone" value={formData.senderPhone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90" />
+                   <label className="block text-sm text-gray-600 mb-1">{t('ship.remetenteTel')}</label>
+                   <input type="tel" name="senderPhone" value={formData.senderPhone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
                  </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('ship.destinatario')}</label>
-                  <input type="text" name="receiverName" value={formData.receiverName} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90" />
+                  <label className="block text-sm text-gray-600 mb-1">{t('ship.destinatario')}</label>
+                  <input type="text" name="receiverName" value={formData.receiverName} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('ship.destinatarioTel')}</label>
-                  <input type="tel" name="receiverPhone" value={formData.receiverPhone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90" />
+                  <label className="block text-sm text-gray-600 mb-1">{t('ship.destinatarioTel')}</label>
+                  <input type="tel" name="receiverPhone" value={formData.receiverPhone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
                 </div>
               </div>
 
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('ship.comprimento')}</label>
-                  <input type="number" name="length" value={formData.length} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90" />
+                  <label className="block text-sm text-gray-600 mb-1">{t('ship.comprimento')}</label>
+                  <input type="number" name="length" value={formData.length} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('ship.largura')}</label>
-                  <input type="number" name="width" value={formData.width} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90" />
+                  <label className="block text-sm text-gray-600 mb-1">{t('ship.largura')}</label>
+                  <input type="number" name="width" value={formData.width} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">{t('ship.altura')}</label>
-                  <input type="number" name="height" value={formData.height} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90" />
+                  <label className="block text-sm text-gray-600 mb-1">{t('ship.altura')}</label>
+                  <input type="number" name="height" value={formData.height} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-1">{t('ship.descricao')}</label>
-                <textarea name="description" value={formData.description} onChange={handleInputChange} rows={3} className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90 resize-none"                   placeholder={t('ship.descricaoPlaceholder')} />
+                <label className="block text-sm text-gray-600 mb-1">{t('ship.descricao')}</label>
+                <textarea name="description" value={formData.description} onChange={handleInputChange} rows={3} className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800 resize-none"                   placeholder={t('ship.descricaoPlaceholder')} />
               </div>
 
               {error && (
@@ -476,7 +476,7 @@ function ShipmentList() {
       READY_FOR_PICKUP: 'text-cyan-400 bg-cyan-400/10',
       PICKED_UP: 'text-green-400 bg-green-400/10'
     };
-    return colors[status] || 'text-white/60 bg-white/5';
+    return colors[status] || 'text-gray-600 bg-white';
   };
 
   const getStatusIcon = (status: string) => {
@@ -508,11 +508,11 @@ function ShipmentList() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-white/60">{t('ship.carregarEncomendas')}</div>;
+  if (loading) return <div className="text-center py-8 text-gray-600">{t('ship.carregarEncomendas')}</div>;
   if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
   if (!localStorage.getItem('token')) {
     return (
-      <div className="text-center py-8 text-white/60">
+      <div className="text-center py-8 text-gray-600">
           <p>{t('ship.loginEncomendas')}</p>
           <Link to="/login" className="text-gold hover:underline">{t('ship.iniciarSessao')}</Link>
       </div>
@@ -521,7 +521,7 @@ function ShipmentList() {
 
   if (shipments.length === 0) {
     return (
-      <div className="text-center py-8 text-white/60">
+      <div className="text-center py-8 text-gray-600">
         <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
         <p>{t('ship.semEncomendas')}</p>
         <p className="text-sm">{t('ship.usarFormulario')}</p>
@@ -535,18 +535,18 @@ function ShipmentList() {
         <div key={s.id} className="glass-strong border-gradient p-4 rounded-xl flex flex-wrap justify-between items-center gap-3">
           <div>
             <div className="font-mono text-sm text-gold">{s.trackingCode}</div>
-            <div className="text-sm text-white/80">{s.origin} → {s.destination}</div>
+            <div className="text-sm text-gray-700">{s.origin} → {s.destination}</div>
             {/* Data de criação formatada */}
-            <div className="text-xs text-white/50">{formatDate(s.createdAt)}</div>
+            <div className="text-xs text-gray-400">{formatDate(s.createdAt)}</div>
             {/* Opcional: mostrar data do voo se existir */}
             {s.flightDate && (
-              <div className="text-xs text-white/40"> {t('ship.voo', { date: formatDate(s.flightDate) })}</div>
+              <div className="text-xs text-gray-400"> {t('ship.voo', { date: formatDate(s.flightDate) })}</div>
             )}
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
               <div className="font-semibold">kg {s.price?.toFixed(2) || '—'}</div>
-              <div className="text-xs text-white/50">{s.weight} kg</div>
+              <div className="text-xs text-gray-400">{s.weight} kg</div>
             </div>
             <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(s.status)}`}>
               {getStatusIcon(s.status)}
@@ -610,7 +610,7 @@ function PriceTable() {
     <div className="space-y-8">
       <div className="glass-strong border-gradient p-6 rounded-2xl overflow-x-auto">
         <h3 className="text-xl font-bold mb-4">{t('ship.tabelaTitulo')}</h3>
-        <p className="text-sm text-white/60 mb-4">
+        <p className="text-sm text-gray-600 mb-4">
           {t('ship.tabelaSub')} <br />
           <span className="text-xs">{t('ship.tabelaNota')}</span>
         </p>
@@ -619,15 +619,15 @@ function PriceTable() {
         <h4 className="text-lg font-semibold text-gold mt-6 mb-3">{t('ship.itemsBase')}</h4>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/20">
-              <th className="text-left py-2 text-white/60">{t('ship.item')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
+            <tr className="border-b border-gray-300">
+              <th className="text-left py-2 text-gray-600">{t('ship.item')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
             {baseItems.map((row, idx) => (
-              <tr key={idx} className="border-b border-lilac/10 hover:bg-white/5">
+              <tr key={idx} className="border-b border-lilac/10 hover:bg-white">
                 <td className="py-2">{row.item}</td>
                 <td className="py-2 text-right">{row.euro}</td>
                 <td className="py-2 text-right">{row.kz}</td>
@@ -640,15 +640,15 @@ function PriceTable() {
         <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.malas')}</h4>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/20">
-              <th className="text-left py-2 text-white/60">{t('ship.pesoMalas')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
+            <tr className="border-b border-gray-300">
+              <th className="text-left py-2 text-gray-600">{t('ship.pesoMalas')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
             {malas.map((row, idx) => (
-              <tr key={idx} className="border-b border-lilac/10 hover:bg-white/5">
+              <tr key={idx} className="border-b border-lilac/10 hover:bg-white">
                 <td className="py-2">{row.peso}</td>
                 <td className="py-2 text-right">{row.euro}</td>
                 <td className="py-2 text-right">{row.kz}</td>
@@ -656,7 +656,7 @@ function PriceTable() {
             ))}
           </tbody>
         </table>
-        <p className="text-xs text-white/40 mt-2">
+        <p className="text-xs text-gray-400 mt-2">
           {t('ship.notaAlfandega')}
         </p>
 
@@ -664,15 +664,15 @@ function PriceTable() {
         <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.eletronicos')}</h4>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/20">
-              <th className="text-left py-2 text-white/60">{t('ship.item')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
+            <tr className="border-b border-gray-300">
+              <th className="text-left py-2 text-gray-600">{t('ship.item')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
             {eletronicos.map((row, idx) => (
-              <tr key={idx} className="border-b border-lilac/10 hover:bg-white/5">
+              <tr key={idx} className="border-b border-lilac/10 hover:bg-white">
                 <td className="py-2">{row.item}</td>
                 <td className="py-2 text-right">{row.euro}</td>
                 <td className="py-2 text-right">{row.kz}</td>
@@ -685,15 +685,15 @@ function PriceTable() {
         <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.pessoais')}</h4>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/20">
-              <th className="text-left py-2 text-white/60">{t('ship.item')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
+            <tr className="border-b border-gray-300">
+              <th className="text-left py-2 text-gray-600">{t('ship.item')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
             {pessoais.map((row, idx) => (
-              <tr key={idx} className="border-b border-lilac/10 hover:bg-white/5">
+              <tr key={idx} className="border-b border-lilac/10 hover:bg-white">
                 <td className="py-2">{row.item}</td>
                 <td className="py-2 text-right">{row.euro}</td>
                 <td className="py-2 text-right">{row.kz}</td>
@@ -706,15 +706,15 @@ function PriceTable() {
         <h4 className="text-lg font-semibold text-gold mt-8 mb-3">{t('ship.alfandega')}</h4>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/20">
-              <th className="text-left py-2 text-white/60">{t('ship.item')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.euro')}</th>
-              <th className="text-right py-2 text-white/60">{t('ship.kwanza')}</th>
+            <tr className="border-b border-gray-300">
+              <th className="text-left py-2 text-gray-600">{t('ship.item')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.euro')}</th>
+              <th className="text-right py-2 text-gray-600">{t('ship.kwanza')}</th>
             </tr>
           </thead>
           <tbody>
             {alfandega.map((row, idx) => (
-              <tr key={idx} className="border-b border-lilac/10 hover:bg-white/5">
+              <tr key={idx} className="border-b border-lilac/10 hover:bg-white">
                 <td className="py-2">{row.item}</td>
                 <td className="py-2 text-right">{row.euro}</td>
                 <td className="py-2 text-right">{row.kz}</td>
@@ -724,9 +724,9 @@ function PriceTable() {
         </table>
 
         {/* Contactos */}
-        <div className="mt-8 pt-4 border-t border-white/20 text-center">
-          <p className="text-sm text-white/60">{t('ship.maisInfo')}</p>
-          <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm text-white/80">
+        <div className="mt-8 pt-4 border-t border-gray-300 text-center">
+          <p className="text-sm text-gray-600">{t('ship.maisInfo')}</p>
+          <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm text-gray-700">
             <span>📞 (+244) 948 440 920</span>
             <span>📞 (+351) 934 292 082</span>
           </div>
@@ -788,7 +788,7 @@ function TrackingForm() {
       PICKED_UP: 'text-green-400 bg-green-400/10'
 
     };
-    return colors[status] || 'text-white/60 bg-white/5';
+    return colors[status] || 'text-gray-600 bg-white';
   };
 
   const getStatusIcon = (status: string) => {
@@ -814,7 +814,7 @@ function TrackingForm() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder={t('ship.rastrearPlaceholder')}
-              className="flex-1 px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:border-gold outline-none text-white/90"
+              className="flex-1 px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800"
             />
             <GoldButton type="submit" disabled={loading} className="w-full text-black sm:w-auto px-6">
               {loading ? '...' : t('ship.rastrearBotao')}
@@ -829,13 +829,13 @@ function TrackingForm() {
 
          {result && (
            <div className="mt-6 space-y-4">
-             <div className="flex justify-between items-center border-b border-white/20 pb-3">
+             <div className="flex justify-between items-center border-b border-gray-300 pb-3">
                <div>
-                  <div className="text-xs text-white/40">{t('ship.codigo')}</div>
+                  <div className="text-xs text-gray-400">{t('ship.codigo')}</div>
                  <div className="font-mono text-gold">{result.trackingCode}</div>
                </div>
                <div className="text-right">
-                  <div className="text-xs text-white/40">{t('ship.status')}</div>
+                  <div className="text-xs text-gray-400">{t('ship.status')}</div>
                  <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(result.status)}`}>
                    {getStatusIcon(result.status)}
                    {t(`status.${result.status}`)}
@@ -849,7 +849,7 @@ function TrackingForm() {
                    href={result.cttLink}
                    target="_blank"
                    rel="noopener noreferrer"
-                   className="inline-flex items-center gap-2 px-4 py-2 bg-gold text-[#1a1133] rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
+                   className="inline-flex items-center gap-2 px-4 py-2 bg-gold text-[#374151] rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
                  >
                    <ExternalLink className="w-4 h-4" /> {t('track.acompanharCtt')}
                  </a>
@@ -858,25 +858,25 @@ function TrackingForm() {
 
              <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-white/60">{t('ship.origem')}</span>
+                <span className="text-gray-600">{t('ship.origem')}</span>
                 <span className="text-gold">{result.origin}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/60">{t('ship.destino')}</span>
+                <span className="text-gray-600">{t('ship.destino')}</span>
                 <span className="text-gold">{result.destination}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/60">{t('ship.peso')}</span>
+                <span className="text-gray-600">{t('ship.peso')}</span>
                 <span className="text-gold">{result.weight} kg</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/60">{t('ship.precoLabel')}</span>
+                <span className="text-gray-600">{t('ship.precoLabel')}</span>
                 <span className="text-gold">{result.price?.toFixed(2) || '->'}</span>
               </div>
               {result.trackingUpdates && result.trackingUpdates.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-xs text-white/40 mb-2">{t('ship.historico')}</div>
-                  <ul className="space-y-1 text-xs text-white/60">
+                  <div className="text-xs text-gray-400 mb-2">{t('ship.historico')}</div>
+                  <ul className="space-y-1 text-xs text-gray-600">
                     {result.trackingUpdates.map((update: any, idx: number) => (
                       <li key={idx} className="flex justify-between">
                         <span>{update.status.replace('_', ' ')}</span>
@@ -932,7 +932,7 @@ export default function ShipmentsPage() {
 
   return (
     <Layout>
-       <div className="min-h-screen bg-[#1a1133] pt-28 pb-20 px-4">
+       <div className="min-h-screen bg-[#E8D9F5] pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -942,17 +942,17 @@ export default function ShipmentsPage() {
             <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-gold">
               <span className="text-gradient-gold">{t('ship.titulo')}</span>
             </h1>
-            <p className="text-white/60 mt-2">{t('ship.subtitle')}</p>
+            <p className="text-gray-600 mt-2">{t('ship.subtitle')}</p>
           </motion.div>
 
           {/* Tabs */}
-          <div className="flex flex-wrap gap-2 mb-8 border-b border-white/20 pb-4">
+          <div className="flex flex-wrap gap-2 mb-8 border-b border-gray-300 pb-4">
             <button
               onClick={() => setActiveTab('reservar')}
               className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
                 activeTab === 'reservar'
-                  ? 'bg-gold text-[#1a1133]'
-                  : 'bg-[#2b1f4a] text-white/60 hover:bg-white/5'
+                  ? 'bg-gold text-[#374151]'
+                  : 'bg-[#E8D9F5] text-gray-600 hover:bg-white'
               }`}
             >
               <Plus className="w-4 h-4 inline mr-1.5" /> {t('ship.tabReservar')}
@@ -961,8 +961,8 @@ export default function ShipmentsPage() {
               onClick={() => setActiveTab('consultar')}
               className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
                 activeTab === 'consultar'
-                  ? 'bg-gold text-[#1a1133]'
-                  : 'bg-[#2b1f4a] text-white/60 hover:bg-white/5'
+                  ? 'bg-gold text-[#374151]'
+                  : 'bg-[#E8D9F5] text-gray-600 hover:bg-white'
               }`}
             >
               <Package className="w-4 h-4 inline mr-1.5" /> {t('ship.tabMinhas')}
@@ -971,8 +971,8 @@ export default function ShipmentsPage() {
               onClick={() => setActiveTab('rastrear')}
               className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
                 activeTab === 'rastrear'
-                  ? 'bg-gold text-[#1a1133]'
-                  : 'bg-[#2b1f4a] text-white/60 hover:bg-white/5'
+                  ? 'bg-gold text-[#374151]'
+                  : 'bg-[#E8D9F5] text-gray-600 hover:bg-white'
               }`}
             >
               <Search className="w-4 h-4 inline mr-1.5" /> {t('ship.tabRastrear')}
@@ -981,8 +981,8 @@ export default function ShipmentsPage() {
               onClick={() => setActiveTab('tabela')}
               className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
                 activeTab === 'tabela'
-                  ? 'bg-gold text-[#1a1133]'
-                  : 'bg-[#2b1f4a] text-white/60 hover:bg-white/5'
+                  ? 'bg-gold text-[#374151]'
+                  : 'bg-[#E8D9F5] text-gray-600 hover:bg-white'
               }`}
             >
               {t('ship.tabTabela')}
@@ -993,7 +993,7 @@ export default function ShipmentsPage() {
           <div className="mt-6">
             {activeTab === 'reservar' && (
               loadingRoutes ? (
-                <div className="text-center py-8 text-white/60">{t('ship.carregarRotas')}</div>
+                <div className="text-center py-8 text-gray-600">{t('ship.carregarRotas')}</div>
               ) : routesError ? (
                 <div className="text-center py-8 text-red-400">{routesError}</div>
               ) : (
@@ -1004,7 +1004,7 @@ export default function ShipmentsPage() {
             {activeTab === 'rastrear' && <TrackingForm />}
             {activeTab === 'tabela' && (
               loadingRoutes ? (
-                <div className="text-center py-8 text-white/60">{t('ship.carregarRotas2')}</div>
+                <div className="text-center py-8 text-gray-600">{t('ship.carregarRotas2')}</div>
               ) : routesError ? (
                 <div className="text-center py-8 text-red-400">{routesError}</div>
               ) : (

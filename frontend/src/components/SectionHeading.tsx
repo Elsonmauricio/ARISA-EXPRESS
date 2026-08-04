@@ -14,7 +14,7 @@ export default function SectionHeading({ eyebrow, title, subtitle, align = 'left
   const isLight = theme === 'light';
   const titleColor = isLight ? 'text-[#4B2170]' : 'text-gold';
   const eyebrowColor = isLight ? 'text-[#7B2FBF]' : 'text-gold';
-  const subtitleColor = isLight ? 'text-gray-600' : 'text-white/70';
+  const subtitleColor = isLight ? 'text-gray-600' : 'text-gray-500';
   return (
     <div className={`max-w-3xl ${alignCls}`}>
       {eyebrow && (

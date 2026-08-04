@@ -1,5 +1,12 @@
-// backend/src/types/validation.ts
+﻿// backend/src/types/validation.ts
 import { z } from 'zod';
+
+export const batchByIdsSchema = z.object({
+  ids: z.array(z.string()).min(1, 'Pelo menos um ID necess'),
+  status: z.string().min(1, 'Status necess'),
+  location: z.string().optional(),
+  description: z.string().optional()
+});
 
 export const registerSchema = z.object({
   body: z.object({
@@ -60,6 +67,16 @@ export const updateCttSchema = z.object({
   body: z.object({
     cttCode: z.string().optional(),
     cttLink: z.string().url().optional().or(z.literal(''))
+  })
+});
+
+export const batchStatusUpdateSchema = z.object({
+  body: z.object({
+    route: z.string().min(2),
+    currentStatus: z.string().optional(),
+    status: z.enum(['REGISTERED', 'SHIPPED', 'IN_CUSTOMS', 'READY_FOR_PICKUP', 'PICKED_UP', 'PENDING', 'COLLECTED', 'IN_TRANSIT', 'CUSTOMS', 'IN_PORTUGAL', 'IN_ANGOLA', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']),
+    location: z.string().optional(),
+    description: z.string().optional()
   })
 });
 

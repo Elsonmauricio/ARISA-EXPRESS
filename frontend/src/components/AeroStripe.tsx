@@ -3,9 +3,9 @@
 export default function AeroStripe() {
   const { t } = useT();
   return (
-    <div className="aero-chamfer flex h-2.5 w-full overflow-hidden bg-[#2b1f4a] border border-aero-border">
+    <div className="aero-chamfer flex h-2.5 w-full overflow-hidden bg-[#E8D9F5] border border-aero-border">
       <span
-        className="border-r border-white/20"
+        className="border-r border-gray-300"
         style={{ width: "40%", backgroundColor: "#f7f3ff" }}
         title={t('aero.black')}
       />

@@ -482,6 +482,90 @@ export const AdminController = {
     }
   },
 
+  batchUpdateStatus: async (req: Request, res: Response) => {
+    try {
+      const { route, currentStatus, status, location, description } = req.body
+      let q = db.collection("shipments").where("route", "==", route)
+      if (currentStatus) { q = q.where("status", "==", currentStatus) }
+      const snap = await q.get()
+      if (snap.empty) {
+        return res.json({ success: true, updated: 0, message: "No shipments found" })
+      }
+      const batch = db.batch()
+      const ids = []
+      let notifCount = 0
+      for (const doc of snap.docs) {
+        const s = doc.data()
+        if (!s) continue
+        const upd: any = {
+          status,
+          currentLocation: location || s.destination,
+          history: FieldValue.arrayUnion({ status, location: location || s.destination, description: description || ("Updated to " + status), timestamp: new Date().toISOString() })
+        }
+        if (status === "DELIVERED") { upd.actualDelivery = FieldValue.serverTimestamp() }
+        if (status === "READY_FOR_PICKUP") {
+          const deadline = addBusinessDays(new Date(), 5)
+          const dest = String(s.destination || "").toLowerCase()
+          const isLuanda = dest.includes("luanda") ? true : dest.includes("angola")
+          upd.readyForPickupAt = FieldValue.serverTimestamp()
+          upd.pickupDeadline = deadline
+          upd.pickupAddress = isLuanda ? "Morro Bento" : "Centro Comercial Flamingos"
+          upd.pickupContact = isLuanda ? "+244 948 440 920" : "+351 934 292 082"
+        }
+        if (status === "PICKED_UP") { upd.pickedUpAt = FieldValue.serverTimestamp(); upd.pickupDeadline = null }
+        batch.update(doc.ref, upd)
+        batch.set(db.collection("shipments").doc(doc.id).collection("trackingUpdates").doc(), { status, location: location || s.destination, description: description || ("Updated to " + status), timestamp: FieldValue.serverTimestamp() })
+        ids.push(doc.id)
+        if (status === "READY_FOR_PICKUP") {
+          const phone = s.receiverPhone || s.senderPhone
+          if (phone) { notifCount++ }
+        }
+      }
+      await batch.commit()
+      logger.info("Batch: " + ids.length + " to " + status + " route " + route)
+      res.json({ success: true, updated: ids.length, message: ids.length + " shipments updated", shipmentIds: ids, whatsappReady: notifCount })
+    } catch (error) {
+      logger.error("Batch error:", error)
+      res.status(500).json({ error: "Batch error" })
+    }
+  },
+
+  batchUpdateByIds: async (req: Request, res: Response) => {
+    try {
+      const { ids, status, location, description } = req.body;
+      const batch = db.batch();
+      const updatedIds = [];
+      let notifCount = 0;
+      for (const id of ids) {
+        const ref = db.collection("shipments").doc(id);
+        const snap = await ref.get();
+        if (!snap.exists) continue;
+        const s: any = snap.data();
+        const upd: any = {
+          status,
+          currentLocation: location || s.destination,
+          history: FieldValue.arrayUnion({ status, location: location || s.destination, description: description || ("Updated to " + status), timestamp: new Date().toISOString() })
+        }
+        if (status === "DELIVERED") { upd.actualDelivery = FieldValue.serverTimestamp() }
+        if (status === "READY_FOR_PICKUP") {
+          upd.readyForPickupAt = FieldValue.serverTimestamp();
+          upd.pickupDeadline = addBusinessDays(new Date(), 5);
+          const dest = String(s.destination || "").toLowerCase();
+          const isLuanda = dest.includes("luanda") ? true : dest.includes("angola");
+          upd.pickupAddress = isLuanda ? "Morro Bento" : "Centro Comercial Flamingos";
+          upd.pickupContact = isLuanda ? "+244 948 440 920" : "+351 934 292 082";
+        }
+        if (status === "PICKED_UP") { upd.pickedUpAt = FieldValue.serverTimestamp(); upd.pickupDeadline = null }
+        batch.update(ref, upd);
+        batch.set(db.collection("shipments").doc(id).collection("trackingUpdates").doc(), { status, location: location || s.destination, description: description || ("Updated to " + status), timestamp: FieldValue.serverTimestamp() });
+        updatedIds.push(id);
+        if (status === "READY_FOR_PICKUP" && (s.receiverPhone || s.senderPhone)) { notifCount++ }
+      }
+      await batch.commit();
+      res.json({ success: true, updated: updatedIds.length, message: updatedIds.length + " encomendas atualizadas", shipmentIds: updatedIds, whatsappReady: notifCount });
+    } catch (error) { logger.error("Batch by IDs error:", error); res.status(500).json({ error: "Batch error" }) }
+  },
+
   getAllUsers: async (req: Request, res: Response) => {
     try {
       const snapshot = await db.collection('users').get();

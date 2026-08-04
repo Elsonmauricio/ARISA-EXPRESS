@@ -96,13 +96,13 @@ export default function StorySection({ chapters, visual, onProgress, className =
       ref={sectionRef}
       className={`relative h-screen w-full overflow-hidden ${className}`}
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/60 via-transparent to-[#1a1133]/30 z-[1]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/40 via-transparent to-[#1a1133]/70 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#E8D9F5]/0 via-transparent to-[#E8D9F5]/10 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#E8D9F5]/0 via-transparent to-[#E8D9F5]/20 z-[1]" />
       <div ref={stageRef} className="absolute inset-0 -z-10" style={{ ['--story-progress' as any]: 0 }}>
         {visual}
       </div>
 
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-white/5 z-20">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-white z-20">
         <div ref={barRef} className="h-full origin-left bg-gradient-to-r from-gold via-lilac-500 to-lilac" style={{ transform: 'scaleX(0)' }} />
       </div>
 
@@ -126,7 +126,7 @@ export default function StorySection({ chapters, visual, onProgress, className =
                 <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-gold leading-[1.05]">
                   {ch.title}
                 </h2>
-                <p className="mt-6 text-base md:text-lg text-white/65 leading-relaxed max-w-xl">
+                <p className="mt-2 text-sm text-gray-500 leading-relaxed">
                   {ch.body}
                 </p>
               </div>

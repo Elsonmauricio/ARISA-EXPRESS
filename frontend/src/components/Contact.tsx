@@ -43,8 +43,8 @@ export default function Contact() {
 
   return (
     <section id="contactos" className="py-20 px-4">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/60 via-transparent to-[#1a1133]/30 z-[1]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/40 via-transparent to-[#1a1133]/70 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#E8D9F5]/0 via-transparent to-[#E8D9F5]/10 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#E8D9F5]/0 via-transparent to-[#E8D9F5]/20 z-[1]" />
       <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           align="center"
@@ -62,7 +62,7 @@ export default function Contact() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold text-white/90"
+                className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:outline-none focus:border-gold text-gray-800"
               />
               <input
                 type="email"
@@ -70,14 +70,14 @@ export default function Contact() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold text-white/90"
+                className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:outline-none focus:border-gold text-gray-800"
               />
               <input
                 type="tel"
                 placeholder={t('contact.telefone')}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold text-white/90"
+                className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:outline-none focus:border-gold text-gray-800"
               />
               <textarea
                 rows={4}
@@ -85,7 +85,7 @@ export default function Contact() {
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-[#2b1f4a] border border-white/20 rounded-lg focus:outline-none focus:border-gold resize-none text-white/90"
+                className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:outline-none focus:border-gold resize-none text-gray-800"
               />
 
               <GoldButton type="submit" className="w-full py-3 flex items-center justify-center text-black gap-2" disabled={status === 'loading'}>
@@ -140,7 +140,7 @@ export default function Contact() {
                   <div className="flex items-center gap-2 text-gold font-medium">
                         {t('contact.portugal')}
                   </div>
-                   <p className="text-white/90 mt-1">
+                   <p className="text-gray-800 mt-1">
                      {t('contact.horarioPT')}
                    </p>
                  </div>
@@ -148,7 +148,7 @@ export default function Contact() {
                    <div className="flex items-center gap-2 text-gold font-medium">
                         {t('contact.angola')}
                    </div>
-                   <p className="text-white/90 mt-1">
+                   <p className="text-gray-800 mt-1">
                      {t('contact.horarioAO')}
                    </p>
                  </div>
@@ -163,7 +163,7 @@ export default function Contact() {
                   <div className="flex items-center gap-2 text-gold font-medium text-sm">
                     <MapPin size={16} /> {t('contact.luanda')}
                   </div>
-                   <p className="text-sm text-white/90 mt-1">
+                   <p className="text-sm text-gray-800 mt-1">
                      {t('contact.moradaLuanda1')}<br />
                      {t('contact.moradaLuanda2')}
                    </p>
@@ -172,7 +172,7 @@ export default function Contact() {
                    <div className="flex items-center gap-2 text-gold font-medium text-sm">
                      <MapPin size={16} /> {t('contact.lisboa')}
                    </div>
-                   <p className="text-sm text-white/90 mt-1">
+                   <p className="text-sm text-gray-800 mt-1">
                      {t('contact.moradaLisboa1')}<br />
                      {t('contact.moradaLisboa2')}
                    </p>

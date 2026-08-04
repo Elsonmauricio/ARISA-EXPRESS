@@ -102,7 +102,7 @@ function Airplane() {
 function Scene({ isMobile }: { isMobile: boolean }) {
   return (
     <>
-      <color attach="background" args={['#1a1133']} />
+      <color attach="background" args={['#E8D9F5']} />
       <ambientLight intensity={0.5} />
       <spotLight position={[8, 10, 8]} angle={0.3} penumbra={1} intensity={1.5} color="#F6EBBF" />
       <pointLight position={[-8, -4, -4]} color="#DDB8FA" intensity={1.0} />
@@ -139,10 +139,7 @@ export default function AirplaneBackground() {
           <Scene isMobile={isMobile} />
         </Canvas>
       </ErrorBoundary>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_30%,_rgba(26,17,51,0.35)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_30%,_rgba(232,217,245,0.3)_100%)]" />
     </div>
   );
 }
-
-
-

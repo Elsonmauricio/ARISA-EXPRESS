@@ -1,10 +1,10 @@
-// backend/src/routes/admin.ts
+﻿// backend/src/routes/admin.ts
 import { Router } from 'express';
 import { AdminController } from '../../controllers/adminController';
 import { LeadController } from '../../controllers/leadController';
 import { authenticate, authorize } from '../../middleware/auth';
 import { validate } from '../../middleware/validation';
-import { adminCreateShipmentSchema, updateCttSchema } from '../../types/validation';
+import { adminCreateShipmentSchema, updateCttSchema, batchStatusUpdateSchema, batchByIdsSchema } from '../../types/validation';
 
 const router = Router();
 
@@ -15,11 +15,15 @@ router.get('/stats', AdminController.getStats);
 router.get('/shipments', AdminController.getAllShipments);
 router.get('/shipments/search', AdminController.searchShipments);
 
+router.patch('/shipments/batch-status', validate(batchStatusUpdateSchema), AdminController.batchUpdateStatus);
+
 router.get('/shipments/ready-for-pickup', AdminController.getReadyForPickup);
 router.get('/shipments/:id', AdminController.getShipmentDetails);
 router.post('/shipments', validate(adminCreateShipmentSchema), AdminController.createShipment);
 router.patch('/shipments/:id/status', AdminController.updateShipmentStatus);
 router.patch('/shipments/:id/ctt', validate(updateCttSchema), AdminController.updateCtt);
+router.patch('/shipments/batch-status-by-ids', validate(batchByIdsSchema), AdminController.batchUpdateByIds);
+
 
 router.get('/shipments/:id/whatsapp-link', AdminController.generateWhatsAppLink);
 router.get('/shipments/:id/fine', AdminController.calculateShipmentFine);

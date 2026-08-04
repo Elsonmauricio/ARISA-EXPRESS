@@ -6,13 +6,13 @@ export default function Terms() {
   const { t } = useT();
   return (
     <Layout>
-      <div className="min-h-screen bg-[#1a1133] pt-28 pb-20 px-4">
+      <div className="min-h-screen bg-[#E8D9F5] pt-28 pb-20 px-4">
         <div className="container mx-auto max-w-4xl">
           <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-gold mb-8">
             <span className="text-gradient-gold">{t('terms.titulo')}</span>
           </h1>
-          <div className="glass-strong border-gradient p-8 rounded-2xl text-white/80 space-y-6">
-            <p className="text-sm text-white/60">{t('terms.atualizado', { date: new Date().toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }) })}</p>
+          <div className="glass-strong border-gradient p-8 rounded-2xl text-gray-700 space-y-6">
+            <p className="text-sm text-gray-600">{t('terms.atualizado', { date: new Date().toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }) })}</p>
 
             <h2 className="text-xl font-semibold text-gold">{t('terms.s1')}</h2>
             <p>
@@ -47,7 +47,7 @@ export default function Terms() {
               <li>{t('terms.s5t1')}</li>
               <li>{t('terms.s5t2')}</li>
             </ul>
-            <p className="text-sm text-white/60">{t('terms.s5nota')}</p>
+            <p className="text-sm text-gray-600">{t('terms.s5nota')}</p>
 
             <h2 className="text-xl font-semibold text-gold">{t('terms.s6')}</h2>
             <p>{t('terms.s6text')}</p>

@@ -11,16 +11,16 @@ export default function Hero() {
   const navigate = useNavigate();
   const { t } = useT();
 
-  // FunÃ§Ã£o para scroll suave atÃ© uma secÃ§Ã£o
+  // Função para scroll suave até uma secção
   const scrollToSection = (sectionId: string) => {
     scrollToAnchor(sectionId);
   };
 
   return (
-    <section id="hero" className="relative min-h-screen w-full overflow-hidden">
-      {/* Soft vignette â€” kept light so the Spline scene stays visible behind */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/60 via-transparent to-[#1a1133]/30 z-[1]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/40 via-transparent to-[#1a1133]/70 z-[1]" />
+<section className="relative min-h-screen text-purple-dark flex items-center">
+      {/* Soft vignette – light lavender so the 3D scene stays visible behind */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1a1133]/0 via-transparent to-[#E8D9F5]/0 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1133]/0 via-transparent to-[#E8D9F5]/0 z-[1]" />
 
       {/* Content overlay */}
       <div className="relative z-10 container mx-auto min-h-screen flex items-center justify-center sm:items-start sm:justify-end pt-32 sm:pt-40 pb-20 px-4">
@@ -35,7 +35,7 @@ export default function Hero() {
 
           <motion.p
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.25 }}
-            className="mt-6 text-base md:text-lg text-white/80 max-w-xl leading-relaxed"
+            className="mt-6 text-base md:text-lg text-[#4B2170] max-w-xl leading-relaxed"
           >
             {t('hero.subtitle')}
           </motion.p>
@@ -44,10 +44,10 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}
             className="mt-9 flex flex-wrap gap-4"
           >
-            {/* BotÃ£o Solicitar OrÃ§amento â†’ rola para a secÃ§Ã£o de contacto */}
+            {/* Botão Solicitar Orçamento → rola para a seção de contacto */}
             <AeroButton onClick={() => scrollToSection('contactos')} icon={<ArrowRight className="w-4 h-4" />}>{t('hero.solicitarOrcamento')}</AeroButton>
 
-            {/* BotÃ£o Acompanhar Encomenda â†’ navega para a pÃ¡gina de encomendas (aba rastrear) */}
+            {/* Botão Acompanhar Encomenda → navega para a página de encomendas (aba rastrear) */}
             <AeroButton variant="ghost" onClick={() => navigate('/encomendas?tab=rastrear')} icon={<Package className="w-4 h-4" />}>{t('hero.acompanharEncomenda')}</AeroButton>
           </motion.div>
 
@@ -56,7 +56,7 @@ export default function Hero() {
 
       {/* Scroll indicator */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
-        <div className="w-6 h-10 rounded-full border border-white/20 flex justify-center pt-2">
+        <div className="w-6 h-10 rounded-full border border-gray-300 flex justify-center pt-2">
           <span className="w-1 h-2 rounded-full bg-gold animate-bounce" />
         </div>
       </div>
