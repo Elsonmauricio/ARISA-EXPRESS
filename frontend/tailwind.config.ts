@@ -63,10 +63,10 @@ export default {
           },
         },
         aero: {
-          panel: "#4B2170",      // Atualizado para Roxo Escuro
-          border: "#5C2D91",     // Atualizado para Roxo Escuro Médio
-          muted: "#7B2FBF",      // Roxo Vibrante
-          lilas: "#E8D9F5",      // Lilás Fundo
+          panel: "#ede9f7",      // Light lavender panel
+          border: "#D4AF37",     // Gold border
+          muted: "#9CA3AF",      // Gray muted
+          lilas: "#ede9f7",      // Light lavender bg
           "lilas-dark": "#7B2FBF",
           gold: "#D4AF37",
         },

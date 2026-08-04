@@ -3,10 +3,10 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useT } from '../i18n/LanguageContext';
-import entradaImg from '../assets/entrada.jpeg';
-import portaImg from '../assets/porta.jpeg';
-import cantoEsperaImg from '../assets/canto de espera.jpeg';
-import cenarioAnaliseImg from '../assets/cenario de analise.jpeg';
+import entradaImg from '../assets/entrada-opt.webp';
+import portaImg from '../assets/porta-opt.webp';
+import cantoEsperaImg from '../assets/canto de espera-opt.webp';
+import cenarioAnaliseImg from '../assets/cenario de analise-opt.webp';
 
 
 gsap.registerPlugin(ScrollTrigger);

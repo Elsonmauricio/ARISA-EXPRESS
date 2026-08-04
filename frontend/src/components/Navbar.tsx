@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronDown, User, Settings, LogOut, Package, Search } from 'lucide-react';
 import { GoldButton } from './Button';
-import ARISAEXPRESStLogo from '../assets/logo-Arisa-express.png';
+import ARISAEXPRESStLogo from '../assets/logo-Arisa-express-opt.webp';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { scrollToAnchor } from '../lib/scroll';
 import { useT } from '../i18n/LanguageContext';

@@ -1,8 +1,7 @@
-﻿// src/components/Layout.tsx
-import React from 'react';
+﻿import React from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
-import AirplaneBackground from './AirplaneBackground';
+const AirplaneBackground = React.lazy(() => import('./AirplaneBackground'));
 import '../index.css';
 
 interface LayoutProps {
@@ -17,7 +16,11 @@ export default function Layout({ children, hideNavbar = false }: LayoutProps) {
     <div className="min-h-screen bg-[#E8D9F5] text-slate-800 antialiased relative">
       {!hideNavbar && <Navbar />}
       {children}
-      {location.pathname === '/' && <AirplaneBackground />}
+      {location.pathname === '/' && (
+        <React.Suspense fallback={null}>
+          <AirplaneBackground />
+        </React.Suspense>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { SiInstagram } from 'react-icons/si';
-import ARISAEXPRESStLogo from '../assets/logo-Arisa-express.png';
+import ARISAEXPRESStLogo from '../assets/logo-Arisa-express-opt.webp';
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
 

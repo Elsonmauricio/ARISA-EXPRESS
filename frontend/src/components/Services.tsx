@@ -67,7 +67,7 @@ function ServiceCard({ s, i }: { s: Service; i: number }): JSX.Element {
     >
       {/* Camada de borda gradiente (animaÃ§Ã£o de brilho no hover) */}
       <div className="absolute inset-0 rounded-3xl p-[1px] bg-gradient-to-br from-lilac-500/20 via-lilac/5 to-gold/20 opacity-60 group-hover:opacity-100 transition-opacity duration-500">
-        <div className="w-full h-full rounded-3xl bg-dark-700/80 backdrop-blur-xl" />
+        <div className="w-full h-full rounded-3xl bg-white/80 backdrop-blur-xl" />
       </div>
 
       {/* ConteÃºdo */}
