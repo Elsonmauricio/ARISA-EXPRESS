@@ -26,6 +26,8 @@ interface Shipment {
   status_proprio?: string | null;
   status_calculado?: string;
   is_custom_status?: boolean;
+  routeId?: string;
+  route?: string;
   createdAt: any;
   senderName: string;
   receiverName: string;
