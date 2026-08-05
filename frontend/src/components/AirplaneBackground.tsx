@@ -103,16 +103,14 @@ function Scene({ isMobile }: { isMobile: boolean }) {
   return (
     <>
       <color attach="background" args={['#E8D9F5']} />
-      <ambientLight intensity={0.5} />
-      <spotLight position={[8, 10, 8]} angle={0.3} penumbra={1} intensity={1.5} color="#F6EBBF" />
-      <pointLight position={[-8, -4, -4]} color="#DDB8FA" intensity={1.0} />
-      <pointLight position={[-6, 2, 0]} color="#60A5FA" intensity={40} distance={12} decay={2} />
-      <pointLight position={[6, 2, 0]} color="#F472B6" intensity={40} distance={12} decay={2} />
-      <pointLight position={[0, 3, -6]} color="#A78BFA" intensity={50} distance={12} decay={2} />
+      <ambientLight intensity={1.2} />
+      <directionalLight position={[5, 10, 5]} intensity={2.0} color="#ffffff" />
+      <directionalLight position={[-5, 5, -5]} intensity={1.0} color="#ffffff" />
+      <pointLight position={[0, 5, 0]} intensity={1.5} color="#ffffff" distance={20} decay={2} />
       <Suspense fallback={null}>
         <Airplane />
         <Stars radius={90} depth={50} count={isMobile ? 500 : 2500} factor={3} saturation={0.9} fade speed={0.6} />
-        <ContactShadows position={[0, -1.5, 0]} opacity={isMobile ? 0.1 : 0.35} scale={isMobile ? undefined : 10} blur={isMobile ? 5 : 2.5} far={4} color="#DDB8FA" />
+        <ContactShadows position={[0, -1.5, 0]} opacity={isMobile ? 0.1 : 0.35} scale={isMobile ? undefined : 10} blur={isMobile ? 5 : 2.5} far={4} color="#ffffff" />
       </Suspense>
     </>
   );
