@@ -19,6 +19,36 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+const SERVICE_TYPE_LABELS_PT: Record<string, string> = {
+  REDIRECT: 'Redirecionamento',
+  COURIER: 'Courrier',
+  PERSONAL_SHOPPER: 'Personal Shopper',
+};
+
+function translateServiceType(type: string): string {
+  return SERVICE_TYPE_LABELS_PT[type] || type;
+}
+const STATUS_LABELS_PT: Record<string, string> = {
+  PENDING: 'Pendente',
+  COLLECTED: 'Recolhida',
+  IN_TRANSIT: 'Em Trânsito',
+  CUSTOMS: 'Em Alfândega',
+  IN_PORTUGAL: 'Em Portugal',
+  IN_ANGOLA: 'Em Angola',
+  OUT_FOR_DELIVERY: 'Em Entrega',
+  DELIVERED: 'Entregue',
+  CANCELLED: 'Cancelada',
+  READY_FOR_PICKUP: 'Pronto para Levantamento',
+  PICKED_UP: 'Recolhida',
+  REGISTERED: 'Registada',
+  SHIPPED: 'Expedida',
+  IN_CUSTOMS: 'Em Alfândega',
+};
+
+function translateStatus(status: string): string {
+  return STATUS_LABELS_PT[status] || status.replace('_', ' ');
+}
+
 const templates: Record<EmailOptions['template'], (data: any) => string> = {
   welcome: (data: any) => `
     <h1> Bem-vindo à Arisa Express</h1>
@@ -43,7 +73,7 @@ const templates: Record<EmailOptions['template'], (data: any) => string> = {
     <li><strong>Remetente:</strong> ${data.senderName}</li>
     <li><strong>Destinatário:</strong> ${data.receiverName}</li>
     <li><strong>Peso:</strong> ${data.weight} kg</li>
-    <li><strong>Serviço:</strong> ${data.serviceType}</li>
+    <li><strong>Serviço:</strong> ${translateServiceType(data.serviceType)}</li>
     <li><strong>Preço:</strong> € ${data.price.toFixed(2)}</li>
   </ul>
   <p>Acompanhe a sua encomenda em <a href="${process.env.FRONTEND_URL}/rastrear?code=${data.trackingCode}">${process.env.FRONTEND_URL}/rastrear</a></p>
@@ -55,7 +85,7 @@ const templates: Record<EmailOptions['template'], (data: any) => string> = {
     <p><strong>Olá ${data.name},</strong></p>
     <p>A sua encomenda <strong>${data.trackingCode}</strong> teve uma atualização importante.</p>
     <ul>
-      <li><strong>Novo Estado:</strong> <span style="background: #7C3AED; color: white; padding: 2px 8px; border-radius: 4px;">${data.status.replace('_', ' ')}</span></li>
+       <li><strong>Novo Estado:</strong> <span style="background: #7C3AED; color: white; padding: 2px 8px; border-radius: 4px;">${translateStatus(data.status)}</span></li>
       <li><strong>Localização:</strong> ${data.location || 'N/A'}</li>
       <li><strong>Descrição:</strong> ${data.description || 'N/A'}</li>
     </ul>

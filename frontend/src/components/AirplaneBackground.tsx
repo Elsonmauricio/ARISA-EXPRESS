@@ -102,11 +102,11 @@ function Airplane() {
 function Scene({ isMobile }: { isMobile: boolean }) {
   return (
     <>
-      <color attach="background" args={['#E8D9F5']} />
+      <color attach="background" args={['#dab4fc']} />
       <ambientLight intensity={1.2} />
-      <directionalLight position={[5, 10, 5]} intensity={2.0} color="#ffffff" />
-      <directionalLight position={[-5, 5, -5]} intensity={1.0} color="#ffffff" />
-      <pointLight position={[0, 5, 0]} intensity={1.5} color="#ffffff" distance={20} decay={2} />
+      <directionalLight position={[5, 10, 5]} intensity={2.0} color="#df62f3" />
+      <directionalLight position={[-5, 5, -5]} intensity={1.0} color="#fcf414" />
+      <pointLight position={[0, 5, 0]} intensity={1.5} color="#c959f9" distance={20} decay={2} />
       <Suspense fallback={null}>
         <Airplane />
         <Stars radius={90} depth={50} count={isMobile ? 500 : 2500} factor={3} saturation={0.9} fade speed={0.6} />
