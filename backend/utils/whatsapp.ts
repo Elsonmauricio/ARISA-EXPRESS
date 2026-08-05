@@ -29,17 +29,20 @@ export function getLocationType(destination: string): LocationType {
 }
 
 export function getPickupImage(location: LocationType): string {
+  const baseUrl = process.env.BACKEND_URL || '';
   if (location === 'luanda') {
-    return 'frontend/src/assets/Luanda.jpeg';
+    return baseUrl + '/api/assets/images/Luanda.jpeg';
   }
-  return 'frontend/src/assets/Lisboa.jpeg';
+  return baseUrl + '/api/assets/images/Lisboa.jpeg';
 }
 
-export function generateWhatsAppMessage(data: WhatsAppMessageData): string {
+export function generateWhatsAppMessage(data: WhatsAppMessageData & { imageUrl?: string }): string {
   const address = data.pickupAddress || 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros';
   const contact = data.pickupContact || '+351 934 292 082';
   const schedule = data.pickupSchedule || 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00';
   const location = isLuandaDestination(data.destination || '') ? 'Luanda' : 'Lisboa';
+  const locationType = getLocationType(data.destination || '');
+  const imageUrl = data.imageUrl || getPickupImage(locationType);
 
   return ` ARISA EXPRESS - Encomenda Disponível para Levantamento!
 
@@ -56,13 +59,16 @@ A sua encomenda já se encontra em ${location} disponível para levantamento!
   Remetente: ${data.senderName}
   Destinatário: ${data.receiverName}
 
-  Aviso: Deve efetuar o levantamento no prazo máximo de 5 diasteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.`;
+  Aviso: Deve efetuar o levantamento no prazo máximo de 5 diasteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.
+
+  Imagem: ${imageUrl}`;
 }
 
 export function generatePickupMessage(data: PickupNotificationData): string {
   const address = data.pickupAddress || getAddressForLocation(data.location);
   const contact = data.pickupContact || getContactForLocation(data.location);
   const schedule = data.pickupSchedule || getScheduleForLocation(data.location);
+  const imageUrl = getPickupImage(data.location);
 
   const headers = {
     lisbon: ' ARISA EXPRESS - Encomenda Disponível para Levantamento!\n\nA sua encomenda chegou a Lisboa e já está disponível para levantamento!',
@@ -82,7 +88,9 @@ export function generatePickupMessage(data: PickupNotificationData): string {
   Remetente: ${data.senderName}
   Destinatário: ${data.receiverName}
 
-  Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.`;
+  Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.
+
+  Imagem: ${imageUrl}`;
 }
 
 function getAddressForLocation(location: LocationType): string {

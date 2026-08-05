@@ -5,9 +5,12 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
 import { addBusinessDays, calculateFine, formatDate, getBusinessDaysBetween, calculateWeeksOverdue } from '../utils/businessDays';
-import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, isLuandaDestination } from '../utils/whatsapp';
+import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, getPickupImage, isLuandaDestination } from '../utils/whatsapp';
 import { fixEncodingObject } from '../utils/encoding';
 import { LocationType } from '../utils/whatsapp';
+
+// Conclusive statuses that trigger individual status flag
+const CONCLUSIVE_STATUSES = ['PICKED_UP', 'DELIVERED', 'CANCELLED', 'COLLECTED'];
 
 export const AdminController = {
   tryRegisterClient: async (body: any, shipmentId: string, trackingCode: string) => {
@@ -85,7 +88,8 @@ export const AdminController = {
 
       const shipments = snapshot.docs.map(doc => {
         const data = doc.data();
-        return { id: doc.id, ...data };
+        const statusCalculado = data.status_proprio ?? data.status ?? null;
+        return { id: doc.id, ...data, status_calculado: statusCalculado };
       });
 
       res.json({ success: true, data: fixEncodingObject(shipments) });
@@ -105,7 +109,11 @@ export const AdminController = {
       }
 
       const snapshot = await query.get();
-      let shipments = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+      let shipments = snapshot.docs.map((doc: any) => {
+        const data = doc.data();
+        const statusCalculado = data.status_proprio ?? data.status ?? null;
+        return { id: doc.id, ...data, status_calculado: statusCalculado };
+      });
 
       if (q && typeof q === 'string') {
         const term = q.toLowerCase();
@@ -143,6 +151,7 @@ export const AdminController = {
         origin: body.origin,
         destination: body.destination,
         route,
+        routeId: body.routeId || null,
         senderName: body.senderName,
         senderContact: body.senderContact || '',
         senderPhone: body.senderPhone || '',
@@ -247,9 +256,10 @@ export const AdminController = {
 
       const trackingUpdates = trackingSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
+      const statusCalculado = doc.data()?.status_proprio ?? doc.data()?.status ?? null;
       res.json({
         success: true,
-        data: fixEncodingObject({ id: doc.id, ...doc.data(), trackingUpdates })
+        data: fixEncodingObject({ id: doc.id, ...doc.data(), status_calculado: statusCalculado, trackingUpdates })
       });
     } catch (error) {
       logger.error('Erro ao buscar detalhes da encomenda:', error);
@@ -343,7 +353,8 @@ export const AdminController = {
           link,
           sent: false,
           phone,
-          trackingCode: shipment.trackingCode
+          trackingCode: shipment.trackingCode,
+          imageUrl: getPickupImage(getLocationType(shipment.destination || ''))
         }
       });
     } catch (error) {
@@ -351,6 +362,7 @@ export const AdminController = {
       res.status(500).json({ error: 'Erro ao gerar notificação' });
     }
   },
+  
 
   calculateShipmentFine: async (req: Request, res: Response) => {
     try {
@@ -454,6 +466,16 @@ export const AdminController = {
         timestamp: FieldValue.serverTimestamp()
       });
 
+      if (CONCLUSIVE_STATUSES.includes(status)) {
+        await db.collection('shipments').doc(id).update({
+          status_proprio: status,
+          is_custom_status: true
+        });
+        logger.info(`[UpdateStatus] Shipment ${id} set to conclusive status: ${status} (status_proprio=true, is_custom_status=true)`);
+      } else {
+        logger.info(`[UpdateStatus] Shipment ${id} status updated to: ${status} (inherited - no status_proprio)`);
+      }
+
       if (shipment.userId) {
         const userDoc = await db.collection('users').doc(shipment.userId).get();
         if (userDoc.exists) {
@@ -482,26 +504,34 @@ export const AdminController = {
     }
   },
 
-  batchUpdateStatus: async (req: Request, res: Response) => {
+   batchUpdateStatus: async (req: Request, res: Response) => {
     try {
       const { route, currentStatus, status, location, description } = req.body
       let q = db.collection("shipments").where("route", "==", route)
       if (currentStatus) { q = q.where("status", "==", currentStatus) }
       const snap = await q.get()
       if (snap.empty) {
+        logger.info(`[BatchStatus] No shipments found for route "${route}" with status ${currentStatus || 'any'}`)
         return res.json({ success: true, updated: 0, message: "No shipments found" })
       }
       const batch = db.batch()
       const ids = []
       let notifCount = 0
+      let skipped = 0
       for (const doc of snap.docs) {
         const s = doc.data()
         if (!s) continue
+        if (s.status_proprio) {
+          skipped++
+          logger.info(`[BatchStatus] Skipping shipment ${doc.id} (trackingCode: ${s.trackingCode || 'N/A'}) - has status_proprio: ${s.status_proprio}`)
+          continue
+        }
         const upd: any = {
           status,
           currentLocation: location || s.destination,
           history: FieldValue.arrayUnion({ status, location: location || s.destination, description: description || ("Updated to " + status), timestamp: new Date().toISOString() })
         }
+        if (CONCLUSIVE_STATUSES.includes(status)) { upd.status_proprio = status; upd.is_custom_status = true }
         if (status === "DELIVERED") { upd.actualDelivery = FieldValue.serverTimestamp() }
         if (status === "READY_FOR_PICKUP") {
           const deadline = addBusinessDays(new Date(), 5)
@@ -522,8 +552,8 @@ export const AdminController = {
         }
       }
       await batch.commit()
-      logger.info("Batch: " + ids.length + " to " + status + " route " + route)
-      res.json({ success: true, updated: ids.length, message: ids.length + " shipments updated", shipmentIds: ids, whatsappReady: notifCount })
+      logger.info(`[BatchStatus] Route "${route}" → ${status} | ${ids.length} updated | ${skipped} skipped (individual) | ${notifCount} whatsapp-ready`)
+      res.json({ success: true, updated: ids.length, skipped: skipped, message: ids.length + " shipments updated", shipmentIds: ids, whatsappReady: notifCount })
     } catch (error) {
       logger.error("Batch error:", error)
       res.status(500).json({ error: "Batch error" })
@@ -546,6 +576,7 @@ export const AdminController = {
           currentLocation: location || s.destination,
           history: FieldValue.arrayUnion({ status, location: location || s.destination, description: description || ("Updated to " + status), timestamp: new Date().toISOString() })
         }
+        if (CONCLUSIVE_STATUSES.includes(status)) { upd.status_proprio = status; upd.is_custom_status = true }
         if (status === "DELIVERED") { upd.actualDelivery = FieldValue.serverTimestamp() }
         if (status === "READY_FOR_PICKUP") {
           upd.readyForPickupAt = FieldValue.serverTimestamp();

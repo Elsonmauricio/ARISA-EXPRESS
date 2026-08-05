@@ -166,7 +166,9 @@ logger.info(`Encontradas ${shipments.length} encomendas para o utilizador ${user
       if (!doc.exists) {
         return res.status(404).json({ error: 'Encomenda não encontrada' });
       }
-      const shipment = { id: doc.id, ...doc.data() } as any;
+      const docData = doc.data() as any;
+      const statusCalculado = docData?.status_proprio ?? docData?.status ?? null;
+      const shipment = { id: doc.id, ...docData, status_calculado: statusCalculado } as any;
       const user = (req as any).user;
       if (shipment.userId !== user.id && user.role !== 'ADMIN') {
         return res.status(403).json({ error: 'Acesso negado' });

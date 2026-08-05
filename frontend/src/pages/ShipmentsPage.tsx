@@ -65,7 +65,7 @@ function formatDate(dateValue: any): string {
 }
 
 // ======================== BOOKING FORM ========================
-function BookingForm({ routes }: { routes: Route[] }) {
+function BookingForm({ routes, onBookingSuccess }: { routes: Route[]; onBookingSuccess?: () => void }) {
   const { t } = useT();
   const [step, setStep] = useState<'simulate' | 'form' | 'success'>('simulate');
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
@@ -87,6 +87,15 @@ function BookingForm({ routes }: { routes: Route[] }) {
     description: '',
     serviceType: 'REDIRECT'
   });
+
+  useEffect(() => {
+    if (selectedRoute && routes.length > 0) {
+      const updated = routes.find(r => r.id === selectedRoute.id);
+      if (updated && updated.available !== selectedRoute.available) {
+        setSelectedRoute(updated);
+      }
+    }
+  }, [routes]);
 
   useEffect(() => {
     if (selectedRoute) {
@@ -180,6 +189,7 @@ function BookingForm({ routes }: { routes: Route[] }) {
       const json = await response.json();
       if (json.success) {
         setStep('success');
+        onBookingSuccess?.();
       } else {
         setError(json.error || t('ship.erroCriar'));
       }
@@ -545,7 +555,7 @@ function ShipmentList() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="font-semibold">kg {s.price?.toFixed(2) || '—'}</div>
+              <div className="font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
               <div className="text-xs text-gray-400">{s.weight} kg</div>
             </div>
             <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(s.status)}`}>
@@ -997,7 +1007,7 @@ export default function ShipmentsPage() {
               ) : routesError ? (
                 <div className="text-center py-8 text-red-400">{routesError}</div>
               ) : (
-                <BookingForm routes={routes} />
+                 <BookingForm routes={routes} onBookingSuccess={fetchRoutes} />
               )
             )}
             {activeTab === 'consultar' && <ShipmentList />}

@@ -23,6 +23,9 @@ interface Shipment {
   weight: number;
   price: number;
   status: string;
+  status_proprio?: string | null;
+  status_calculado?: string;
+  is_custom_status?: boolean;
   createdAt: any;
   senderName: string;
   receiverName: string;
@@ -57,6 +60,7 @@ interface Route {
   reserved: number;
   available: number;
   status: string;
+  status_atual?: string;
 }
 
 interface Lead {
@@ -340,7 +344,7 @@ function getStatusColor(status: string) {
 }
 
 // ======================== ADMIN SHIPMENT LIST ========================
-function AdminShipmentList() {
+function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -355,10 +359,31 @@ function AdminShipmentList() {
   const [batchWhatsappInfo, setBatchWhatsappInfo] = useState<{count: number; links: string[]} | null>(null)
   const [editingCttId, setEditingCttId] = useState<string | null>(null);
   const [cttForm, setCttForm] = useState<Record<string, { code: string; link: string }>>({});
+  const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
   const { t } = useT();
 
+  const [routes, setRoutes] = useState<Route[]>([]);
+
+  const fetchRoutes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(api('/api/routes'), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.status === 401) return;
+      const json = await response.json();
+      if (json.success) setRoutes(json.data);
+    } catch { /* silencioso */ }
+  };
+
+  useEffect(() => {
+    fetchRoutes();
+  }, [refreshKey]);
+
   const fetchShipments = useCallback(async () => {
+    setLoading(true);
+    setRefreshing(true);
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -393,12 +418,13 @@ function AdminShipmentList() {
       setError(t('admin.erroConexao'));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [filter, t, navigate, api]);
 
   useEffect(() => {
     fetchShipments();
-  }, [fetchShipments]);
+  }, [fetchShipments, refreshKey]);
 
   const updateStatus = async (id: string, status: string) => {
     try {
@@ -510,12 +536,12 @@ function AdminShipmentList() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const json = await response.json();
-      if (json.success) {
-        if (json.data?.link) {
-          window.open(json.data.link, '_blank');
-        } else {
-          alert(t('admin.erroWhatsapp'));
-        }
+      if (json.success && json.data?.link) {
+        const imageUrl = json.data.imageUrl;
+        const isLuanda = imageUrl && imageUrl.includes('Luanda.jpeg');
+        const imgName = isLuanda ? 'Luanda.jpeg' : 'Lisboa.jpeg';
+        alert('Link do WhatsApp aberto. Imagem para este envio: ' + imgName + '\nURL da imagem: ' + imageUrl);
+        window.open(json.data.link, '_blank');
       } else {
         alert(json.error || t('admin.erroWhatsapp'));
       }
@@ -623,9 +649,10 @@ function AdminShipmentList() {
         </select>
         <button
           onClick={fetchShipments}
-          className="px-4 py-2 bg-[#E8D9F5] border border-gray-300 rounded-lg text-gold hover:bg-white transition-colors flex items-center gap-2"
+          disabled={refreshing}
+          className="px-4 py-2 bg-[#E8D9F5] border border-gray-300 rounded-lg text-gold hover:bg-white transition-colors flex items-center gap-2 disabled:opacity-50"
         >
-          <RefreshCw className="w-4 h-4" /> {t('admin.atualizar')}
+          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} /> {t('admin.atualizar')}
         </button>
         <button
           onClick={() => setBatchModalOpen(true)}
@@ -670,9 +697,31 @@ function AdminShipmentList() {
                     {s.calculatedFine !== undefined ? `€ ${s.calculatedFine.toFixed(2)}` : '€—'}
                   </td>
                   <td className="py-3 px-2 sm:px-4">
-                    <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(s.status)}`}>
-                      {t(`status.${s.status}`)}
-                    </span>
+                     {(() => {
+                       if (s.is_custom_status) {
+                         return (
+                           <span className="px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-green-500/20 text-green-400">
+                             {t(`status.${s.status_proprio || s.status}`)} <span className="opacity-70">({t('admin.individualAction')})</span>
+                           </span>
+                         );
+                       }
+                       const parentRoute = s.routeId
+                         ? routes.find(r => r.id === s.routeId)
+                         : routes.find(r => `${r.origin} » ${r.destination}` === s.route);
+                       const routeStatus = parentRoute?.status_atual || parentRoute?.status;
+                       if (routeStatus) {
+                         return (
+                           <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(routeStatus)}`}>
+                             {t(`status.${routeStatus}`)} <span className="opacity-70">(da rota)</span>
+                           </span>
+                         );
+                       }
+                       return (
+                         <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getStatusColor(s.status)}`}>
+                           {t(`status.${s.status}`)}
+                         </span>
+                       );
+                     })()}
                   </td>
                    <td className="py-3 px-2 sm:px-4">
                      <div className="flex flex-wrap items-center gap-1">
@@ -984,7 +1033,7 @@ function AdminUserList() {
 }
 
 // ======================== ADMIN ROUTE MANAGER ========================
-function AdminRouteManager() {
+function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () => void }) {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -1054,6 +1103,11 @@ function AdminRouteManager() {
       const json = await response.json();
       if (json.success) {
         fetchRoutes();
+        // Dispara re-busca de encomendas no AdminShipmentList
+        onRouteStatusChange?.();
+        if (json.data?.whatsappReady > 0) {
+          alert(json.data.whatsappReady + ' encomendas prontas para WhatsApp.');
+        }
       } else {
         alert(json.error || t('admin.erroStatusRota'));
       }
@@ -1230,15 +1284,18 @@ function AdminRouteManager() {
                     </td>
                     <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
                       <select
-                        value={r.status || 'SCHEDULED'}
+                        value={r.status_atual || r.status || 'PROCESSAMENTO'}
                         onChange={(e) => updateRouteStatus(r.id, e.target.value)}
                         disabled={savingRouteId === r.id}
                         className="px-2 py-1 bg-[#E8D9F5] border border-gray-300 rounded text-[10px] sm:text-xs text-gold focus:border-gold outline-none min-h-[32px] sm:min-h-[36px]"
                       >
-                        <option value="SCHEDULED">{t('admin.rotaAgendada')}</option>
-                        <option value="DEPARTED">{t('admin.rotaPartiu')}</option>
-                        <option value="ARRIVED">{t('admin.rotaChegou')}</option>
-                        <option value="CANCELLED">{t('admin.rotaCancelada')}</option>
+                        <option value="CARGA_RECEBIDA">{t('admin.cargaRecebida')}</option>
+                        <option value="PROCESSAMENTO">{t('admin.processamento')}</option>
+                        <option value="TRANSITO_AEREO">{t('admin.transitoAereo')}</option>
+                        <option value="DESPACHO">{t('admin.desembarqueAlfandega')}</option>
+                        <option value="HUB_DESTINO">{t('admin.chegouHubDestino')}</option>
+                        <option value="READY_FOR_PICKUP">{t('admin.disponivelLevantamento')}</option>
+                        <option value="ROTA_CONCLUIDA">{t('admin.rotaConcluida')}</option>
                       </select>
                     </td>
                     <td className="py-3 px-2 sm:px-4">
@@ -1288,6 +1345,7 @@ function AdminLeadsList() {
   const [newNote, setNewNote] = useState<Record<string, string>>({});
   const [newTag, setNewTag] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const [leadsRefreshing, setLeadsRefreshing] = useState(false);
   const navigate = useNavigate();
   const { t } = useT();
 
@@ -1362,10 +1420,10 @@ function AdminLeadsList() {
   };
 
   const refreshAll = async () => {
-    setLoading(true);
+    setLeadsRefreshing(true);
     setError('');
     await Promise.all([fetchLeads(), fetchPipeline()]);
-    setLoading(false);
+    setLeadsRefreshing(false);
   };
 
   useEffect(() => {
@@ -1600,9 +1658,10 @@ function AdminLeadsList() {
         ))}
         <button
           onClick={refreshAll}
-          className="ml-auto px-3 py-1.5 bg-[#E8D9F5] border border-gray-300 rounded-lg text-gold hover:bg-white transition-colors flex items-center gap-2 text-xs"
+          disabled={leadsRefreshing}
+          className="ml-auto px-3 py-1.5 bg-[#E8D9F5] border border-gray-300 rounded-lg text-gold hover:bg-white transition-colors flex items-center gap-2 text-xs disabled:opacity-50"
         >
-          <RefreshCw className="w-4 h-4" /> {t('admin.atualizar')}
+          <RefreshCw className={`w-4 h-4 ${leadsRefreshing ? 'animate-spin' : ''}`} /> {t('admin.atualizar')}
         </button>
       </div>
 
@@ -1786,6 +1845,11 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [shipmentsRefreshKey, setShipmentsRefreshKey] = useState(0);
+
+  const triggerShipmentsRefresh = useCallback(() => {
+    setShipmentsRefreshKey(k => k + 1);
+  }, []);
 
   // Verificar permissões
   useEffect(() => {
@@ -2020,9 +2084,9 @@ export default function AdminDashboard() {
             )}
 
             {activeTab === 'newShipment' && <NewShipmentForm />}
-            {activeTab === 'shipments' && <AdminShipmentList />}
+            {activeTab === 'shipments' && <AdminShipmentList refreshKey={shipmentsRefreshKey} />}
             {activeTab === 'users' && <AdminUserList />}
-            {activeTab === 'routes' && <AdminRouteManager />}
+            {activeTab === 'routes' && <AdminRouteManager onRouteStatusChange={triggerShipmentsRefresh} />}
             {activeTab === 'messages' && <AdminLeadsList />}
           </div>
         </div>

@@ -74,6 +74,7 @@ export const RouteController = {
         flightDate: flightDateObj,
         capacity: parseFloat(capacity) || 0,
         reserved: 0,
+        status_atual: 'SCHEDULED',
         updatedAt: FieldValue.serverTimestamp()
       };
 
@@ -140,8 +141,18 @@ export const RouteController = {
         return res.status(400).json({ error: 'ID da rota é obrigatório' });
       }
 
-      if (!['SCHEDULED', 'DEPARTED', 'ARRIVED', 'CANCELLED'].includes(status)) {
-        return res.status(400).json({ error: 'Status inválido. Use: SCHEDULED, DEPARTED, ARRIVED ou CANCELLED' });
+      const ROUTE_STATUS_MAP: Record<string, { shipmentStatus: string; description: string }> = {
+        CARGA_RECEBIDA: { shipmentStatus: 'COLLECTED', description: 'Carga recebida na origem' },
+        PROCESSAMENTO: { shipmentStatus: 'PENDING', description: 'Carga em processamento' },
+        TRANSITO_AEREO: { shipmentStatus: 'IN_TRANSIT', description: 'Voo em curso' },
+        DESESPACHO: { shipmentStatus: 'CUSTOMS', description: 'Em desalfandegamento' },
+        HUB_DESTINO: { shipmentStatus: 'HUB_DESTINO', description: 'Chegou ao hub de destino' },
+        READY_FOR_PICKUP: { shipmentStatus: 'READY_FOR_PICKUP', description: 'Disponível para levantamento' },
+        ROTA_CONCLUIDA: { shipmentStatus: 'DELIVERED', description: 'Rota concluída' },
+      };
+
+      if (!ROUTE_STATUS_MAP[status]) {
+        return res.status(400).json({ error: 'Status inválido. Use: CARGA_RECEBIDA, PROCESSAMENTO, TRANSITO_AEREO, DESESPACHO, HUB_DESTINO, READY_FOR_PICKUP ou ROTA_CONCLUIDA' });
       }
 
       const routeRef = db.collection('routes').doc(id);
@@ -151,88 +162,141 @@ export const RouteController = {
         return res.status(404).json({ error: 'Rota não encontrada' });
       }
 
+      const routeData = routeDoc.data() as any;
+      const oldRouteStatus = routeData?.status || routeData?.status_atual || 'N/A';
+
+      logger.info(`[RouteStatus] === UPDATE ROUTE ${id} ===`);
+      logger.info(`[RouteStatus] Route: ${routeData?.origin || '?'} → ${routeData?.destination || '?'}`);
+      logger.info(`[RouteStatus] Status change: ${oldRouteStatus} → ${status}`);
+      logger.info(`[RouteStatus] Mapping: route status "${status}" → shipment status "${ROUTE_STATUS_MAP[status].shipmentStatus}"`);
+
       await routeRef.update({
         status,
+        status_atual: status,
         updatedAt: FieldValue.serverTimestamp()
       });
 
-      const updatedRoute = await routeRef.get();
-      const routeData = updatedRoute.data();
+      logger.info(`[RouteStatus] ✅ Route document updated in Firestore`);
 
-      let affectedShipments = 0;
+      const routeDest = String(routeData?.destination || '').toLowerCase();
+      const isRouteLuanda = routeDest.includes('luanda') || routeDest.includes('angola');
+      const routeDestLabel = isRouteLuanda ? 'Luanda (Angola)' : 'Lisboa (Portugal)';
 
-      if (status === 'DEPARTED') {
-        const snapshot = await db.collection('shipments')
-          .where('routeId', '==', id)
-          .where('status', 'in', ['PENDING', 'COLLECTED'])
-          .get();
+      const mapResult = ROUTE_STATUS_MAP[status];
+      let shipmentStatus = mapResult.shipmentStatus;
 
-        const batch = db.batch();
-        snapshot.docs.forEach(doc => {
-          batch.update(doc.ref, {
-            status: 'IN_TRANSIT',
-            updatedAt: FieldValue.serverTimestamp()
-          });
-          batch.set(doc.ref.collection('trackingUpdates').doc(), {
-            status: 'IN_TRANSIT',
-            location: routeData?.destination || 'N/A',
-            description: 'Rota partiu. Encomenda em trânsito.',
-            timestamp: FieldValue.serverTimestamp()
-          });
-          affectedShipments++;
-        });
-        await batch.commit();
+      if (status === 'HUB_DESTINO') {
+        shipmentStatus = isRouteLuanda ? 'IN_ANGOLA' : 'IN_PORTUGAL';
+        logger.info(`[RouteStatus] HUB_DESTINO: route destination is ${routeData?.destination} → shipmentStatus = ${shipmentStatus}`);
       }
 
-      if (status === 'ARRIVED') {
-        const snapshot = await db.collection('shipments')
-          .where('routeId', '==', id)
-          .where('status', 'in', ['PENDING', 'COLLECTED', 'IN_TRANSIT', 'CUSTOMS'])
-          .get();
+      logger.info(`[RouteStatus] Final shipment status to apply: ${shipmentStatus}`);
 
-        const batch = db.batch();
-        snapshot.docs.forEach(doc => {
-          batch.update(doc.ref, {
-            status: 'IN_ANGOLA',
-            updatedAt: FieldValue.serverTimestamp()
-          });
-          batch.set(doc.ref.collection('trackingUpdates').doc(), {
-            status: 'IN_ANGOLA',
-            location: routeData?.destination || 'N/A',
-            description: 'Rota chegou ao destino.',
-            timestamp: FieldValue.serverTimestamp()
-          });
-          affectedShipments++;
-        });
-        await batch.commit();
+      // Build route string to match shipments (covers both routeId and route string)
+      const routeString = `${routeData?.origin || ''} » ${routeData?.destination || ''}`;
+
+      // Fetch shipments matching this route (by routeId for new shipments, by route string for legacy)
+      let shipmentSnapshot;
+      try {
+        shipmentSnapshot = await db.collection('shipments')
+          .where('routeId', '==', id)
+          .get();
+      } catch {
+        shipmentSnapshot = { empty: true, docs: [], size: 0 } as any;
       }
 
-      if (status === 'CANCELLED') {
-        const snapshot = await db.collection('shipments')
-          .where('routeId', '==', id)
-          .where('status', 'not-in', ['DELIVERED', 'CANCELLED'])
-          .get();
+      let shippedInStandardFlow = shipmentSnapshot.size;
 
-        const batch = db.batch();
-        snapshot.docs.forEach(doc => {
-          batch.update(doc.ref, {
-            status: 'CANCELLED',
-            updatedAt: FieldValue.serverTimestamp()
-          });
-          batch.set(doc.ref.collection('trackingUpdates').doc(), {
-            status: 'CANCELLED',
-            location: routeData?.destination || 'N/A',
-            description: 'Rota cancelada.',
-            timestamp: FieldValue.serverTimestamp()
-          });
-          affectedShipments++;
-        });
-        await batch.commit();
+      if (shipmentSnapshot.empty) {
+        // Fallback: try matching by route string (for shipments without routeId)
+        try {
+          const stringSnapshot = await db.collection('shipments')
+            .where('route', '==', routeString)
+            .get();
+          shippedInStandardFlow = stringSnapshot.size;
+          shipmentSnapshot = stringSnapshot;
+        } catch {
+          shipmentSnapshot = { empty: true, docs: [], size: 0 } as any;
+        }
       }
 
-      res.json({ success: true, data: { id, status, affectedShipments } });
+      logger.info(`[RouteStatus] Shipments in standard flow (status_proprio=null): ${shippedInStandardFlow}`);
+
+      if (shipmentSnapshot.empty) {
+        logger.info(`[RouteStatus] ℹ️ No shipments to update for route ${id}`);
+        return res.json({ success: true, data: { id, status, shipmentStatus, affectedShipments: 0, whatsappReady: 0 } });
+      }
+
+      const batch = db.batch();
+      let notifCount = 0;
+      const shipmentIds: string[] = [];
+
+            shipmentSnapshot.docs.forEach((doc: any) => {
+        const s = doc.data() as any;
+        if (s.status_proprio != null || s.is_custom_status === true) {
+          logger.info(`[RouteStatus] Skipping shipment ${doc.id} — has custom status`);
+          return;
+        }
+        logger.info(`[RouteStatus] 🔄 Processing shipment ${doc.id} (${s.trackingCode || 'N/A'})`);
+        logger.info(`[RouteStatus]   Current: status=${s.status || '?'} | is_custom_status=${s.is_custom_status ? 'true' : 'false'} | status_proprio=${s.status_proprio || 'null'}`);
+        logger.info(`[RouteStatus]   Will update: status=${shipmentStatus} | currentLocation=${routeData?.destination || 'N/A'}`);
+
+        const updateData: any = {
+          status: shipmentStatus,
+          status_atual: status,
+          currentLocation: routeData?.destination || 'N/A',
+          updatedAt: FieldValue.serverTimestamp()
+        };
+
+        if (shipmentStatus === 'READY_FOR_PICKUP') {
+          const deadline = new Date();
+          deadline.setDate(deadline.getDate() + 5);
+          updateData.readyForPickupAt = FieldValue.serverTimestamp();
+          updateData.pickupDeadline = deadline;
+          updateData.pickupAddress = isRouteLuanda
+            ? 'Morro Bento\nAvenida 21 de Janeiro\nDefronte ao Hotel Ágatha\nNo lado oposto ao Hotel Ágatha\nNa entrada à esquerda da farmácia Elvice, antes do Colégio GAB 2 está a Arisa Express'
+            : 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2630-328 Santo António dos Cavaleiros';
+          updateData.pickupContact = isRouteLuanda ? '+244 948 440 920' : '+351 934 292 082';
+
+          if (s.receiverPhone || s.senderPhone) { notifCount++ }
+          logger.info(`[RouteStatus]   READY_FOR_PICKUP: pickupAddress=${isRouteLuanda ? 'Luanda' : 'Lisbon'}, whatsappReady: ${s.receiverPhone || s.senderPhone ? 'yes' : 'no'}`);
+        }
+
+        if (shipmentStatus === 'PICKED_UP') {
+          updateData.pickedUpAt = FieldValue.serverTimestamp();
+          updateData.pickupDeadline = null;
+          logger.info(`[RouteStatus]   PICKED_UP: pickedUpAt set, pickupDeadline cleared`);
+        }
+
+        if (shipmentStatus === 'DELIVERED') {
+          updateData.actualDelivery = FieldValue.serverTimestamp();
+          logger.info(`[RouteStatus]   DELIVERED: actualDelivery timestamp set`);
+        }
+
+        batch.update(doc.ref, updateData);
+        batch.set(doc.ref.collection('trackingUpdates').doc(), {
+          status: shipmentStatus,
+          location: routeDestLabel,
+          description: mapResult.description,
+          timestamp: FieldValue.serverTimestamp()
+        });
+        shipmentIds.push(doc.id);
+      });
+
+      await batch.commit();
+      logger.info(`[RouteStatus] === SUMMARY ===`);
+      logger.info(`[RouteStatus] Route ${id}: ${oldRouteStatus} → ${status} (shipmentStatus: ${shipmentStatus})`);
+      logger.info(`[RouteStatus] ✅ ${shipmentIds.length} shipments updated in Firestore`);
+      logger.info(`[RouteStatus] 📱 ${notifCount} shipments ready for WhatsApp notification`);
+      logger.info(`[RouteStatus] 🔗 Affected IDs: ${JSON.stringify(shipmentIds)}`);
+      logger.info(`[RouteStatus] === END ===`);
+
+      res.json({
+        success: true,
+        data: { id, status, shipmentStatus, affectedShipments: shipmentIds.length, shipmentIds, whatsappReady: notifCount }
+      });
     } catch (error) {
-      logger.error('Erro ao atualizar status da rota:', error);
+      logger.error('[RouteStatus] ❌ Error updating route status:', error);
       res.status(500).json({ error: 'Erro ao atualizar status da rota' });
     }
   },
