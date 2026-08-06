@@ -1,8 +1,3 @@
-// src/i18n/translations.ts
-// Dicionário de traduções PT (Portugal) <-> EN para todo o projeto.
-// Chaves em inglês ("camelCase" ou "dot.case") -> valor por idioma.
-// Suporta interpolação: use t('key', { name: 'X' }) para substituir {name}.
-
 export type Lang = 'pt' | 'en';
 
 type Dict = Record<string, string>;
@@ -95,7 +90,7 @@ export const translations: Record<Lang, Dict> = {
     'contact.subtitle': 'Tem alguma dúvida ou precisa de um serviço personalizado? A nossa equipa está pronta para ajudar.',
     'contact.nome': 'Nome completo',
     'contact.email': 'Email',
-    'contact.telefone': 'Telefone',
+    'contact.telefone': 'Telefone Whatsapp',
     'contact.mensagem': 'Mensagem',
     'contact.enviando': 'Enviando...',
     'contact.enviar': 'Enviar Mensagem',
@@ -110,9 +105,9 @@ export const translations: Record<Lang, Dict> = {
     'contact.horarioAO': '8:00 – 12:00 • 13:00 – 17:00',
     'contact.luanda': 'Luanda',
     'contact.lisboa': 'Lisboa',
-    'contact.moradaLuanda1': 'Avenida 21 de janeiro, Sentido Gamek',
-    'contact.moradaLuanda2': 'Defronte ao Hotel Ágatha',
-    'contact.moradaLisboa1': 'Praceta Salgado Zenha 2',
+    'contact.moradaLuanda1': 'Morro Bento, Avenida 21 de Janeiro',
+    'contact.moradaLuanda2': 'No Lado oposto ao Hotel Ágatha, na entrada a esquerda da farmácia Elvice, Antes do c. GAB 2 ESTA A ARISA EXPRESS',
+    'contact.moradaLisboa1': 'Centro comercial Flamingo, loja 47, Avenida Salgado Zenha 2',
     'contact.moradaLisboa2': '2660-328 Santo António Cavaleiros, Portugal',
     'contact.moradas': 'Moradas',
     'contact.whatsappTitle': 'Atendimento via WhatsApp',
@@ -728,7 +723,7 @@ export const translations: Record<Lang, Dict> = {
     'contact.subtitle': 'Have a question or need a custom service? Our team is ready to help.',
     'contact.nome': 'Full name',
     'contact.email': 'Email',
-    'contact.telefone': 'Phone',
+    'contact.telefone': 'WhatsApp Phone',
     'contact.mensagem': 'Message',
     'contact.enviando': 'Sending...',
     'contact.enviar': 'Send Message',
@@ -743,9 +738,9 @@ export const translations: Record<Lang, Dict> = {
     'contact.horarioAO': '8:00 – 12:00 • 13:00 – 17:00',
     'contact.luanda': 'Luanda',
     'contact.lisboa': 'Lisbon',
-    'contact.moradaLuanda1': 'Avenida 21 de janeiro, Sentido Gamek',
-    'contact.moradaLuanda2': 'Opposite Hotel Ágatha',
-    'contact.moradaLisboa1': 'Praceta Salgado Zenha 2',
+    'contact.moradaLuanda1': 'Morro Bento, Avenida 21 de Janeiro',
+    'contact.moradaLuanda2': 'No Lado oposto ao Hotel Ágatha, na entrada a esquerda da farmácia Elvice, Antes do c. GAB 2 ESTA A ARISA EXPRESS',
+    'contact.moradaLisboa1': 'Centro comercial Flamingo, loja 47, Avenida Salgado Zenha 2',
     'contact.moradaLisboa2': '2660-328 Santo António Cavaleiros, Portugal',
     'contact.moradas': 'Addresses',
     'contact.whatsappTitle': 'WhatsApp Support',

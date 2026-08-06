@@ -126,7 +126,7 @@ export default function StorySection({ chapters, visual, onProgress, className =
                 <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-black leading-[1.05]">
                   <span className="text-gradient-lilac">{ch.title}</span>
                 </h2>
-                <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                <p className="mt-2 text-black leading-relaxed">
                   {ch.body}
                 </p>
               </div>

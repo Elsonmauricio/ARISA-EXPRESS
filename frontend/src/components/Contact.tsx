@@ -124,6 +124,10 @@ export default function Contact() {
                   <span>+351 934 292 082</span>
                 </div>
                 <div className="flex items-center gap-3">
+                  <Phone size={18} className="text-black" />
+                  <span>+244 948 440 920</span>
+                </div>
+                <div className="flex items-center gap-3">
                   <Mail size={18} className="text-black" />
                   <span>arisaexpress7@gmail.com</span>
                 </div>

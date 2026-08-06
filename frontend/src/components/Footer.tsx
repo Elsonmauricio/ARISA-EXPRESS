@@ -28,8 +28,8 @@ export default function Footer() {
     { label: t('footer.privacidade'), href: '/privacidade' },
   ];
   return (
-    <footer id="footer" className="relative pt-24 pb-10 border-t border-gray-300 bg-[#4B2170] text-gold">
-      {/* Linha decorativa lilÃ¡s */}
+    <footer id="footer" className="relative pt-24 pb-10 border-t border-gray-300 bg-[#E8D9F5] text-gold">
+      {/* Linha decorativa lilás */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-px bg-gradient-to-r from-transparent via-lilac-500/60 to-transparent" />
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[40%] h-40 bg-lilac-500/10 blur-3xl rounded-full pointer-events-none" />
 
@@ -44,7 +44,7 @@ export default function Footer() {
                 className="h-20 w-auto object-contain transition-transform duration-300 hover:scale-105" width={80} height={80}
               />
             </div>
-            <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
+            <p className="text-sm text-black leading-relaxed max-w-xs">
               {t('footer.descricaoMarca', { eleg: 'elegância', prec: 'precisão' })}
             </p>
           </div>
@@ -78,6 +78,11 @@ export default function Footer() {
               <li>
                 <a href="tel:+351934292082" className="flex items-center gap-2 hover:text-lilac-500 transition-colors">
                   <Phone className="w-4 h-4 text-lilac-500" /> +351 934 292 082
+                </a>
+              </li>
+              <li>
+                <a href="tel:+244948440920" className="flex items-center gap-2 hover:text-lilac-500 transition-colors">
+                  <Phone className="w-4 h-4 text-lilac-500" /> +244 948 440 920
                 </a>
               </li>
               <li>
