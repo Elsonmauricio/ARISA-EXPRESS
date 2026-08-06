@@ -123,7 +123,7 @@ export default function StorySection({ chapters, visual, onProgress, className =
               style={{ top: '50%', transform: align === 'center' ? 'translate(-50%, -50%)' : 'translateY(-50%)' }}
             >
               <div className="story-inner" style={{ opacity: i === 0 ? 1 : 0 }}>
-                <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-gold leading-[1.05]">
+                <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-black leading-[1.05]">
                   {ch.title}
                 </h2>
                 <p className="mt-2 text-sm text-gray-500 leading-relaxed">

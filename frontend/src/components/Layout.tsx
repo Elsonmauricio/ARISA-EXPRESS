@@ -13,7 +13,7 @@ export default function Layout({ children, hideNavbar = false }: LayoutProps) {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-[#E8D9F5] text-slate-800 antialiased relative">
+    <div className="min-h-screen bg-[#9A7DB2] text-slate-800 antialiased relative">
       {!hideNavbar && <Navbar />}
       {children}
       {location.pathname === '/' && (

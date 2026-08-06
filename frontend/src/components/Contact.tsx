@@ -120,11 +120,11 @@ export default function Contact() {
               <h3 className="text-xl font-bold mb-4">{t('contact.infoTitle')}</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Phone size={18} className="text-gold" />
+                  <Phone size={18} className="text-black" />
                   <span>+351 934 292 082</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Mail size={18} className="text-gold" />
+                  <Mail size={18} className="text-black" />
                   <span>arisaexpress7@gmail.com</span>
                 </div>
               </div>
@@ -133,11 +133,11 @@ export default function Contact() {
             {/* HorÃ¡rios */}
             <div className="glass-strong border-gradient p-6 rounded-3xl">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Clock size={18} className="text-gold" /> {t('contact.horario')}
+                <Clock size={18} className="text-black" /> {t('contact.horario')}
               </h3>
               <div className="space-y-3 text-sm">
                 <div>
-                  <div className="flex items-center gap-2 text-gold font-medium">
+                  <div className="flex items-center gap-2 text-black font-medium">
                         {t('contact.portugal')}
                   </div>
                    <p className="text-gray-800 mt-1">
@@ -145,7 +145,7 @@ export default function Contact() {
                    </p>
                  </div>
                  <div>
-                   <div className="flex items-center gap-2 text-gold font-medium">
+                   <div className="flex items-center gap-2 text-black font-medium">
                         {t('contact.angola')}
                    </div>
                    <p className="text-gray-800 mt-1">
@@ -160,7 +160,7 @@ export default function Contact() {
                <h3 className="text-xl font-bold mb-4">{t('contact.moradas')}</h3>
               <div className="space-y-4">
                 <div>
-                  <div className="flex items-center gap-2 text-gold font-medium text-sm">
+                  <div className="flex items-center gap-2 text-black font-medium text-sm">
                     <MapPin size={16} /> {t('contact.luanda')}
                   </div>
                    <p className="text-sm text-gray-800 mt-1">
@@ -169,10 +169,10 @@ export default function Contact() {
                    </p>
                  </div>
                  <div>
-                   <div className="flex items-center gap-2 text-gold font-medium text-sm">
+                   <div className="flex items-center gap-2 text-black font-medium text-black">
                      <MapPin size={16} /> {t('contact.lisboa')}
                    </div>
-                   <p className="text-sm text-gray-800 mt-1">
+                   <p className="text-black text-gray-800 mt-1">
                      {t('contact.moradaLisboa1')}<br />
                      {t('contact.moradaLisboa2')}
                    </p>
@@ -186,7 +186,7 @@ export default function Contact() {
                 href={whatsappUrl(t('contact.whatsapp'))}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block bg-green-600 text-gold w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+                className="block bg-green-600 text-black w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
               >
                 {t('contact.whatsapp')}
               </a>

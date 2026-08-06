@@ -48,8 +48,8 @@ const About: React.FC = () => {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="glass rounded-2xl p-6 border-gradient"
               >
-                 <h3 className="font-display text-xl font-semibold text-gold">{p.title}</h3>
-                 <p className="mt-2 text-sm text-gray-500 leading-relaxed">{p.text}</p>
+                 <h3 className="font-display text-xl font-semibold text-black">{p.title}</h3>
+                 <p className="mt-2 text-sm text-black leading-relaxed">{p.text}</p>
               </motion.div>
             ))}
           </div>

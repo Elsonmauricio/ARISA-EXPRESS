@@ -21,8 +21,8 @@ import { LanguageProvider, useT } from './i18n/LanguageContext';
 
 function PageLoader() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#E8D9F5]">
-      <div className="w-10 h-10 rounded-full border-2 border-t-gold border-[#4B2170]/30 animate-spin" />
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#9A7DB2]">
+      <div className="w-10 h-10 rounded-full border-2 border-t-gold border-[#9A7DB2]/30 animate-spin" />
     </div>
   );
 }

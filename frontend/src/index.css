@@ -53,28 +53,28 @@
     border: 1px solid rgba(139, 47, 201, 0.22);
   }
   .text-gradient-gold {
-    background: linear-gradient(135deg, #8B2FC9 0%, #D4AF37 50%, #DDB8FA 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #000;
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
   }
   .text-gradient-lilac {
-    background: linear-gradient(135deg, #7B2FBF 0%, #D4AF37 50%, #8B2FC9 100%);
+    background: linear-gradient(135deg, #7B2FBF 0%, #000 50%, #8B2FC9 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .bg-cta-grad {
-    background: linear-gradient(135deg, #D4AF37 0%, #8B2FC9 100%);
+    background: linear-gradient(135deg, #000 0%, #8B2FC9 100%);
   }
   .bg-gold-grad {
-    background: linear-gradient(90deg, #E8D9F5 0%, #D4AF37 50%, #DDB8FA 100%);
+    background: linear-gradient(90deg, #E8D9F5 0%, #000 50%, #DDB8FA 100%);
   }
   .shadow-glow {
     box-shadow: 0 0 24px rgba(139, 47, 201, 0.35);
   }
   .shadow-gold {
-    box-shadow: 0 0 24px rgba(212, 175, 55, 0.45);
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
   }
   /* AERO-ANGLES: canto chanfrado (chamfer) para painéis "fora da caixa" */
   .aero-chamfer {
@@ -116,9 +116,10 @@
   .preserve-3d { transform-style: preserve-3d; }
   .backface-hidden { backface-visibility: hidden; }
   #main-wrapper { overflow-x: clip; }
-   .text-gold {
-     text-shadow:
-       0 0 3px rgba(212, 175, 55, 0.7);
+   .text-gold,
+   [class*="text-gold"] {
+     color: #000 !important;
+     text-shadow: none !important;
    }
 }
 
