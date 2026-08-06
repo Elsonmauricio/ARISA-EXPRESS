@@ -115,19 +115,19 @@ export default function Contact() {
                 )}
               </AnimatePresence>
 
-               {/* Figura 3D Canvas */}
-                    <div className="w-full h-40 sm:h-48 mt-4">
-                      <Canvas camera={{ position: [0, 0, 4], fov: 40 }}>
-                        <ambientLight intensity={0.8} />
-                        <pointLight position={[10, 10, 10]} intensity={1} />
-                        
-                          <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-                            <Mailbox3D />
-                          </Float>
-                        
-                        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} />
-                      </Canvas>
-                    </div>
+             {/* Figura 3D Canvas */}
+                  <div className="w-full h-40 sm:h-48 mt-4">
+                    <Canvas camera={{ position: [0, 0, 4], fov: 40 }}>
+                      <ambientLight intensity={0.8} />                        <pointLight position={[10, 10, 10]} intensity={1} />
+                      
+                        <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+                          <Mailbox3D />
+                        </Float>
+                      
+                      <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} />
+                    </Canvas>
+                   </div>
+
             </form>      
 
           </div>

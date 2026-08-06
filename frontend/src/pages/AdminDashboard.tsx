@@ -6,7 +6,7 @@ import {
   AlertCircle, CheckCircle2, Clock, XCircle,
   Search, Plus, Edit, Trash2, MapPin,
   ChevronDown, RefreshCw, Mail,
-  Tag, UserPlus, StickyNote, Filter, ChevronRight, Send
+  Tag, UserPlus, StickyNote, Filter, Send
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
@@ -1840,18 +1840,14 @@ function AdminLeadsList() {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { t } = useT();
-  const [activeTab, setActiveTab] = useState<'overview' | 'newShipment' | 'shipments' | 'users' | 'routes' | 'messages'>('overview');
   const [stats, setStats] = useState({ totalShipments: 0, activeShipments: 0, deliveredToday: 0, totalUsers: 0 });
   const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
   const [statusDistribution, setStatusDistribution] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [shipmentsRefreshKey, setShipmentsRefreshKey] = useState(0);
-
-  const triggerShipmentsRefresh = useCallback(() => {
-    setShipmentsRefreshKey(k => k + 1);
-  }, []);
+  const [activeTab, setActiveTab] = useState<'overview' | 'newShipment' | 'shipments' | 'users' | 'routes' | 'messages'>('overview');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Verificar permissões
   useEffect(() => {
@@ -1944,6 +1940,10 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, [activeTab]);
 
+  const triggerShipmentsRefresh = useCallback(() => {
+    setShipmentsRefreshKey(k => k + 1);
+  }, []);
+
   const tabs = [
     { id: 'overview', label: t('admin.tabVisao'), icon: TrendingUp },
     { id: 'newShipment', label: t('admin.tabNovaEncomenda'), icon: Plus },
@@ -1967,7 +1967,7 @@ export default function AdminDashboard() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold text-gray-800 flex flex-wrap items-center gap-2">
-                  <span className="text-gradient-gold">{t('admin.titulo')}</span>
+                  <span className="text-gradient-lilac">{t('admin.titulo')}</span>
                   <span className="text-sm text-gray-400">{t('admin.subtitle')}</span>
                 </h1>
                 <p className="text-gray-600 mt-1 text-sm sm:text-base">{t('admin.desc')}</p>
@@ -2070,26 +2070,46 @@ export default function AdminDashboard() {
                      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.distribuicao')}</h3>
                      {Object.keys(statusDistribution).length === 0 ? (
                        <p className="text-gray-400 text-sm">{t('admin.nenhumaEncomenda2')}</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {Object.entries(statusDistribution).map(([status, count]) => (
-                          <div key={status} className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">{status.replace('_', ' ')}</span>
-                            <span className="text-sm font-semibold text-gray-800">{count}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {Object.entries(statusDistribution).map(([status, count]) => (
+                        <div key={status} className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">{status.replace('_', ' ')}</span>
+                          <span className="text-sm font-semibold text-gray-800">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </>
-            )}
+              </div>
+            </>
+          )}
 
-            {activeTab === 'newShipment' && <NewShipmentForm />}
-            {activeTab === 'shipments' && <AdminShipmentList refreshKey={shipmentsRefreshKey} />}
-            {activeTab === 'users' && <AdminUserList />}
-            {activeTab === 'routes' && <AdminRouteManager onRouteStatusChange={triggerShipmentsRefresh} />}
-            {activeTab === 'messages' && <AdminLeadsList />}
+            {activeTab === 'newShipment' && (
+              <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
+                <NewShipmentForm />
+              </div>
+            )}
+            {activeTab === 'shipments' && (
+              <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
+                <AdminShipmentList refreshKey={shipmentsRefreshKey} />
+              </div>
+            )}
+            {activeTab === 'users' && (
+              <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
+                <AdminUserList />
+              </div>
+            )}
+            {activeTab === 'routes' && (
+              <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
+                <AdminRouteManager onRouteStatusChange={triggerShipmentsRefresh} />
+              </div>
+            )}
+            {activeTab === 'messages' && (
+              <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
+                <AdminLeadsList />
+              </div>
+            )}
           </div>
         </div>
       </div>
