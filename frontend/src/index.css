@@ -26,7 +26,7 @@
 @layer base {
   :root { color-scheme: light; }
   html, body {
-    background: #E8D9F5;
+    background: #9A7DB2;
     color: #374151;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -34,8 +34,8 @@
   }
   body {
     background:
-      radial-gradient(1200px 800px at 80% -10%, rgb(239, 228, 250), transparent 60%),
-      #E8D9F5;
+      radial-gradient(1200px 800px at 80% -10%, rgba(239, 228, 250, 0.35), transparent 60%),
+      #9A7DB2;
   }
 }
 
