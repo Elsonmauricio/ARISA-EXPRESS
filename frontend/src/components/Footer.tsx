@@ -5,7 +5,7 @@ import {
   Phone,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { SiInstagram, SiTiktok } from 'react-icons/si';
+import { SiFacebook, SiInstagram, SiTiktok } from 'react-icons/si';
 import ARISAEXPRESStLogo from '../assets/logo-Arisa-express-opt.webp';
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
@@ -20,11 +20,20 @@ export default function Footer() {
   ];
 
   const SOCIALS = [
-    { Icon: SiInstagram, label: t('footer.instagram'), href: '#' },
+    { 
+      Icon: SiInstagram, 
+      label: t('footer.instagram'), 
+      href: 'https://www.instagram.com/arisa_express?igsh=dTY1Z3V0dHptMmw4' 
+    },
     { 
       Icon: SiTiktok, 
       label: 'TikTok', 
       href: 'https://www.tiktok.com/@arisaexpress?_r=1&_t=ZN-98fQX8hRzfS' 
+    },
+    { 
+      Icon: SiFacebook, 
+      label: 'Facebook', 
+      href: 'https://www.facebook.com/profile.php?id=100091436106565' 
     },
   ];
 
@@ -135,7 +144,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-gray-300 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-gray-400">
           <div>© {new Date().getFullYear()} {t('footer.copyright')}</div>
           <div>
-            {t('footer.feitoCom')} <span className="text-lilac-500">❤️</span> entre{' '}
+            {t('footer.feitoCom')} <span className="text-lilac-500">💜</span> entre{' '}
             <span className="text-lilac-500">{t('contact.luanda')}</span> e{' '}
             <span className="text-gold">{t('contact.lisboa')}</span>.
           </div>
