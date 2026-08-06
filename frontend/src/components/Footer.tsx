@@ -5,7 +5,7 @@ import {
   Phone,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { SiInstagram } from 'react-icons/si';
+import { SiInstagram, SiTiktok } from 'react-icons/si';
 import ARISAEXPRESStLogo from '../assets/logo-Arisa-express-opt.webp';
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
@@ -21,6 +21,11 @@ export default function Footer() {
 
   const SOCIALS = [
     { Icon: SiInstagram, label: t('footer.instagram'), href: '#' },
+    { 
+      Icon: SiTiktok, 
+      label: 'TikTok', 
+      href: 'https://www.tiktok.com/@arisaexpress?_r=1&_t=ZN-98fQX8hRzfS' 
+    },
   ];
 
   const LEGAL = [
@@ -40,7 +45,7 @@ export default function Footer() {
             <div className="flex items-center gap-3 mb-5">
               <img
                 src={ARISAEXPRESStLogo}
-                 alt={t('nav.logoAlt')}
+                alt={t('nav.logoAlt')}
                 className="h-20 w-auto object-contain transition-transform duration-300 hover:scale-105" width={80} height={80}
               />
             </div>
@@ -101,6 +106,8 @@ export default function Footer() {
                 <a
                   key={label}
                   href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={label}
                   className={cn(
                     "group w-10 h-10 rounded-full glass flex items-center justify-center border border-gray-300",
@@ -112,15 +119,15 @@ export default function Footer() {
               ))}
             </div>
             <div className="text-xs uppercase tracking-widest text-gray-400 mb-3">{t('footer.legal')}</div>
-                <ul className="space-y-2 text-xs text-gray-500">
-                {LEGAL.map((l) => (
-                  <li key={l.label}>
-                    <Link to={l.href} className="hover:text-gold transition-colors">
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <ul className="space-y-2 text-xs text-gray-500">
+              {LEGAL.map((l) => (
+                <li key={l.label}>
+                  <Link to={l.href} className="hover:text-gold transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
@@ -137,5 +144,3 @@ export default function Footer() {
     </footer>
   );
 }
-
-

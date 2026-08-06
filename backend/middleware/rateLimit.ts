@@ -1,9 +1,18 @@
 // backend/src/middleware/rateLimit.ts
 import rateLimit from 'express-rate-limit';
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const rateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: isProduction ? 100 : 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    if (!isProduction && req.method === 'GET' && req.path === '/api/routes/available') {
+      return true;
+    }
+    return false;
+  },
   message: 'Muitas requisições, tente novamente mais tarde'
 });
 

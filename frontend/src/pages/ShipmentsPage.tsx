@@ -590,7 +590,7 @@ function PriceTable() {
   ];
 
   const eletronicos = [
-    { item: t('ship.telemovel'), euro: '35,00', kz: '45.000,00' },
+    { item: t('ship.telemovel'), euro: '35,00', kz: '45.500,00' },
     { item: t('ship.smartwatch'), euro: '15,00', kz: '19.500,00' },
     { item: t('ship.airpods'), euro: '15,00', kz: '19.500,00' },
     { item: t('ship.computador'), euro: '50,00 / 60,00', kz: '65.000,00 / 78.000,00' },
@@ -613,7 +613,7 @@ function PriceTable() {
     { item: t('ship.manicure'), euro: t('ship.kg23Alfandega'), kz: t('ship.kg23Alfandega') },
     { item: t('ship.som'), euro: t('ship.kg23Alfandega'), kz: t('ship.kg23Alfandega') },
     { item: t('ship.carro'), euro: t('ship.kg23Alfandega'), kz: t('ship.kg23Alfandega') },
-    { item: t('ship.tv'), euro: t('ship.kg23Alfandega'), kz: t('ship.195kz') },
+    { item: t('ship.tv'), euro: t('ship.sobConsulta'), kz: t('ship.sobConsulta') },
   ];
 
   return (

@@ -21,7 +21,7 @@ interface StatItem {
 const getStats = (t: (key: string) => string): StatItem[] => [
   { value: 10000, prefix: '+', suffix: '', label: t('stats.1') },
   { value: 95, prefix: '+', suffix: '%', label: t('stats.2') },
-  { value: 48, prefix: '', suffix: 'h', label: t('stats.3'), labelTone: 'lilas' },
+  { value: 3, prefix: '', suffix: 'D', label: t('stats.3'), labelTone: 'lilas' },
   { value: 24, prefix: '', suffix: '/7', label: t('stats.4'), labelTone: 'white' },
 ];
 
