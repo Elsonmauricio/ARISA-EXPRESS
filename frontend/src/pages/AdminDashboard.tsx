@@ -5,7 +5,7 @@ import {
   Package, Truck, Users, TrendingUp,
   AlertCircle, CheckCircle2, Clock, XCircle,
   Search, Plus, Edit, Trash2, MapPin,
-  ChevronDown, RefreshCw, Mail,
+  ChevronDown, ChevronRight, RefreshCw, Mail,
   Tag, UserPlus, StickyNote, Filter, Send
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
