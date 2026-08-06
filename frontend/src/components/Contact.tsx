@@ -49,7 +49,7 @@ export default function Contact() {
         <SectionHeading
           align="center"
           eyebrow={t('contact.eyebrow')}
-          title={t('contact.title')}
+          title={<span className="text-gradient-lilac">{t('contact.title')}</span>}
           subtitle={t('contact.subtitle')}
         />
 

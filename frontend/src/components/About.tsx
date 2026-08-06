@@ -35,7 +35,7 @@ const About: React.FC = () => {
         >
           <SectionHeading
             eyebrow={t('about.eyebrow')}
-            title={t('about.title')}
+            title={<span className="text-gradient-lilac">{t('about.title')}</span>}
             subtitle={t('about.text')}
           />
           <div className="mt-10 grid sm:grid-cols-2 gap-5">

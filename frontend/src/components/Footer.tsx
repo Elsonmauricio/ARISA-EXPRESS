@@ -28,14 +28,14 @@ export default function Footer() {
     { label: t('footer.privacidade'), href: '/privacidade' },
   ];
   return (
-    <footer id="footer" className="relative pt-24 pb-10 border-t border-gray-300 bg-[#E8D9F5] text-gold">
+    <footer id="footer" className="relative pt-24 pb-10 border-t border-gray-300 bg-[#4B2170] text-gold">
       {/* Linha decorativa lilÃ¡s */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-px bg-gradient-to-r from-transparent via-lilac-500/60 to-transparent" />
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[40%] h-40 bg-lilac-500/10 blur-3xl rounded-full pointer-events-none" />
 
       <div className="container mx-auto max-w-7xl px-4">
         <div className="grid md:grid-cols-4 gap-10 pb-14">
-          {/* 1. Brand â€“ LOGO MAIOR E COM TEXTO */}
+          {/* 1. Brand “ LOGO MAIOR E COM TEXTO */}
           <div>
             <div className="flex items-center gap-3 mb-5">
               <img

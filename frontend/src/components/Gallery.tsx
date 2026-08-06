@@ -72,8 +72,8 @@ export default function Gallery() {
 
       <div className="container mx-auto max-w-7xl px-4 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#DDB8FA] to-[#D4AF37] bg-clip-text text-transparent">
-            {t('gallery.title')}
+          <h2 className="text-black sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#DDB8FA] to-[#D4AF37] bg-clip-text text-transparent">
+            <span className="text-gradient-lilac">{t('gallery.title')}</span>
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-black/70 max-w-3xl mx-auto">
             {t('gallery.subtitle')}

@@ -247,7 +247,9 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
           eyebrow={t('track.eyebrow')}
           title={
             <>
-              {t('track.title1')}<span className="text-gradient-lilac">{t('track.title2')}</span>{t('track.title3')}
+              <span className="text-gradient-lilac">{t('track.title1')}</span>
+              <span className="text-gradient-lilac">{t('track.title2')}</span>
+              <span className="text-gradient-lilac">{t('track.title3')}</span>
             </>
           }
           subtitle={t('track.subtitle')}

@@ -124,7 +124,7 @@ export default function StorySection({ chapters, visual, onProgress, className =
             >
               <div className="story-inner" style={{ opacity: i === 0 ? 1 : 0 }}>
                 <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-black leading-[1.05]">
-                  {ch.title}
+                  <span className="text-gradient-lilac">{ch.title}</span>
                 </h2>
                 <p className="mt-2 text-sm text-gray-500 leading-relaxed">
                   {ch.body}
