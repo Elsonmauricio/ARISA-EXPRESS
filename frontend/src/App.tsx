@@ -48,7 +48,9 @@ function HomePage() {
             <AeroStripe />
           </div>
 
-          <Storytelling />
+          <div className="hidden md:block">
+            <Storytelling />
+          </div>
 
           <Reveal y={80} duration={1}>
             <ParallaxLayer depth={0.12} className="will-change-transform">

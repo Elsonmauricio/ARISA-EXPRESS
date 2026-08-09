@@ -10,15 +10,15 @@ export interface StoryChapter {
   id: string;
   title: ReactNode;
   body: ReactNode;
-  /** Tom visual do capÃ­tulo. */
+  /** Tom visual do capítulo. */
   tone?: 'gold' | 'lilac' | 'white';
-  /** PosiÃ§Ã£o horizontal do capÃ­tulo na secÃ§Ã£o. */
+  /** Posição horizontal do capítulo na seção. */
   align?: 'left' | 'center' | 'right';
 }
 
 interface StorySectionProps {
   chapters: StoryChapter[];
-  /** Cena visual 3D/background renderizada atrÃ¡s dos capÃ­tulos. */
+  /** Cena visual 3D/background renderizada atrás dos capítulos. */
   visual?: ReactNode;
   /** Callback com o progresso global (0..1) do storytelling. */
   onProgress?: (p: number) => void;
@@ -26,9 +26,9 @@ interface StorySectionProps {
 }
 
 /**
- * ExperiÃªncia de storytelling scroll-driven:
- * a secÃ§Ã£o fica "pinnada" enquanto o utilizador faz scroll e os capÃ­tulos
- * (texto) trocam em crossfade. A cena visual em segundo plano lÃª a variÃ¡vel
+ * Experiência de storytelling scroll-driven:
+ * a seção fica "pinnada" enquanto o utilizador faz scroll e os capítulos
+ * (texto) trocam em crossfade. A cena visual em segundo plano lê a variável
  * CSS `--story-progress` (0..1) para se animar de forma sincronizada.
  */
 export default function StorySection({ chapters, visual, onProgress, className = '' }: StorySectionProps) {
