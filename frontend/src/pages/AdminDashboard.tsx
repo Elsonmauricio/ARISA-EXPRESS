@@ -6,7 +6,7 @@ import {
   AlertCircle, CheckCircle2, Clock, XCircle,
   Search, Plus, Edit, Trash2, MapPin,
   ChevronDown, ChevronRight, RefreshCw, Mail,
-  Tag, UserPlus, StickyNote, Filter, Send
+  Tag, UserPlus, StickyNote, Filter, Send, Download
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
@@ -122,28 +122,311 @@ function formatDate(dateValue: any): string {
 }
 
 // ======================== STATS CARDS ========================
-function StatsCards({ stats }: { stats: any }) {
+function TrendIndicator({ current, previous }: { current: number; previous: number }) {
+  if (previous === 0) return null;
+  const change = ((current - previous) / previous) * 100;
+  const isUp = change >= 0;
+  return (
+    <div className={`flex items-center gap-0.5 text-[10px] font-medium mt-1 ${isUp ? 'text-green-500' : 'text-red-500'}`}>
+      {isUp ? '↑' : '↓'} {Math.abs(change).toFixed(1)}%
+      <span className="text-gray-400 font-normal">vs mês anterior</span>
+    </div>
+  );
+}
+
+function MiniBarChart({ data, color }: { data: number[]; color: string }) {
+  const max = Math.max(...data, 1);
+  return (
+    <div className="flex items-end gap-0.5 h-8 mt-2">
+      {data.map((v, i) => (
+        <div
+          key={i}
+          className={`flex-1 rounded-sm ${color} opacity-80 hover:opacity-100 transition-opacity`}
+          title={`${v}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function StatsCards({ stats, trends }: { stats: any; trends: any[] }) {
   const { t } = useT();
+  const trendCounts = trends.map(t => t.count);
+  const trendRevenue = trends.map(t => t.revenue);
+
   const cards = [
-    { label: t('admin.statTotal'), value: stats.totalShipments || 0, icon: Package, color: 'text-blue-400' },
-    { label: t('admin.statTransito'), value: stats.activeShipments || 0, icon: Truck, color: 'text-lilac-400' },
-    { label: t('admin.statEntregues'), value: stats.deliveredToday || 0, icon: CheckCircle2, color: 'text-green-400' },
-    { label: t('admin.statUsers'), value: stats.totalUsers || 0, icon: Users, color: 'text-gold' },
+    { label: t('admin.statTotal'), value: stats.totalShipments || 0, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', trend: trendCounts, trendColor: 'bg-blue-500', comparison: stats.previousMonthShipments },
+    { label: t('admin.statTransito'), value: stats.inTransitShipments || 0, icon: Truck, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200', trend: trendCounts, trendColor: 'bg-purple-500' },
+    { label: t('admin.statPendentes'), value: stats.pendingShipments || 0, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', trend: trendCounts, trendColor: 'bg-amber-500' },
+    { label: t('admin.statLevantamento'), value: stats.readyForPickupShipments || 0, icon: AlertCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', trend: trendCounts, trendColor: 'bg-emerald-500' },
+    { label: t('admin.statCanceladas'), value: stats.cancelledShipments || 0, icon: XCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', trend: trendCounts, trendColor: 'bg-red-500' },
+    { label: t('admin.statUsers'), value: stats.totalUsers || 0, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', trend: trendCounts, trendColor: 'bg-indigo-500' },
+    { label: t('admin.statMensagens'), value: stats.newLeads || 0, icon: Mail, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200', trend: trendCounts, trendColor: 'bg-cyan-500' },
+    { label: t('admin.statReceita'), value: `€ ${(stats.totalShipments * 150).toFixed(0)}`, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', trend: trendRevenue, trendColor: 'bg-green-500', isCurrency: true },
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {cards.map((card, i) => (
-        <div key={i} className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
-          <div className="flex items-center justify-between">
+        <div key={i} className={`${card.bg} border ${card.border} rounded-xl p-4 hover:shadow-md transition-shadow`}>
+          <div className="flex items-start justify-between">
             <div>
-              <div className="text-xs sm:text-sm text-gray-600">{card.label}</div>
-              <div className="text-xl sm:text-2xl font-bold text-gold">{card.value}</div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{card.label}</p>
+              <p className={`text-2xl font-bold ${card.color} mt-1`}>{card.value}</p>
+              {card.comparison !== undefined && <TrendIndicator current={parseInt(card.value) || 0} previous={card.comparison} />}
             </div>
-            <card.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${card.color}`} />
+            <div className={`p-2 rounded-lg ${card.bg}`}>
+              <card.icon className={`w-5 h-5 ${card.color}`} />
+            </div>
           </div>
+          {card.trend && <MiniBarChart data={card.trend} color={card.trendColor} />}
         </div>
       ))}
+    </div>
+  );
+}
+
+// ======================== ALERTS SECTION ========================
+function AlertsSection({ stats, revenue }: { stats: any; revenue: any }) {
+  const { t } = useT();
+  const alerts = [];
+  if (stats.readyForPickupShipments > 0) {
+    alerts.push({ key: 'levantamento', label: t('admin.levantamentoPendente'), value: stats.readyForPickupShipments, color: 'emerald', icon: Package });
+  }
+  if (revenue.pending > 0) {
+    alerts.push({ key: 'pagamento', label: t('admin.pagamentosPendentes'), value: `€ ${revenue.pending.toFixed(2)}`, color: 'yellow', icon: Clock });
+  }
+  if (stats.newLeads > 0) {
+    alerts.push({ key: 'mensagens', label: t('admin.novasMensagens'), value: stats.newLeads, color: 'cyan', icon: Mail });
+  }
+  if (stats.pendingShipments > 0) {
+    alerts.push({ key: 'pendentes', label: t('admin.statPendentes'), value: stats.pendingShipments, color: 'orange', icon: AlertCircle });
+  }
+
+  if (alerts.length === 0) {
+    return (
+      <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl mb-8">
+        <div className="flex items-center gap-2 mb-2">
+          <CheckCircle2 className="w-5 h-5 text-green-400" />
+          <h3 className="font-semibold text-sm sm:text-base">{t('admin.atencao')}</h3>
+        </div>
+        <p className="text-sm text-gray-600">{t('admin.semAtencao')}</p>
+      </div>
+    );
+  }
+
+  const colorMap: Record<string, { text: string; bg: string; border: string }> = {
+    emerald: { text: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
+    yellow: { text: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20' },
+    cyan: { text: 'text-cyan-400', bg: 'bg-cyan-400/10', border: 'border-cyan-400/20' },
+    orange: { text: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20' },
+  };
+
+  return (
+    <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <AlertCircle className="w-5 h-5 text-gold" />
+        <h3 className="font-semibold text-sm sm:text-base">{t('admin.atencao')}</h3>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {alerts.map((alert) => {
+          const c = colorMap[alert.color];
+          return (
+            <div key={alert.key} className={`flex items-center gap-3 p-3 rounded-xl border ${c.border} ${c.bg}`}>
+              <alert.icon className={`w-5 h-5 ${c.text} flex-shrink-0`} />
+              <div className="min-w-0">
+                <div className="text-xs text-gray-600 truncate">{alert.label}</div>
+                <div className={`text-sm font-bold ${c.text}`}>{alert.value}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ======================== FINANCIAL OVERVIEW ========================
+function FinancialOverview({ revenue }: { revenue: any }) {
+  const { t } = useT();
+  const total = revenue.thisMonth || 1;
+  const paidPercent = total > 0 ? Math.round((revenue.paid / total) * 100) : 0;
+  const pendingPercent = total > 0 ? Math.round((revenue.pending / total) * 100) : 0;
+
+  return (
+    <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl mb-8">
+      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.faturamento')}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <div className="p-3 rounded-xl bg-green-400/5 border border-green-400/10">
+          <div className="text-xs text-gray-600">{t('admin.receitaMes')}</div>
+          <div className="text-lg sm:text-xl font-bold text-green-400">€ {revenue.thisMonth.toFixed(2)}</div>
+        </div>
+        <div className="p-3 rounded-xl bg-yellow-400/5 border border-yellow-400/10">
+          <div className="text-xs text-gray-600">{t('admin.receitaPendente')}</div>
+          <div className="text-lg sm:text-xl font-bold text-yellow-400">€ {revenue.pending.toFixed(2)}</div>
+          <div className="text-xs text-gray-500 mt-1">{pendingPercent}% do total</div>
+        </div>
+        <div className="p-3 rounded-xl bg-blue-400/5 border border-blue-400/10">
+          <div className="text-xs text-gray-600">{t('admin.receitaPaga')}</div>
+          <div className="text-lg sm:text-xl font-bold text-blue-400">€ {revenue.paid.toFixed(2)}</div>
+          <div className="text-xs text-gray-500 mt-1">{paidPercent}% do total</div>
+        </div>
+      </div>
+      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden flex">
+        <div className="h-full bg-blue-400 transition-all duration-500" style={{ width: `${paidPercent}%` }} />
+        <div className="h-full bg-yellow-400 transition-all duration-500" style={{ width: `${pendingPercent}%` }} />
+      </div>
+    </div>
+  );
+}
+
+// ======================== RECENT SHIPMENTS ========================
+function RecentShipments({ shipments, onViewAll }: { shipments: Shipment[]; onViewAll: () => void }) {
+  const { t } = useT();
+  const getStatusBadge = (s: Shipment) => {
+    if (s.is_custom_status && s.status_proprio) {
+      return <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold bg-green-500/20 text-green-400">{t(`status.${s.status_proprio || s.status}`)}</span>;
+    }
+    const colors: Record<string, string> = {
+      PENDING: 'text-yellow-400 bg-yellow-400/10',
+      COLLECTED: 'text-blue-400 bg-blue-400/10',
+      IN_TRANSIT: 'text-lilac-400 bg-lilac-400/10',
+      CUSTOMS: 'text-orange-400 bg-orange-400/10',
+      IN_PORTUGAL: 'text-cyan-400 bg-cyan-400/10',
+      IN_ANGOLA: 'text-emerald-400 bg-emerald-400/10',
+      OUT_FOR_DELIVERY: 'text-purple-400 bg-purple-400/10',
+      DELIVERED: 'text-green-400 bg-green-400/10',
+      CANCELLED: 'text-red-400 bg-red-400/10',
+      REGISTERED: 'text-gray-400 bg-gray-400/10',
+      SHIPPED: 'text-blue-400 bg-blue-400/10',
+      READY_FOR_PICKUP: 'text-emerald-300 bg-emerald-300/10',
+      PICKED_UP: 'text-gray-400 bg-gray-400/10'
+    };
+    return <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${colors[s.status] || 'text-gray-600 bg-white'}`}>{t(`status.${s.status}`)}</span>;
+  };
+
+  return (
+    <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl mb-6">
+      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.ultimasEncomendas')}</h3>
+      <div className="space-y-3">
+        {shipments.length === 0 ? (
+          <p className="text-gray-400 text-sm">{t('admin.nenhumaRecente')}</p>
+        ) : (
+          shipments.map((s) => (
+            <div key={s.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 pb-3 last:border-0">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-xs text-gold">{s.trackingCode}</span>
+                  {getStatusBadge(s)}
+                </div>
+                <div className="text-xs text-gray-600 mt-1">{s.origin} → {s.destination}</div>
+                <div className="text-[10px] text-gray-400 mt-0.5">{s.senderName} → {s.receiverName}</div>
+              </div>
+              <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
+                <div className="text-xs font-semibold text-gray-800">€ {s.price?.toFixed(2) || '—'}</div>
+                <div className="text-[10px] text-gray-400">{formatDate(s.createdAt)}</div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      <button onClick={onViewAll} className="mt-4 text-xs text-gold hover:underline">
+        {t('admin.verDetalhes')} →
+      </button>
+    </div>
+  );
+}
+
+// ======================== STATUS DISTRIBUTION ========================
+function StatusDistribution({ distribution }: { distribution: Record<string, number> }) {
+  const { t } = useT();
+  const entries = Object.entries(distribution).filter(([, v]) => v > 0);
+  const total = entries.reduce((sum, [, v]) => sum + v, 0);
+
+  const statusColors: Record<string, { bg: string; text: string }> = {
+    PENDING: { bg: 'bg-yellow-400', text: 'text-yellow-400' },
+    COLLECTED: { bg: 'bg-blue-400', text: 'text-blue-400' },
+    IN_TRANSIT: { bg: 'bg-lilac-400', text: 'text-lilac-400' },
+    CUSTOMS: { bg: 'bg-orange-400', text: 'text-orange-400' },
+    IN_PORTUGAL: { bg: 'bg-cyan-400', text: 'text-cyan-400' },
+    IN_ANGOLA: { bg: 'bg-emerald-400', text: 'text-emerald-400' },
+    OUT_FOR_DELIVERY: { bg: 'bg-purple-400', text: 'text-purple-400' },
+    DELIVERED: { bg: 'bg-green-400', text: 'text-green-400' },
+    CANCELLED: { bg: 'bg-red-400', text: 'text-red-400' },
+    REGISTERED: { bg: 'bg-gray-400', text: 'text-gray-400' },
+    SHIPPED: { bg: 'bg-blue-400', text: 'text-blue-400' },
+    READY_FOR_PICKUP: { bg: 'bg-emerald-300', text: 'text-emerald-300' },
+    PICKED_UP: { bg: 'bg-gray-400', text: 'text-gray-400' }
+  };
+
+  return (
+    <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
+      <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.distribuicao')}</h3>
+      {entries.length === 0 ? (
+        <p className="text-gray-400 text-sm">{t('admin.nenhumaEncomenda2')}</p>
+      ) : (
+        <div className="space-y-3">
+          {entries.map(([status, count]) => {
+            const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+            const colors = statusColors[status] || { bg: 'bg-gray-400', text: 'text-gray-400' };
+            return (
+              <div key={status}>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs sm:text-sm text-gray-600">{t(`status.${status}`)}</span>
+                  <span className="text-xs sm:text-sm font-semibold text-gray-800">{count} ({percent}%)</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className={`h-full ${colors.bg} transition-all duration-500`} style={{ width: `${percent}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ======================== EXPORT BUTTONS ========================
+function ExportButtons() {
+  const { t } = useT();
+  const token = localStorage.getItem('token');
+
+  const download = async (endpoint: string, filename: string) => {
+    if (!token) return;
+    try {
+      const response = await fetch(api(endpoint), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Export failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(t('admin.erroConexao'));
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2 mb-6">
+      <button onClick={() => download('/api/admin/export/shipments', `shipments_${new Date().toISOString().slice(0,10)}.csv`)} className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 hover:bg-gray-100 transition-colors flex items-center gap-2">
+        <Download className="w-4 h-4" /> {t('admin.exportarEncomendas')}
+      </button>
+      <button onClick={() => download('/api/admin/export/users', `users_${new Date().toISOString().slice(0,10)}.csv`)} className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 hover:bg-gray-100 transition-colors flex items-center gap-2">
+        <Download className="w-4 h-4" /> {t('admin.exportarUtilizadores')}
+      </button>
+      <button onClick={() => download('/api/admin/export/leads', `leads_${new Date().toISOString().slice(0,10)}.csv`)} className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 hover:bg-gray-100 transition-colors flex items-center gap-2">
+        <Download className="w-4 h-4" /> {t('admin.exportarMensagens')}
+      </button>
+      <button onClick={() => download('/api/admin/backup/full', `backup_${new Date().toISOString().slice(0,10)}.json`)} className="px-4 py-2 bg-[#4B2170] text-white rounded-lg text-sm hover:bg-[#7B2FBF] transition-colors flex items-center gap-2">
+        <Download className="w-4 h-4" /> {t('admin.backupCompleto')}
+      </button>
     </div>
   );
 }
@@ -352,6 +635,10 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [pageLimit] = useState(20);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [batchModalOpen, setBatchModalOpen] = useState(false)
   const [batchRoute, setBatchRoute] = useState('')
   const [batchStatus, setBatchStatus] = useState('')
@@ -383,22 +670,37 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
     fetchRoutes();
   }, [refreshKey]);
 
-  const fetchShipments = useCallback(async () => {
-    setLoading(true);
-    setRefreshing(true);
+  const fetchShipments = useCallback(async (cursor?: string | null) => {
+    if (cursor) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setRefreshing(true);
+      setShipments([]);
+      setNextCursor(null);
+      setHasMore(false);
+    }
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         setError(t('admin.naoAutenticado'));
         setLoading(false);
+        setRefreshing(false);
         return;
       }
 
-      const endpoint = filter === 'READY_FOR_PICKUP'
-        ? api('/api/admin/shipments/ready-for-pickup')
-        : api('/api/admin/shipments');
+      let endpoint = '/api/admin/shipments';
+      const params = new URLSearchParams();
+      params.set('limit', String(pageLimit));
+      if (cursor) params.set('cursor', cursor);
+      if (filter && filter !== 'all') params.set('status', filter);
 
-      const response = await fetch(endpoint, {
+      if (search.trim()) {
+        endpoint = '/api/admin/shipments/search';
+        params.set('q', search.trim());
+      }
+
+      const response = await fetch(api(`${endpoint}?${params.toString()}`), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -411,7 +713,9 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
 
       const json = await response.json();
       if (json.success) {
-        setShipments(json.data);
+        setShipments(prev => cursor ? [...prev, ...json.data] : json.data);
+        setNextCursor(json.pagination?.nextCursor || null);
+        setHasMore(!!json.pagination?.hasMore);
         setError('');
       } else {
         setError(json.error || t('admin.erroEncomendas'));
@@ -421,8 +725,23 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
-  }, [filter, t, navigate, api]);
+  }, [filter, search, pageLimit, t, navigate, api]);
+
+  useEffect(() => {
+    fetchShipments();
+  }, [fetchShipments, refreshKey, filter]);
+
+  const loadMore = () => {
+    if (!loadingMore && nextCursor) {
+      fetchShipments(nextCursor);
+    }
+  };
+
+  const refreshShipments = () => {
+    fetchShipments();
+  };
 
   useEffect(() => {
     fetchShipments();
@@ -650,7 +969,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
           <option value="PICKED_UP">{t('status.PICKED_UP')}</option>
         </select>
         <button
-          onClick={fetchShipments}
+          onClick={refreshShipments}
           disabled={refreshing}
           className="px-4 py-2 bg-[#E8D9F5] border border-gray-300 rounded-lg text-gold hover:bg-white transition-colors flex items-center gap-2 disabled:opacity-50"
         >
@@ -839,13 +1158,30 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
                  )}
                </React.Fragment>
               ))}
-             </tbody>
-          </table>
+              </tbody>
+            </table>
+            {hasMore && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="px-6 py-2 bg-[#4B2170] text-white rounded-lg hover:bg-[#7B2FBF] disabled:opacity-50 text-sm"
+                >
+                  {loadingMore ? 'A carregar...' : 'Carregar mais'}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-      {filtered.length === 0 && (
-        <div className="text-center py-8 text-gray-400">{t('admin.nenhumaEncomenda')}</div>
-      )}
+        {loading && shipments.length === 0 && (
+          <div className="text-center py-8 text-gray-600">{t('admin.aCarregarEncomendas')}</div>
+        )}
+        {error && (
+          <div className="text-center py-8 text-red-400">{error}</div>
+        )}
+        {!loading && !error && shipments.length === 0 && (
+          <div className="text-center py-8 text-gray-400">{t('admin.nenhumaEncomenda')}</div>
+        )}
         {batchModalOpen && (
       <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
@@ -922,13 +1258,28 @@ function AdminUserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const navigate = useNavigate();
   const { t } = useT();
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (cursor?: string | null) => {
+    if (cursor) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setUsers([]);
+      setNextCursor(null);
+      setHasMore(false);
+    }
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api('/api/admin/users'), {
+      const params = new URLSearchParams();
+      params.set('limit', '20');
+      if (cursor) params.set('cursor', cursor);
+
+      const response = await fetch(api(`/api/admin/users?${params.toString()}`), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -941,7 +1292,9 @@ function AdminUserList() {
 
       const json = await response.json();
       if (json.success) {
-        setUsers(json.data);
+        setUsers(prev => cursor ? [...prev, ...json.data] : json.data);
+        setNextCursor(json.pagination?.nextCursor || null);
+        setHasMore(!!json.pagination?.hasMore);
       } else {
         setError(json.error || t('admin.erroUsers'));
       }
@@ -949,12 +1302,19 @@ function AdminUserList() {
       setError(t('admin.erroConexao'));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const loadMore = () => {
+    if (!loadingMore && nextCursor) {
+      fetchUsers(nextCursor);
+    }
+  };
 
   const changeRole = async (id: string, role: string) => {
     try {
@@ -1029,6 +1389,17 @@ function AdminUserList() {
             ))}
           </tbody>
         </table>
+        {hasMore && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="px-6 py-2 bg-[#4B2170] text-white rounded-lg hover:bg-[#7B2FBF] disabled:opacity-50 text-sm"
+            >
+              {loadingMore ? 'A carregar...' : 'Carregar mais'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1343,6 +1714,9 @@ function AdminLeadsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('ALL');
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [notesOpen, setNotesOpen] = useState<Record<string, boolean>>({});
   const [newNote, setNewNote] = useState<Record<string, string>>({});
   const [newTag, setNewTag] = useState<Record<string, string>>({});
@@ -1359,7 +1733,15 @@ function AdminLeadsList() {
     }
   })();
 
-  const fetchLeads = async () => {
+  const fetchLeads = async (cursor?: string | null) => {
+    if (cursor) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setLeads([]);
+      setNextCursor(null);
+      setHasMore(false);
+    }
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -1368,11 +1750,12 @@ function AdminLeadsList() {
         return;
       }
 
-      const url = stageFilter === 'ALL'
-        ? api('/api/admin/leads')
-        : api(`/api/admin/leads?stage=${encodeURIComponent(stageFilter)}`);
+      const params = new URLSearchParams();
+      params.set('limit', '20');
+      if (cursor) params.set('cursor', cursor);
+      if (stageFilter !== 'ALL') params.set('stage', stageFilter);
 
-      const response = await fetch(url, {
+      const response = await fetch(api(`/api/admin/leads?${params.toString()}`), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1385,7 +1768,9 @@ function AdminLeadsList() {
 
       const json = await response.json();
       if (json.success) {
-        setLeads(json.data);
+        setLeads(prev => cursor ? [...prev, ...json.data] : json.data);
+        setNextCursor(json.pagination?.nextCursor || null);
+        setHasMore(!!json.pagination?.hasMore);
       } else {
         setError(json.error || t('admin.erroMsgs'));
       }
@@ -1393,6 +1778,13 @@ function AdminLeadsList() {
       setError(t('admin.erroConexao'));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (!loadingMore && nextCursor) {
+      fetchLeads(nextCursor);
     }
   };
 
@@ -1429,7 +1821,7 @@ function AdminLeadsList() {
   };
 
   useEffect(() => {
-    refreshAll();
+    fetchLeads();
   }, [stageFilter]);
 
   const markAsRead = async (id: string) => {
@@ -1832,6 +2224,17 @@ function AdminLeadsList() {
           </div>
         );
       })}
+      {hasMore && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="px-6 py-2 bg-[#4B2170] text-white rounded-lg hover:bg-[#7B2FBF] disabled:opacity-50 text-sm"
+          >
+            {loadingMore ? 'A carregar...' : 'Carregar mais'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1840,7 +2243,21 @@ function AdminLeadsList() {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { t } = useT();
-  const [stats, setStats] = useState({ totalShipments: 0, activeShipments: 0, deliveredToday: 0, totalUsers: 0 });
+  const [stats, setStats] = useState({
+    totalShipments: 0,
+    activeShipments: 0,
+    deliveredToday: 0,
+    totalUsers: 0,
+    pendingShipments: 0,
+    inTransitShipments: 0,
+    readyForPickupShipments: 0,
+    cancelledShipments: 0,
+    totalLeads: 0,
+    newLeads: 0,
+    previousMonthShipments: 0
+  });
+  const [revenue, setRevenue] = useState({ thisMonth: 0, pending: 0, paid: 0 });
+  const [trends, setTrends] = useState<{ label: string; count: number; revenue: number }[]>([]);
   const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
   const [statusDistribution, setStatusDistribution] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -1888,8 +2305,30 @@ export default function AdminDashboard() {
           totalShipments: statsJson.data.totalShipments || 0,
           activeShipments: statsJson.data.activeShipments || 0,
           deliveredToday: 0,
-          totalUsers: statsJson.data.totalUsers || 0
+          totalUsers: statsJson.data.totalUsers || 0,
+          pendingShipments: statsJson.data.pendingShipments || 0,
+          inTransitShipments: statsJson.data.inTransitShipments || 0,
+          readyForPickupShipments: statsJson.data.readyForPickupShipments || 0,
+          cancelledShipments: statsJson.data.cancelledShipments || 0,
+          totalLeads: statsJson.data.totalLeads || 0,
+          newLeads: statsJson.data.newLeads || 0,
+          previousMonthShipments: statsJson.data.previousMonthShipments || 0
         });
+      }
+
+      // Buscar tendências
+      const trendsRes = await fetch(api('/api/admin/stats/trends'), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (trendsRes.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+      const trendsJson = await trendsRes.json();
+      if (trendsJson.success) {
+        setTrends(trendsJson.data || []);
       }
 
       // Buscar encomendas recentes (últimas 5)
@@ -1921,6 +2360,24 @@ export default function AdminDashboard() {
           dist[s.status] = (dist[s.status] || 0) + 1;
         });
         setStatusDistribution(dist);
+
+        // Calcular faturamento
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        let monthRevenue = 0;
+        let pendingRevenue = 0;
+        let paidRevenue = 0;
+        all.forEach((s: any) => {
+          const created = s.createdAt?.toDate ? s.createdAt.toDate() : new Date(s.createdAt);
+          if (created.getMonth() === currentMonth && created.getFullYear() === currentYear) {
+            const price = parseFloat(s.price) || 0;
+            monthRevenue += price;
+            if (s.paymentStatus === 'PAID') paidRevenue += price;
+            else pendingRevenue += price;
+          }
+        });
+        setRevenue({ thisMonth: monthRevenue, pending: pendingRevenue, paid: paidRevenue });
       }
     } catch (err) {
       console.error('Erro ao carregar dashboard:', err);
@@ -2037,53 +2494,31 @@ export default function AdminDashboard() {
           <div className="mt-6">
             {activeTab === 'overview' && (
               <>
-                <StatsCards stats={stats} />
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Últimas Encomendas */}
-                  <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
-                     <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.ultimasEncomendas')}</h3>
-                     <div className="space-y-3">
-                       {recentShipments.length === 0 ? (
-                         <p className="text-gray-400 text-sm">{t('admin.nenhumaRecente')}</p>
-                      ) : (
-                        recentShipments.map((s) => (
-                          <div key={s.id} className="flex justify-between items-center border-b border-gray-200 pb-2 last:border-0">
-                            <div>
-                              <div className="font-mono text-xs text-gold">{s.trackingCode}</div>
-                              <div className="text-xs text-gray-600">{s.origin} → {s.destination}</div>
-                              <div className="text-[10px] text-gray-400">{formatDate(s.createdAt)}</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-xs font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
-                              <div className={`text-[10px] px-2 py-0.5 rounded-full ${s.status === 'DELIVERED' ? 'text-green-400 bg-green-400/10' : 'text-yellow-400 bg-yellow-400/10'}`}>
-                      {t(`status.${s.status}`)}
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Distribuição por Status */}
-                  <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
-                     <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.distribuicao')}</h3>
-                     {Object.keys(statusDistribution).length === 0 ? (
-                       <p className="text-gray-400 text-sm">{t('admin.nenhumaEncomenda2')}</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {Object.entries(statusDistribution).map(([status, count]) => (
-                        <div key={status} className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{status.replace('_', ' ')}</span>
-                          <span className="text-sm font-semibold text-gray-800">{count}</span>
+                <StatsCards stats={stats} trends={trends} />
+                <ExportButtons />
+                <AlertsSection stats={stats} revenue={revenue} />
+                <FinancialOverview revenue={revenue} />
+                {trends.length > 0 && (
+                  <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl mb-6">
+                    <h3 className="font-semibold mb-4 text-sm sm:text-base">{t('admin.evolucaoMensal')}</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                      {trends.map((trend, i) => (
+                        <div key={i} className="text-center p-3 rounded-xl bg-gray-50 border border-gray-200">
+                          <div className="text-xs text-gray-500 mb-1">{trend.label}</div>
+                          <div className="text-lg font-bold text-gray-800">{trend.count}</div>
+                          <div className="text-[10px] text-gray-400">{t('admin.encomendas')}</div>
+                          <div className="text-xs font-medium text-green-600 mt-1">€ {trend.revenue.toFixed(0)}</div>
                         </div>
                       ))}
                     </div>
-                  )}
+                  </div>
+                )}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <RecentShipments shipments={recentShipments} onViewAll={() => setActiveTab('shipments')} />
+                  <StatusDistribution distribution={statusDistribution} />
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
 
             {activeTab === 'newShipment' && (
               <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">

@@ -8,6 +8,7 @@ import { addBusinessDays, calculateFine, formatDate, getBusinessDaysBetween, cal
 import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, getPickupImage, isLuandaDestination } from '../utils/whatsapp';
 import { fixEncodingObject } from '../utils/encoding';
 import { LocationType } from '../utils/whatsapp';
+import { getCached, setCache, invalidateCache } from '../middleware/cache';
 
 // Conclusive statuses that trigger individual status flag
 const CONCLUSIVE_STATUSES = ['PICKED_UP', 'DELIVERED', 'CANCELLED', 'COLLECTED'];
@@ -60,20 +61,45 @@ export const AdminController = {
 
   getStats: async (req: Request, res: Response) => {
     try {
-      const [totalShipments, activeShipments, totalUsers] = await Promise.all([
+      const cached = getCached<any>('admin:stats');
+      if (cached) {
+        return res.json({ success: true, data: cached, cached: true });
+      }
+
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+      const [totalShipments, activeShipments, totalUsers, pendingShipments, inTransitShipments, readyForPickupShipments, cancelledShipments, totalLeads, newLeads, previousMonthShipments] = await Promise.all([
         db.collection('shipments').count().get(),
         db.collection('shipments').where('status', '!=', 'DELIVERED').count().get(),
-        db.collection('users').count().get()
+        db.collection('users').count().get(),
+        db.collection('shipments').where('status', '==', 'PENDING').count().get(),
+        db.collection('shipments').where('status', '==', 'IN_TRANSIT').count().get(),
+        db.collection('shipments').where('status', '==', 'READY_FOR_PICKUP').count().get(),
+        db.collection('shipments').where('status', '==', 'CANCELLED').count().get(),
+        db.collection('leads').count().get(),
+        db.collection('leads').where('read', '==', false).count().get(),
+        db.collection('shipments').where('createdAt', '>=', new Date(previousMonthYear, previousMonth, 1)).where('createdAt', '<', new Date(currentYear, currentMonth, 1)).count().get()
       ]);
 
-      res.json({
-        success: true,
-        data: {
-          totalShipments: totalShipments.data().count,
-          activeShipments: activeShipments.data().count,
-          totalUsers: totalUsers.data().count
-        }
-      });
+      const data = {
+        totalShipments: totalShipments.data().count,
+        activeShipments: activeShipments.data().count,
+        totalUsers: totalUsers.data().count,
+        pendingShipments: pendingShipments.data().count,
+        inTransitShipments: inTransitShipments.data().count,
+        readyForPickupShipments: readyForPickupShipments.data().count,
+        cancelledShipments: cancelledShipments.data().count,
+        totalLeads: totalLeads.data().count,
+        newLeads: newLeads.data().count,
+        previousMonthShipments: previousMonthShipments.data().count
+      };
+
+      setCache('admin:stats', data, 30000);
+      res.json({ success: true, data });
     } catch (error) {
       logger.error('Erro ao buscar estatísticas:', error);
       res.status(500).json({ error: 'Erro ao buscar estatísticas' });
@@ -82,17 +108,54 @@ export const AdminController = {
 
   getAllShipments: async (req: Request, res: Response) => {
     try {
-      const snapshot = await db.collection('shipments')
-        .orderBy('createdAt', 'desc')
-        .get();
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+      const cursor = req.query.cursor as string | undefined;
+      const statusFilter = req.query.status as string | undefined;
 
-      const shipments = snapshot.docs.map(doc => {
+      let query: any = db.collection('shipments');
+
+      if (statusFilter && statusFilter !== 'all') {
+        query = query.where('status', '==', statusFilter);
+      }
+
+      query = query.orderBy('createdAt', 'desc').limit(limit);
+
+      if (cursor) {
+        try {
+          const decoded = JSON.parse(Buffer.from(cursor, 'base64').toString());
+          const cursorDoc = await db.collection('shipments').doc(decoded.id).get();
+          if (cursorDoc.exists) {
+            query = query.startAfter(cursorDoc);
+          }
+        } catch {
+          // ignore invalid cursor
+        }
+      }
+
+      const snapshot = await query.get();
+      const shipments = snapshot.docs.map((doc: any) => {
         const data = doc.data();
         const statusCalculado = data.status_proprio ?? data.status ?? null;
         return { id: doc.id, ...data, status_calculado: statusCalculado };
       });
 
-      res.json({ success: true, data: fixEncodingObject(shipments) });
+      const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+      const nextCursor = lastDoc
+        ? Buffer.from(JSON.stringify({ id: lastDoc.id, createdAt: lastDoc.data().createdAt?.toMillis?.() || Date.now() })).toString('base64')
+        : null;
+
+      const totalSnapshot = await db.collection('shipments').count().get();
+
+      res.json({
+        success: true,
+        data: shipments,
+        pagination: {
+          total: totalSnapshot.data().count,
+          limit,
+          hasMore: snapshot.size === limit,
+          nextCursor
+        }
+      });
     } catch (error) {
       logger.error('Erro ao buscar encomendas:', error);
       res.status(500).json({ error: 'Erro ao buscar encomendas' });
@@ -101,14 +164,29 @@ export const AdminController = {
 
   searchShipments: async (req: Request, res: Response) => {
     try {
-      const { q, status } = req.query;
-      let query: any = db.collection('shipments');
+      const { q, status, limit = '50', cursor } = req.query;
+      const pageSize = Math.min(parseInt(limit as string) || 50, 100);
+
+      let baseQuery: any = db.collection('shipments');
 
       if (status && status !== 'all') {
-        query = query.where('status', '==', status);
+        baseQuery = baseQuery.where('status', '==', status);
       }
 
-      const snapshot = await query.get();
+      let snapshot = await baseQuery.orderBy('createdAt', 'desc').limit(pageSize).get();
+
+      if (cursor) {
+        try {
+          const decoded = JSON.parse(Buffer.from(cursor as string, 'base64').toString());
+          const cursorDoc = await db.collection('shipments').doc(decoded.id).get();
+          if (cursorDoc.exists) {
+            snapshot = await baseQuery.orderBy('createdAt', 'desc').startAfter(cursorDoc).limit(pageSize).get();
+          }
+        } catch {
+          // ignore invalid cursor
+        }
+      }
+
       let shipments = snapshot.docs.map((doc: any) => {
         const data = doc.data();
         const statusCalculado = data.status_proprio ?? data.status ?? null;
@@ -124,13 +202,20 @@ export const AdminController = {
         );
       }
 
-      shipments.sort((a: any, b: any) => {
-        const ta = a.createdAt?.toMillis?.() ?? a.createdAt?.toDate?.()?.getTime?.() ?? 0;
-        const tb = b.createdAt?.toMillis?.() ?? b.createdAt?.toDate?.()?.getTime?.() ?? 0;
-        return tb - ta;
-      });
+      const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+      const nextCursor = lastDoc
+        ? Buffer.from(JSON.stringify({ id: lastDoc.id, createdAt: lastDoc.data().createdAt?.toMillis?.() || Date.now() })).toString('base64')
+        : null;
 
-      res.json({ success: true, data: shipments });
+      res.json({
+        success: true,
+        data: shipments,
+        pagination: {
+          limit: pageSize,
+          hasMore: snapshot.size === pageSize,
+          nextCursor
+        }
+      });
     } catch (error) {
       logger.error('Erro ao pesquisar encomendas:', error);
       res.status(500).json({ error: 'Erro ao pesquisar encomendas' });
@@ -212,6 +297,7 @@ export const AdminController = {
       }
 
       res.status(201).json({ success: true, data: { id: docRef.id, ...shipmentData } });
+      invalidateCache('admin:stats');
     } catch (error: any) {
       logger.error('Erro ao criar encomenda (admin):', error.message, error.stack);
       res.status(500).json({ error: 'Erro ao criar encomenda' });
@@ -233,6 +319,7 @@ export const AdminController = {
       if (cttLink !== undefined) updateData.cttLink = cttLink;
 
       await db.collection('shipments').doc(id).update(updateData);
+      invalidateCache('admin:stats');
       res.json({ success: true, message: 'CTT atualizado com sucesso' });
     } catch (error) {
       logger.error('Erro ao atualizar CTT:', error);
@@ -498,13 +585,14 @@ export const AdminController = {
       }
 
       res.json({ success: true, message: 'Status atualizado com sucesso' });
+      invalidateCache('admin:stats');
     } catch (error) {
       logger.error('Erro ao atualizar status:', error);
       res.status(500).json({ error: 'Erro ao atualizar status' });
     }
   },
 
-   batchUpdateStatus: async (req: Request, res: Response) => {
+  batchUpdateStatus: async (req: Request, res: Response) => {
     try {
       const { route, currentStatus, status, location, description } = req.body
       let q = db.collection("shipments").where("route", "==", route)
@@ -552,6 +640,7 @@ export const AdminController = {
         }
       }
       await batch.commit()
+      invalidateCache('admin:stats');
       logger.info(`[BatchStatus] Route "${route}" → ${status} | ${ids.length} updated | ${skipped} skipped (individual) | ${notifCount} whatsapp-ready`)
       res.json({ success: true, updated: ids.length, skipped: skipped, message: ids.length + " shipments updated", shipmentIds: ids, whatsappReady: notifCount })
     } catch (error) {
@@ -593,19 +682,53 @@ export const AdminController = {
         if (status === "READY_FOR_PICKUP" && (s.receiverPhone || s.senderPhone)) { notifCount++ }
       }
       await batch.commit();
+      invalidateCache('admin:stats');
       res.json({ success: true, updated: updatedIds.length, message: updatedIds.length + " encomendas atualizadas", shipmentIds: updatedIds, whatsappReady: notifCount });
     } catch (error) { logger.error("Batch by IDs error:", error); res.status(500).json({ error: "Batch error" }) }
   },
 
   getAllUsers: async (req: Request, res: Response) => {
     try {
-      const snapshot = await db.collection('users').get();
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+      const cursor = req.query.cursor as string | undefined;
+
+      let query = db.collection('users').orderBy('createdAt', 'desc').limit(limit);
+
+      if (cursor) {
+        try {
+          const decoded = JSON.parse(Buffer.from(cursor, 'base64').toString());
+          const cursorDoc = await db.collection('users').doc(decoded.id).get();
+          if (cursorDoc.exists) {
+            query = query.startAfter(cursorDoc);
+          }
+        } catch {
+          // ignore invalid cursor
+        }
+      }
+
+      const snapshot = await query.get();
       const users = snapshot.docs.map(doc => {
         const data = doc.data();
         return { id: doc.id, ...data };
       });
 
-      res.json({ success: true, data: users });
+      const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+      const nextCursor = lastDoc
+        ? Buffer.from(JSON.stringify({ id: lastDoc.id, createdAt: lastDoc.data().createdAt?.toMillis?.() || Date.now() })).toString('base64')
+        : null;
+
+      const totalSnapshot = await db.collection('users').count().get();
+
+      res.json({
+        success: true,
+        data: users,
+        pagination: {
+          total: totalSnapshot.data().count,
+          limit,
+          hasMore: snapshot.size === limit,
+          nextCursor
+        }
+      });
     } catch (error) {
       logger.error('Erro ao buscar utilizadores:', error);
       res.status(500).json({ error: 'Erro ao buscar utilizadores' });
@@ -621,7 +744,11 @@ export const AdminController = {
         return res.status(400).json({ error: 'Role inválida' });
       }
 
+      const userDoc = await db.collection('users').doc(id).get();
+      const previousRole = userDoc.exists ? userDoc.data()?.role : null;
+
       await db.collection('users').doc(id).update({ role });
+      invalidateCache('admin:stats');
       res.json({ success: true, message: 'Permissões atualizadas' });
     } catch (error) {
       logger.error('Erro ao alterar role:', error);
@@ -639,6 +766,7 @@ export const AdminController = {
       }
 
       await db.collection('users').doc(id).delete();
+      invalidateCache('admin:stats');
       res.json({ success: true, message: 'Utilizador removido' });
     } catch (error) {
       logger.error('Erro ao remover utilizador:', error);
@@ -700,6 +828,43 @@ export const AdminController = {
     } catch (error) {
       logger.error('Erro ao eliminar lead:', error);
       res.status(500).json({ error: 'Erro ao eliminar mensagem' });
+    }
+  },
+
+  getTrends: async (req: Request, res: Response) => {
+    try {
+      const cached = getCached<any>('admin:trends');
+      if (cached) {
+        return res.json({ success: true, data: cached, cached: true });
+      }
+
+      const now = new Date();
+      const months: { label: string; count: number; revenue: number }[] = [];
+      
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const next = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+        const label = d.toLocaleDateString('pt-PT', { month: 'short', year: '2-digit' });
+        
+        const snapshot = await db.collection('shipments')
+          .where('createdAt', '>=', d)
+          .where('createdAt', '<', next)
+          .get();
+        
+        let revenue = 0;
+        snapshot.docs.forEach(doc => {
+          const data = doc.data();
+          revenue += parseFloat(data.price) || 0;
+        });
+        
+        months.push({ label, count: snapshot.size, revenue });
+      }
+
+      setCache('admin:trends', months, 60000);
+      res.json({ success: true, data: months });
+    } catch (error) {
+      logger.error('Erro ao buscar tendências:', error);
+      res.status(500).json({ error: 'Erro ao buscar tendências' });
     }
   }
 };

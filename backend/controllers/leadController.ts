@@ -10,22 +10,54 @@ export const LeadController = {
   // Listar todas as mensagens (apenas admin)
   getLeads: async (req: Request, res: Response) => {
     try {
-      let query: FirebaseFirestore.Query = db.collection('leads');
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+      const cursor = req.query.cursor as string | undefined;
       const { stage, assignedTo, tag } = req.query;
+
+      let query: FirebaseFirestore.Query = db.collection('leads');
 
       if (stage) query = query.where('stage', '==', stage as string);
       if (assignedTo) query = query.where('assignedTo', '==', assignedTo as string);
       if (tag) query = query.where('tags', 'array-contains', tag as string);
 
-      const snapshot = await query.orderBy('createdAt', 'desc').get();
+      query = query.orderBy('createdAt', 'desc').limit(limit);
 
+      if (cursor) {
+        try {
+          const decoded = JSON.parse(Buffer.from(cursor, 'base64').toString());
+          const cursorDoc = await db.collection('leads').doc(decoded.id).get();
+          if (cursorDoc.exists) {
+            query = query.startAfter(cursorDoc);
+          }
+        } catch {
+          // ignore invalid cursor
+        }
+      }
+
+      const snapshot = await query.get();
       const leads = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.() || new Date()
       }));
 
-      res.json({ success: true, data: leads });
+      const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+      const nextCursor = lastDoc
+        ? Buffer.from(JSON.stringify({ id: lastDoc.id, createdAt: lastDoc.data().createdAt?.toMillis?.() || Date.now() })).toString('base64')
+        : null;
+
+      const totalSnapshot = await db.collection('leads').count().get();
+
+      res.json({
+        success: true,
+        data: leads,
+        pagination: {
+          total: totalSnapshot.data().count,
+          limit,
+          hasMore: snapshot.size === limit,
+          nextCursor
+        }
+      });
     } catch (error) {
       logger.error('Erro ao buscar leads:', error);
       res.status(500).json({ error: 'Erro ao buscar mensagens' });

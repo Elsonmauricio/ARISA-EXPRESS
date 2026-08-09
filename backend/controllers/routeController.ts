@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { db } from '../config/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../utils/logger';
+import { invalidateCache } from '../middleware/cache';
 
 export const RouteController = {
   // Listar todas as rotas (para admin)
@@ -284,6 +285,7 @@ export const RouteController = {
       });
 
       await batch.commit();
+      invalidateCache('admin:stats');
       logger.info(`[RouteStatus] === SUMMARY ===`);
       logger.info(`[RouteStatus] Route ${id}: ${oldRouteStatus} → ${status} (shipmentStatus: ${shipmentStatus})`);
       logger.info(`[RouteStatus] ✅ ${shipmentIds.length} shipments updated in Firestore`);
