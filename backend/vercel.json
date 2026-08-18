@@ -1,11 +1,9 @@
 {
-  "version": 2,
   "builds": [
     {
       "src": "api/index.ts",
       "use": "@vercel/node",
       "config": {
-        "maxLambdaSize": "50mb",
         "runtime": "nodejs20.x"
       }
     }

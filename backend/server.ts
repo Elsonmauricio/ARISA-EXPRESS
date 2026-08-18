@@ -4,7 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import path from 'path';
 
 import authRoutes from './api/routes/auth';
 import userRoutes from './api/routes/users'; 
@@ -19,6 +18,7 @@ import notifyRoutes from './api/routes/notify';
 
 import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimit';
+import { logger } from './utils/logger';
 
 dotenv.config();
 
@@ -45,7 +45,7 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    console.warn(`[CORS] Origin bloqueada: ${origin}`);
+    logger.warn(`[CORS] Origin bloqueada: ${origin}`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true
@@ -53,10 +53,6 @@ app.use(cors({
 app.use(express.json());
 app.use(morgan('combined'));
 app.use(rateLimiter);
-
-// Serve frontend assets (images for WhatsApp notifications)
-const frontendAssetsPath = path.resolve(process.cwd(), '../frontend/src/assets');
-app.use('/api/assets/images', express.static(frontendAssetsPath));
 
 // Routes
 app.use('/api/auth', authRoutes);
