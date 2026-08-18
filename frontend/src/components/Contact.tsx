@@ -1,5 +1,4 @@
-﻿// src/components/Contact.tsx
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { GoldButton } from './Button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,8 +6,7 @@ import SectionHeading from './SectionHeading';
 import { useT } from '../i18n/LanguageContext';
 import { api } from '../lib/api';
 import { whatsappUrl } from '../lib/utils';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { Lazy3D } from './Lazy3D';
 import { Mailbox3D } from './three/Mailbox3D';
 
 export default function Contact() {
@@ -115,15 +113,12 @@ export default function Contact() {
                 )}
               </AnimatePresence>
 
-             {/* Figura 3D Canvas */}
-                  <div className="w-full h-40 sm:h-48 mt-4">
-                      <Canvas camera={{ position: [0, 0, 4], fov: 40 }}>
-                        <ambientLight intensity={0.8} />
-                        <pointLight position={[10, 10, 10]} intensity={1} />
-                        <Mailbox3D />
-                        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} />
-                      </Canvas>
-                   </div>
+              {/* Figura 3D Canvas */}
+                   <div className="w-full h-40 sm:h-48 mt-4">
+                       <Lazy3D camera={{ position: [0, 0, 4], fov: 40 }} className="w-full h-full">
+                         <Mailbox3D />
+                       </Lazy3D>
+                    </div>
 
             </form>      
 
