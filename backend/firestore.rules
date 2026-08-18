@@ -1,8 +1,63 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Rotas: leitura pública, escrita apenas admin
+    match /routes/{routeId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Encomendas: apenas admins podem aceder via API backend
+    match /shipments/{shipmentId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Utilizadores: admin pode tudo; criação pública via API backend
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow create: if true;
+      allow update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Leads: leitura apenas admin, criação pública
+    match /leads/{leadId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow create: if true;
+      allow update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Contactos: leitura apenas admin, criação pública
+    match /contacts/{contactId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow create: if true;
+      allow update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Orçamentos: leitura para utilizadores autenticados, escrita apenas admin
+    match /quotations/{quotationId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Logs de auditoria: apenas admin
+    match /auditLogs/{logId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Password resets: apenas admin
+    match /passwordResets/{resetId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Refresh tokens: apenas admin
+    match /refreshTokens/{tokenId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Fallback: negar tudo o resto
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

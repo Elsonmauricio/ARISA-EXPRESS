@@ -6,7 +6,7 @@ import { Lock, Bell, Shield, Moon, Sun, AlertCircle, CheckCircle2 } from 'lucide
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { useT } from '../i18n/LanguageContext';
-import { api } from '../lib/api';
+import { api, authenticatedFetch } from '../lib/api';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export default function SettingsPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api('/api/users/change-password'), {
+      const response = await authenticatedFetch(api('/api/users/change-password'), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

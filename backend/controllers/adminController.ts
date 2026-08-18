@@ -5,10 +5,14 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
 import { addBusinessDays, calculateFine, formatDate, getBusinessDaysBetween, calculateWeeksOverdue } from '../utils/businessDays';
-import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, getPickupImage, isLuandaDestination } from '../utils/whatsapp';
+import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, getPickupImage, isLuandaDestination, formatPhoneToE164, generateCustomWhatsAppLink } from '../utils/whatsapp';
 import { fixEncodingObject } from '../utils/encoding';
 import { LocationType } from '../utils/whatsapp';
 import { getCached, setCache, invalidateCache } from '../middleware/cache';
+// DESATIVADO: WhatsApp Cloud API (sem token/configuração)
+// import { WhatsAppService } from '../services/whatsappService';
+// DESATIVADO: SMS service (sem provider configurado)
+// import { getSmsNotificationService } from '../services/sms';
 
 // Conclusive statuses that trigger individual status flag
 const CONCLUSIVE_STATUSES = ['PICKED_UP', 'DELIVERED', 'CANCELLED', 'COLLECTED'];
@@ -432,7 +436,35 @@ export const AdminController = {
         getLocationType(shipment.destination || '')
       );
 
-      logger.info('WhatsApp link generated for ' + shipment.trackingCode);
+      const imageUrl = getPickupImage(getLocationType(shipment.destination || ''));
+      const isLuanda = imageUrl && imageUrl.includes('Luanda.jpeg');
+      const imgName = isLuanda ? 'Luanda.jpeg' : 'Lisboa.jpeg';
+
+      // DESATIVADO: WhatsApp Cloud API não configurada
+      // const whatsappResult = await WhatsAppService.sendPickupNotification({
+      //   phone,
+      //   trackingCode: shipment.trackingCode,
+      //   shipmentDate: formatDate(readyDate),
+      //   deadline: formatDate(deadline),
+      //   senderName: shipment.senderName || 'N/A',
+      //   receiverName: shipment.receiverName || 'N/A',
+      //   pickupAddress: shipment.pickupAddress || '',
+      //   pickupContact: shipment.pickupContact || '',
+      //   pickupSchedule: shipment.pickupSchedule || '',
+      //   location: getLocationType(shipment.destination || ''),
+      //   destination: shipment.destination || ''
+      // });
+
+      // if (whatsappResult.sent && whatsappResult.messageId) {
+      //   await db.collection('shipments').doc(id).update({
+      //     whatsapp_message_id: whatsappResult.messageId,
+      //     whatsapp_status: 'sent',
+      //     whatsapp_sent_at: FieldValue.serverTimestamp()
+      //   });
+      //   invalidateCache('admin:stats');
+      // }
+
+      logger.info('WhatsApp notification processed for ' + shipment.trackingCode + ' (link mode)');
       res.json({
         success: true,
         data: {
@@ -441,7 +473,9 @@ export const AdminController = {
           sent: false,
           phone,
           trackingCode: shipment.trackingCode,
-          imageUrl: getPickupImage(getLocationType(shipment.destination || ''))
+          imageUrl,
+          imageName: imgName,
+          error: null
         }
       });
     } catch (error) {
@@ -563,6 +597,34 @@ export const AdminController = {
         logger.info(`[UpdateStatus] Shipment ${id} status updated to: ${status} (inherited - no status_proprio)`);
       }
 
+      if (status === 'READY_FOR_PICKUP') {
+        const pickupPhone = (shipment.receiverPhone || shipment.senderPhone || '').replace(/\D/g, '');
+        if (pickupPhone.length >= 9) {
+          // DESATIVADO: SMS service não configurado
+          // const smsService = getSmsNotificationService();
+          // const readyDate = new Date();
+          // const deadline = addBusinessDays(readyDate, 5);
+          // const enqueued = smsService.enqueuePickupNotification({
+          //   shipmentId: id,
+          //   trackingCode: shipment.trackingCode,
+          //   phone: pickupPhone,
+          //   data: {
+          //     readyDate: formatDate(readyDate),
+          //     deadline: formatDate(deadline),
+          //     senderName: shipment.senderName || 'N/A',
+          //     receiverName: shipment.receiverName || 'N/A',
+          //     pickupAddress: updateData.pickupAddress || '',
+          //     pickupContact: updateData.pickupContact || '',
+          //     pickupSchedule: updateData.pickupSchedule || '',
+          //     destination: shipment.destination || ''
+          //   }
+          // });
+          // logger.info(`[SMS] Enqueue result for ${shipment.trackingCode}: ${enqueued ? 'queued' : 'skipped (invalid phone)'}`);
+        } else {
+          logger.warn(`[SMS] Skipped for shipment ${shipment.trackingCode}: no valid phone (receiverPhone=${shipment.receiverPhone || 'null'}, senderPhone=${shipment.senderPhone || 'null'})`);
+        }
+      }
+
       if (shipment.userId) {
         const userDoc = await db.collection('users').doc(shipment.userId).get();
         if (userDoc.exists) {
@@ -636,7 +698,36 @@ export const AdminController = {
         ids.push(doc.id)
         if (status === "READY_FOR_PICKUP") {
           const phone = s.receiverPhone || s.senderPhone
-          if (phone) { notifCount++ }
+          if (phone) {
+            notifCount++
+            // DESATIVADO: SMS service não configurado
+            // const smsService = getSmsNotificationService();
+            // const cleanPhone = phone.replace(/\D/g, '')
+            // if (cleanPhone.length >= 9) {
+            //   const readyDate = new Date();
+            //   const deadline = addBusinessDays(readyDate, 5);
+            //   const enqueued = smsService.enqueuePickupNotification({
+            //     shipmentId: doc.id,
+            //     trackingCode: s.trackingCode || "",
+            //     phone: cleanPhone,
+            //     data: {
+            //       readyDate: formatDate(readyDate),
+            //       deadline: formatDate(deadline),
+            //       senderName: s.senderName || "N/A",
+            //       receiverName: s.receiverName || "N/A",
+            //       pickupAddress: upd.pickupAddress || "",
+            //       pickupContact: upd.pickupContact || "",
+            //       pickupSchedule: "",
+            //       destination: s.destination || ""
+            //     }
+            //   });
+            //   logger.info(`[SMS] Batch enqueue result for ${s.trackingCode}: ${enqueued ? 'queued' : 'skipped'}`);
+            // } else {
+            //   logger.warn(`[SMS] Batch skipped for ${s.trackingCode}: invalid phone after cleaning`);
+            // }
+          } else {
+            logger.warn(`[SMS] Batch skipped for ${s.trackingCode}: no phone in shipment`);
+          }
         }
       }
       await batch.commit()
@@ -679,7 +770,33 @@ export const AdminController = {
         batch.update(ref, upd);
         batch.set(db.collection("shipments").doc(id).collection("trackingUpdates").doc(), { status, location: location || s.destination, description: description || ("Updated to " + status), timestamp: FieldValue.serverTimestamp() });
         updatedIds.push(id);
-        if (status === "READY_FOR_PICKUP" && (s.receiverPhone || s.senderPhone)) { notifCount++ }
+        if (status === "READY_FOR_PICKUP" && (s.receiverPhone || s.senderPhone)) {
+          notifCount++
+          // DESATIVADO: SMS service não configurado
+          // const smsService = getSmsNotificationService();
+          // const phone = (s.receiverPhone || s.senderPhone || "").replace(/\D/g, "")
+          // if (phone.length >= 9) {
+          //   const readyDate = new Date();
+          //   const enqueued = smsService.enqueuePickupNotification({
+          //     shipmentId: id,
+          //     trackingCode: s.trackingCode || "",
+          //     phone: phone,
+          //     data: {
+          //       readyDate: formatDate(readyDate),
+          //       deadline: formatDate(addBusinessDays(readyDate, 5)),
+          //       senderName: s.senderName || "N/A",
+          //       receiverName: s.receiverName || "N/A",
+          //       pickupAddress: upd.pickupAddress || "",
+          //       pickupContact: upd.pickupContact || "",
+          //       pickupSchedule: "",
+          //       destination: s.destination || ""
+          //     }
+          //   });
+          //   logger.info(`[SMS] BatchByIds enqueue result for ${s.trackingCode}: ${enqueued ? 'queued' : 'skipped'}`);
+          // } else {
+          //   logger.warn(`[SMS] BatchByIds skipped for ${s.trackingCode}: invalid phone after cleaning`);
+          // }
+        }
       }
       await batch.commit();
       invalidateCache('admin:stats');
@@ -865,6 +982,108 @@ export const AdminController = {
     } catch (error) {
       logger.error('Erro ao buscar tendências:', error);
       res.status(500).json({ error: 'Erro ao buscar tendências' });
+    }
+  },
+
+  generateWhatsAppPaymentLink: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const doc = await db.collection('shipments').doc(id).get();
+      if (!doc.exists) {
+        return res.status(404).json({ error: 'Encomenda não encontrada' });
+      }
+
+      const shipment = doc.data() as any;
+
+      if (shipment.status !== 'READY_FOR_PICKUP') {
+        return res.status(400).json({ error: 'Encomenda não está disponível para levantamento' });
+      }
+
+      const phone = shipment.receiverPhone || shipment.senderPhone || '';
+      if (!phone) {
+        return res.status(400).json({ error: 'Telefone do destinatário não definido' });
+      }
+
+      const locationType = getLocationType(shipment.destination || '');
+      const isLuanda = locationType === 'luanda';
+
+      const readyDate = shipment.readyForPickupAt
+        ? new Date(shipment.readyForPickupAt.toDate ? shipment.readyForPickupAt.toDate() : shipment.readyForPickupAt)
+        : new Date();
+
+      const weekLater = new Date(readyDate);
+      weekLater.setDate(weekLater.getDate() + 7);
+      const now = new Date();
+
+      if (now < weekLater) {
+        return res.status(400).json({
+          error: 'Pagamento só disponível após 7 dias da notificação de levantamento',
+          available: false,
+          readyDate: formatDate(readyDate),
+          availableFrom: formatDate(weekLater)
+        });
+      }
+
+      const deadline = shipment.pickupDeadline
+        ? new Date(shipment.pickupDeadline.toDate ? shipment.pickupDeadline.toDate() : shipment.pickupDeadline)
+        : addBusinessDays(readyDate, 5);
+
+      const fine = calculateFine(deadline, now);
+      const total = (shipment.price || 0) + fine;
+
+      let paymentInfo = '';
+      if (fine > 0) {
+        const weeksOverdue = calculateWeeksOverdue(deadline, now);
+        paymentInfo = `💰 VALOR TOTAL A PAGAR:\n- Multa por atraso: € ${fine.toFixed(2)} (${weeksOverdue} semana(s) após o prazo)\n- Total: € ${total.toFixed(2)}`;
+      } else {
+        paymentInfo = `💰 PAGAMENTO NO ATO DO LEVANTAMENTO:\n- Taxa alfandegária: sob consulta`;
+      }
+
+      const message = `ARISA EXPRESS - Encomenda Disponível para Levantamento!
+
+A sua encomenda chegada a ${isLuanda ? 'Luanda' : 'Lisboa'} e já está disponível para levantamento!
+
+📦 Nº de Encomenda: ${shipment.trackingCode}
+📅 Data de Envio: ${formatDate(readyDate)}
+⏰ Prazo Limite: ${formatDate(deadline)} (5 dias úteis)
+
+${paymentInfo}
+
+📋 DOCUMENTOS NECESSÁRIOS:
+- Bilhete de identidade (original)
+- Fatura/comprovativo de compra (se aplicável)
+
+📍 Local: ${isLuanda ? 'Morro Bento, Avenida 21 de Janeiro, Defronte ao Hotel Ágatha' : 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros'}
+📞 Contacto: ${isLuanda ? '+244 948 440 920' : '+351 934 292 082'}
+🕐 Horário: ${isLuanda ? 'Segunda a sexta-feira | 08:00-12:00 | 13:00-17:00' : 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00'}
+
+Aviso: O não levantamento no prazo de 5 dias úteis implica cobrança de taxa de ocupação de espaço.
+
+Atenciosamente,
+Equipa Arisa Express`;
+
+      const defaultCountry = isLuanda ? 'ao' : 'pt';
+      const link = generateCustomWhatsAppLink(phone, message, defaultCountry);
+
+      if (!link) {
+        return res.status(400).json({ error: 'Número de telefone inválido' });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          link,
+          phone: formatPhoneToE164(phone, defaultCountry),
+          message,
+          available: true,
+          fine,
+          total
+        }
+      });
+    } catch (error: any) {
+      logger.error('Erro ao gerar link WhatsApp de pagamento:', error.message);
+      res.status(500).json({ error: 'Erro ao gerar link' });
     }
   }
 };

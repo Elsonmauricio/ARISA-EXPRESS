@@ -6,7 +6,7 @@ import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
-import { api } from '../lib/api';
+import { api, authenticatedFetch } from '../lib/api';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -22,10 +22,10 @@ export default function Profile() {
   const { t } = useT();
 
   useEffect(() => {
-    fetchProfile();
+    authenticatedFetchProfile();
   }, []);
 
-  const fetchProfile = async () => {
+  const authenticatedFetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -33,7 +33,7 @@ export default function Profile() {
         return;
       }
 
-      const response = await fetch(api('/api/users/profile'), {
+      const response = await authenticatedFetch(api('/api/users/profile'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const json = await response.json();
@@ -62,7 +62,7 @@ export default function Profile() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api('/api/users/profile'), {
+      const response = await authenticatedFetch(api('/api/users/profile'), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

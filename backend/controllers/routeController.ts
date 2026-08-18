@@ -4,6 +4,9 @@ import { db } from '../config/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../utils/logger';
 import { invalidateCache } from '../middleware/cache';
+// DESATIVADO: SMS service não configurado
+// import { getSmsNotificationService } from '../services/sms';
+import { formatDate } from '../utils/businessDays';
 
 export const RouteController = {
   // Listar todas as rotas (para admin)
@@ -261,6 +264,32 @@ export const RouteController = {
 
           if (s.receiverPhone || s.senderPhone) { notifCount++ }
           logger.info(`[RouteStatus]   READY_FOR_PICKUP: pickupAddress=${isRouteLuanda ? 'Luanda' : 'Lisbon'}, whatsappReady: ${s.receiverPhone || s.senderPhone ? 'yes' : 'no'}`);
+
+          const pickupPhone = (s.receiverPhone || s.senderPhone || '').replace(/\D/g, '');
+          if (pickupPhone.length >= 9) {
+            // DESATIVADO: SMS service não configurado
+            // const smsService = getSmsNotificationService();
+            // const readyDate = new Date();
+            // const deadlineStr = formatDate(deadline);
+            // const enqueued = smsService.enqueuePickupNotification({
+            //   shipmentId: doc.id,
+            //   trackingCode: s.trackingCode || '',
+            //   phone: pickupPhone,
+            //   data: {
+            //     readyDate: formatDate(readyDate),
+            //     deadline: deadlineStr,
+            //     senderName: s.senderName || 'N/A',
+            //     receiverName: s.receiverName || 'N/A',
+            //     pickupAddress: updateData.pickupAddress,
+            //     pickupContact: updateData.pickupContact,
+            //     pickupSchedule: updateData.pickupSchedule || '',
+            //     destination: routeData?.destination || ''
+            //   }
+            // });
+            // logger.info(`[SMS] Enqueue result for ${s.trackingCode}: ${enqueued ? 'queued' : 'skipped (invalid phone)'}`);
+          } else {
+            logger.warn(`[SMS] Skipped for shipment ${s.trackingCode}: no valid phone (receiverPhone=${s.receiverPhone || 'null'}, senderPhone=${s.senderPhone || 'null'})`);
+          }
         }
 
         if (shipmentStatus === 'PICKED_UP') {

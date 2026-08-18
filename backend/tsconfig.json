@@ -3,9 +3,7 @@
      "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "paths": {
-      "@/*": ["."]
-    },
+    "baseUrl": ".",
     "outDir": "./dist",
     "rootDir": ".",
     "esModuleInterop": true,
@@ -15,6 +13,6 @@
     "resolveJsonModule": true,
     "sourceMap": true
   },
-  "include": ["./**/*", "config", "controllers", "utils", "types", "services", "api/routes", "middleware", "api/auth"],
+  "include": ["**/*"],
   "exclude": ["node_modules", "dist"]
 }

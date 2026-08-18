@@ -6,7 +6,7 @@ import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { Link, useNavigate } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
-import { api } from '../lib/api';
+import { api, authenticatedFetch, logout } from '../lib/api';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -31,7 +31,8 @@ export default function Login() {
       const json = await response.json();
 
       if (json.success) {
-        localStorage.setItem('token', json.data.token);
+        localStorage.setItem('token', json.data.accessToken);
+        localStorage.setItem('refreshToken', json.data.refreshToken);
         localStorage.setItem('user', JSON.stringify(json.data.user));
         navigate('/');
       } else {

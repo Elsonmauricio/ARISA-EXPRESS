@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { db } from '../config/firebase';
 import { logger } from '../utils/logger';
+import { getPickupImage, getLocationType } from '../utils/whatsapp';
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: 'Pendente',
@@ -78,12 +79,14 @@ export const ExportController = {
         const status = data.status || '';
         const statusProprio = data.status_proprio || '';
         const statusLabel = statusProprio ? STATUS_LABELS[statusProprio] || statusProprio : STATUS_LABELS[status] || status;
+        const dest = data.destination || '';
+        const imageUrl = getPickupImage(getLocationType(dest));
         return {
           id: doc.id,
           trackingCode: data.trackingCode || '',
           status: statusLabel,
           origem: data.origin || '',
-          destino: data.destination || '',
+          destino: dest,
           rota: data.route || '',
           remetente: data.senderName || '',
           destinatario: data.receiverName || '',
@@ -92,11 +95,12 @@ export const ExportController = {
           estadoPagamento: PAYMENT_LABELS[data.paymentStatus] || data.paymentStatus || '',
           dataCriacao: formatDate(data.createdAt),
           disponivelLevantamento: formatDate(data.readyForPickupAt),
-          prazoLimite: formatDate(data.pickupDeadline)
+          prazoLimite: formatDate(data.pickupDeadline),
+          imagemLevantamento: imageUrl
         };
       });
 
-      const headers = ['id','codigoRastreio','status','origem','destino','rota','remetente','destinatario','peso','preco','estadoPagamento','dataCriacao','disponivelLevantamento','prazoLimite'];
+      const headers = ['id','codigoRastreio','status','origem','destino','rota','remetente','destinatario','peso','preco','estadoPagamento','dataCriacao','disponivelLevantamento','prazoLimite','imagemLevantamento'];
       const csv = toCsv(headers, rows);
 
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');

@@ -51,7 +51,8 @@ export default function Register() {
       const json = await response.json();
 
       if (json.success) {
-        localStorage.setItem('token', json.data.token);
+        localStorage.setItem('token', json.data.accessToken);
+        localStorage.setItem('refreshToken', json.data.refreshToken);
         localStorage.setItem('user', JSON.stringify(json.data.user));
         navigate('/');
       } else {

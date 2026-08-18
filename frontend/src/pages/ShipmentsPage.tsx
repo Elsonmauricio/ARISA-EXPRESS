@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
-import { api } from '../lib/api';
+import { api, authenticatedFetch } from '../lib/api';
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
 
@@ -177,7 +177,7 @@ function BookingForm({ routes, onBookingSuccess }: { routes: Route[]; onBookingS
         serviceType: formData.serviceType
       };
 
-      const response = await fetch(api('/api/shipments'), {
+      const response = await authenticatedFetch(api('/api/shipments'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -428,7 +428,7 @@ function ShipmentList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchShipments = async () => {
+  const authenticatedFetchShipments = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -436,7 +436,7 @@ function ShipmentList() {
         return;
       }
 
-      const response = await fetch(api('/api/shipments'), {
+      const response = await authenticatedFetch(api('/api/shipments'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -466,7 +466,7 @@ function ShipmentList() {
   };
 
   useEffect(() => {
-    fetchShipments();
+    authenticatedFetchShipments();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -765,7 +765,7 @@ function TrackingForm() {
     setResult(null);
 
     try {
-      const response = await fetch(api(`/api/tracking/${trackingCode}`));
+      const response = await authenticatedFetch(api(`/api/tracking/${trackingCode}`));
       const json = await response.json();
       if (json.success) {
         setResult(json.data);
@@ -921,12 +921,12 @@ export default function ShipmentsPage() {
   }, []);
 
   useEffect(() => {
-    fetchRoutes();
+    authenticatedFetchRoutes();
   }, []);
 
-  const fetchRoutes = async () => {
+  const authenticatedFetchRoutes = async () => {
     try {
-      const response = await fetch(api('/api/routes/available'));
+      const response = await authenticatedFetch(api('/api/routes/available'));
       const json = await response.json();
       if (json.success) {
         setRoutes(json.data);
@@ -1007,7 +1007,7 @@ export default function ShipmentsPage() {
               ) : routesError ? (
                 <div className="text-center py-8 text-red-400">{routesError}</div>
               ) : (
-                 <BookingForm routes={routes} onBookingSuccess={fetchRoutes} />
+                 <BookingForm routes={routes} onBookingSuccess={authenticatedFetchRoutes} />
               )
             )}
             {activeTab === 'consultar' && <ShipmentList />}

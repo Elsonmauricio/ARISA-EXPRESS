@@ -18,6 +18,7 @@ import ParallaxLayer from './components/ParallaxLayer';
 import { AnimatePresence } from 'framer-motion';
 import { useLenis } from './hooks/useLenis';
 import { LanguageProvider, useT } from './i18n/LanguageContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function PageLoader() {
   return (
@@ -83,9 +84,30 @@ function AppRoutes() {
         <Route path="/encomendas" element={<ShipmentsPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registar" element={<Register />} />
-        <Route path="/perfil" element={<Profile />} />
-        <Route path="/definicoes" element={<Settings />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/perfil"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/definicoes"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/termos" element={<Terms />} />
         <Route path="/privacidade" element={<Privacy />} />
       </Routes>

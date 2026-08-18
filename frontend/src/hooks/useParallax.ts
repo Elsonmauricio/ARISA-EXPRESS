@@ -7,26 +7,15 @@ if (typeof window !== 'undefined') {
 }
 
 interface ParallaxOptions {
-  /** Distância de deslocamento em px (positivo = sobe, negativo = desce). */
   distance?: number;
-  /** Eixo do deslocamento. */
   axis?: 'x' | 'y';
-  /** Suavização do scrub (1 = linear, >1 = mais suave). */
   scrub?: number;
-  /** ScrollTrigger start. */
   start?: string;
-  /** ScrollTrigger end. */
   end?: string;
-  /** Profundidade relativa (0 = fixo, 1 = desloca bastante). Ignora distance se definido. */
   depth?: number;
-  /** Direção invertida. */
   invert?: boolean;
 }
 
-/**
- * Aplica um efeito de parallax GSAP a um elemento ref enquanto a página faz scroll.
- * Devolve uma ref para colocar no elemento alvo.
- */
 export function useParallax<T extends HTMLElement = HTMLDivElement>(options: ParallaxOptions = {}) {
   const {
     distance,

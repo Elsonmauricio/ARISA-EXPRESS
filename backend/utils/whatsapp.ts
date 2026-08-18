@@ -29,11 +29,21 @@ export function getLocationType(destination: string): LocationType {
 }
 
 export function getPickupImage(location: LocationType): string {
-  const baseUrl = process.env.BACKEND_URL || '';
-  if (location === 'luanda') {
-    return baseUrl + '/api/assets/images/Luanda.jpeg';
+  const backendUrl = process.env.BACKEND_URL || '';
+  const envKey = location === 'luanda' ? 'WHATSAPP_IMAGE_URL_LUANDA' : 'WHATSAPP_IMAGE_URL_LISBOA';
+  const configured = process.env[envKey];
+
+  if (configured && !configured.includes('localhost')) {
+    return configured;
   }
-  return baseUrl + '/api/assets/images/Lisboa.jpeg';
+
+  if (backendUrl && !backendUrl.includes('localhost')) {
+    return `${backendUrl}/api/assets/images/${location === 'luanda' ? 'Luanda' : 'Lisboa'}.jpeg`;
+  }
+
+  return location === 'luanda'
+    ? '/api/assets/images/Luanda.jpeg'
+    : '/api/assets/images/Lisboa.jpeg';
 }
 
 export function generateWhatsAppMessage(data: WhatsAppMessageData & { imageUrl?: string }): string {
@@ -59,9 +69,7 @@ A sua encomenda já se encontra em ${location} disponível para levantamento!
   Remetente: ${data.senderName}
   Destinatário: ${data.receiverName}
 
-  Aviso: Deve efetuar o levantamento no prazo máximo de 5 diasteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.
-
-  Imagem: ${imageUrl}`;
+  Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.`;
 }
 
 export function generatePickupMessage(data: PickupNotificationData): string {
@@ -88,9 +96,7 @@ export function generatePickupMessage(data: PickupNotificationData): string {
   Remetente: ${data.senderName}
   Destinatário: ${data.receiverName}
 
-  Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.
-
-  Imagem: ${imageUrl}`;
+  Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.`;
 }
 
 function getAddressForLocation(location: LocationType): string {
@@ -111,7 +117,7 @@ function getScheduleForLocation(location: LocationType): string {
   return 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00';
 }
 
-export function generateWhatsAppLink(phone: string, message: string, location?: LocationType): string {
+export function generateWhatsAppLink(phone: string, message: string, location?: LocationType): string | null {
   const encodedMessage = encodeURIComponent(message);
   const cleanPhone = phone.replace(/\D/g, '');
 
@@ -120,5 +126,58 @@ export function generateWhatsAppLink(phone: string, message: string, location?: 
     return `https://wa.me/${countryCode}${cleanPhone}?text=${encodedMessage}`;
   }
 
+  if (!cleanPhone) return null;
   return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+}
+
+export function formatPhoneToE164(phone: string, defaultCountry: 'br' | 'ao' | 'pt' = 'br'): string | null {
+  if (!phone || typeof phone !== 'string') return null;
+
+  let clean = phone.trim();
+
+  clean = clean.replace(/[\s\-\(\)\.]/g, '');
+
+  if (clean.startsWith('+')) {
+    clean = clean.slice(1);
+  }
+
+  if (clean.startsWith('00')) {
+    clean = clean.slice(2);
+  }
+
+  if (clean.length >= 12 && clean.startsWith('55')) {
+    return '+' + clean;
+  }
+
+  const digits = clean.replace(/\D/g, '');
+
+  if (digits.length === 0) return null;
+
+  switch (defaultCountry) {
+    case 'br':
+      return '+55' + digits;
+    case 'ao':
+      return '+244' + digits;
+    case 'pt':
+      return '+351' + digits;
+    default:
+      return '+' + digits;
+  }
+}
+
+export function generateCustomWhatsAppLink(
+  phone: string,
+  message: string,
+  defaultCountry: 'br' | 'ao' | 'pt' = 'br'
+): string | null {
+  const formattedPhone = formatPhoneToE164(phone, defaultCountry);
+
+  if (!formattedPhone) {
+    return null;
+  }
+
+  const phoneNumber = formattedPhone.replace('+', '');
+  const encodedMessage = encodeURIComponent(message);
+
+  return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 }

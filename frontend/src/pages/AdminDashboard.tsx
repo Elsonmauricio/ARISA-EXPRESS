@@ -12,7 +12,16 @@ import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
-import { api } from '../lib/api';
+import { api, authenticatedFetch, logout } from '../lib/api';
+import { openWhatsAppLink } from '../lib/whatsapp';
+
+// ======================== UTILITÁRIOS ========================
+function formatDateSafe(value: any, fallback = '—'): string {
+  if (!value) return fallback;
+  const date = typeof value === 'object' && value.toDate ? value.toDate() : new Date(value);
+  if (isNaN(date.getTime())) return fallback;
+  return date.toLocaleDateString('pt-PT');
+}
 
 // ======================== TIPOS ========================
 interface Shipment {
@@ -395,7 +404,7 @@ function ExportButtons() {
   const download = async (endpoint: string, filename: string) => {
     if (!token) return;
     try {
-      const response = await fetch(api(endpoint), {
+      const response = await authenticatedFetch(api(endpoint), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Export failed');
@@ -475,7 +484,7 @@ function NewShipmentForm() {
         cttLink: form.cttLink || ''
       };
 
-      const response = await fetch(api('/api/admin/shipments'), {
+      const response = await authenticatedFetch(api('/api/admin/shipments'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -654,10 +663,10 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
 
   const [routes, setRoutes] = useState<Route[]>([]);
 
-  const fetchRoutes = async () => {
+  const authenticatedFetchRoutes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api('/api/routes'), {
+      const response = await authenticatedFetch(api('/api/routes'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.status === 401) return;
@@ -667,10 +676,10 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
   };
 
   useEffect(() => {
-    fetchRoutes();
+    authenticatedFetchRoutes();
   }, [refreshKey]);
 
-  const fetchShipments = useCallback(async (cursor?: string | null) => {
+  const authenticatedFetchShipments = useCallback(async (cursor?: string | null) => {
     if (cursor) {
       setLoadingMore(true);
     } else {
@@ -700,7 +709,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
         params.set('q', search.trim());
       }
 
-      const response = await fetch(api(`${endpoint}?${params.toString()}`), {
+      const response = await authenticatedFetch(api(`${endpoint}?${params.toString()}`), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -730,27 +739,27 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
   }, [filter, search, pageLimit, t, navigate, api]);
 
   useEffect(() => {
-    fetchShipments();
-  }, [fetchShipments, refreshKey, filter]);
+    authenticatedFetchShipments();
+  }, [authenticatedFetchShipments, refreshKey, filter]);
 
   const loadMore = () => {
     if (!loadingMore && nextCursor) {
-      fetchShipments(nextCursor);
+      authenticatedFetchShipments(nextCursor);
     }
   };
 
   const refreshShipments = () => {
-    fetchShipments();
+    authenticatedFetchShipments();
   };
 
   useEffect(() => {
-    fetchShipments();
-  }, [fetchShipments, refreshKey]);
+    authenticatedFetchShipments();
+  }, [authenticatedFetchShipments, refreshKey]);
 
   const updateStatus = async (id: string, status: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/admin/shipments/${id}/status`), {
+      const response = await authenticatedFetch(api(`/api/admin/shipments/${id}/status`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -768,7 +777,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
 
       const json = await response.json();
       if (json.success) {
-        fetchShipments();
+        authenticatedFetchShipments();
       }
     } catch (err) {
       alert(t('admin.erroStatus'));
@@ -779,7 +788,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
     try {
       setBatchUpdating(true)
       const token = localStorage.getItem('token')
-      const response = await fetch(api('/api/admin/shipments/batch-status'), {
+      const response = await authenticatedFetch(api('/api/admin/shipments/batch-status'), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -799,7 +808,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
           setBatchWhatsappInfo(null)
         }
         alert(json.message + (json.whatsappReady > 0 ? '. ' + json.whatsappReady + ' encomendas prontas para WhatsApp.' : ''))
-        fetchShipments()
+        authenticatedFetchShipments()
         setBatchModalOpen(false)
       } else {
         alert(json.error || 'Erro ao atualizar')
@@ -816,7 +825,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
     try {
       setBatchUpdating(true)
       const token = localStorage.getItem('token')
-      const response = await fetch(api('/api/admin/shipments/batch-status-by-ids'), {
+      const response = await authenticatedFetch(api('/api/admin/shipments/batch-status-by-ids'), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -835,7 +844,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
           setBatchWhatsappInfo(null)
         }
         alert(json.message + (json.whatsappReady > 0 ? '. ' + json.whatsappReady + ' encomendas prontas para WhatsApp.' : ''))
-        fetchShipments()
+        authenticatedFetchShipments()
         setSelectedShipments([])
         setBatchStatus('')
       } else {
@@ -853,7 +862,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
   const sendWhatsApp = async (shipment: Shipment) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/admin/shipments/${shipment.id}/whatsapp-link`), {
+      const response = await authenticatedFetch(api(`/api/admin/shipments/${shipment.id}/whatsapp-link`), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const json = await response.json();
@@ -871,11 +880,28 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
     }
   };
 
+  const sendPaymentWhatsApp = async (shipment: Shipment) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await authenticatedFetch(api(`/api/admin/shipments/${shipment.id}/whatsapp-payment`), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const json = await response.json();
+      if (json.success && json.data?.link) {
+        openWhatsAppLink(json.data.link);
+      } else {
+        alert(json.error || t('admin.erroWhatsapp'));
+      }
+    } catch {
+      alert(t('admin.erroWhatsapp'));
+    }
+  };
+
   const updateCtt = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
       const form = cttForm[id] || { code: '', link: '' };
-      const response = await fetch(api(`/api/admin/shipments/${id}/ctt`), {
+      const response = await authenticatedFetch(api(`/api/admin/shipments/${id}/ctt`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -899,7 +925,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
           delete next[id];
           return next;
         });
-        fetchShipments();
+        authenticatedFetchShipments();
       } else {
         alert(json.error || t('admin.erroWhatsapp'));
       }
@@ -987,6 +1013,7 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
           <table className="min-w-full text-sm">
             <thead className="border-b border-gray-300">
               <tr>
+                <th className="py-3 px-2"><input type="checkbox" /></th>
                 <th className="text-left py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{t('admin.codigo')}</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm hidden sm:table-cell">{t('admin.remetente')}</th>
                 <th className="text-left py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{t('admin.rota')}</th>
@@ -1004,16 +1031,12 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
                  <tr className="border-b border-lilac/10 hover:bg-white transition-colors">
                   <td className="py-3 px-2"><input type="checkbox" checked={selectedShipments.includes(s.id)} onChange={(e) => { if (e.target.checked) { setSelectedShipments([...selectedShipments, s.id]); } else { setSelectedShipments(selectedShipments.filter(id => id !== s.id)); } }} /></td><td className="py-3 px-2 sm:px-4 font-mono text-gold text-xs sm:text-sm">{s.trackingCode}</td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden sm:table-cell">{s.senderName}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.origin} → {s.destination}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} {t('ship.kg')}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">€ {s.price?.toFixed(2) || '—'}</td>
-                  <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">
-                    {s.pickupDeadline
-                      ? (typeof s.pickupDeadline === 'object' && s.pickupDeadline.toDate
-                        ? s.pickupDeadline.toDate().toLocaleDateString('pt-PT')
-                        : new Date(s.pickupDeadline).toLocaleDateString('pt-PT'))
-                      : '—'}
-                  </td>
+                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">{s.route || `${s.origin} → ${s.destination}`}</td>
+                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden md:table-cell">{s.weight} {t('ship.kg')}</td>
+                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">€ {s.price?.toFixed(2) || '—'}</td>
+                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">
+                     {formatDateSafe(s.pickupDeadline)}
+                   </td>
                   <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
                     {s.calculatedFine !== undefined ? `€ ${s.calculatedFine.toFixed(2)}` : '€—'}
                   </td>
@@ -1046,14 +1069,34 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
                   </td>
                    <td className="py-3 px-2 sm:px-4">
                      <div className="flex flex-wrap items-center gap-1">
-                       {s.status === 'READY_FOR_PICKUP' && (
-                         <button
-                           onClick={() => sendWhatsApp(s)}
-                           className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded hover:bg-emerald-500/30 transition-colors text-[10px] sm:text-xs whitespace-nowrap"
-                         >
-                           <Send className="w-3 h-3" /> {t('admin.enviarWhatsapp')}
-                         </button>
-                       )}
+                        {s.status === 'READY_FOR_PICKUP' && (
+                          <button
+                            onClick={() => sendWhatsApp(s)}
+                            className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded hover:bg-emerald-500/30 transition-colors text-[10px] sm:text-xs whitespace-nowrap"
+                          >
+                            <Send className="w-3 h-3" /> {t('admin.enviarWhatsapp')}
+                          </button>
+                        )}
+                         {s.status === 'READY_FOR_PICKUP' && (() => {
+                           const readyDate = s.readyForPickupAt
+                             ? new Date(
+                                 typeof s.readyForPickupAt === 'object' && 'seconds' in s.readyForPickupAt
+                                   ? (s.readyForPickupAt as any).seconds * 1000
+                                   : s.readyForPickupAt
+                               )
+                             : null;
+                           const paymentAvailable = readyDate
+                             ? new Date() >= new Date(readyDate.getTime() + 7 * 24 * 60 * 60 * 1000)
+                             : false;
+                           return paymentAvailable ? (
+                             <button
+                               onClick={() => sendPaymentWhatsApp(s)}
+                               className="flex items-center gap-1 px-2 py-1 bg-amber-500/20 text-amber-400 rounded hover:bg-amber-500/30 transition-colors text-[10px] sm:text-xs whitespace-nowrap"
+                             >
+                               <Send className="w-3 h-3" /> WhatsApp Pagamento
+                             </button>
+                           ) : null;
+                         })()}
                        <button
                          onClick={() => {
                            setEditingCttId(editingCttId === s.id ? null : s.id);
@@ -1264,7 +1307,7 @@ function AdminUserList() {
   const navigate = useNavigate();
   const { t } = useT();
 
-  const fetchUsers = async (cursor?: string | null) => {
+  const authenticatedFetchUsers = async (cursor?: string | null) => {
     if (cursor) {
       setLoadingMore(true);
     } else {
@@ -1279,7 +1322,7 @@ function AdminUserList() {
       params.set('limit', '20');
       if (cursor) params.set('cursor', cursor);
 
-      const response = await fetch(api(`/api/admin/users?${params.toString()}`), {
+      const response = await authenticatedFetch(api(`/api/admin/users?${params.toString()}`), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1307,19 +1350,19 @@ function AdminUserList() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    authenticatedFetchUsers();
   }, []);
 
   const loadMore = () => {
     if (!loadingMore && nextCursor) {
-      fetchUsers(nextCursor);
+      authenticatedFetchUsers(nextCursor);
     }
   };
 
   const changeRole = async (id: string, role: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/admin/users/${id}/role`), {
+      const response = await authenticatedFetch(api(`/api/admin/users/${id}/role`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -1335,7 +1378,7 @@ function AdminUserList() {
         return;
       }
 
-      fetchUsers();
+      authenticatedFetchUsers();
     } catch (err) {
       alert(t('admin.erroAlterarRole'));
     }
@@ -1422,10 +1465,10 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
   const navigate = useNavigate();
   const { t } = useT();
 
-  const fetchRoutes = async () => {
+  const authenticatedFetchRoutes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api('/api/routes'), {
+      const response = await authenticatedFetch(api('/api/routes'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1450,14 +1493,14 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
   };
 
   useEffect(() => {
-    fetchRoutes();
+    authenticatedFetchRoutes();
   }, []);
 
   const updateRouteStatus = async (id: string, status: string) => {
     try {
       setSavingRouteId(id);
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/routes/${id}/status`), {
+      const response = await authenticatedFetch(api(`/api/routes/${id}/status`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -1475,7 +1518,7 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
 
       const json = await response.json();
       if (json.success) {
-        fetchRoutes();
+        authenticatedFetchRoutes();
         // Dispara re-busca de encomendas no AdminShipmentList
         onRouteStatusChange?.();
         if (json.data?.whatsappReady > 0) {
@@ -1495,7 +1538,7 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api('/api/routes'), {
+      const response = await authenticatedFetch(api('/api/routes'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1517,7 +1560,7 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
 
       const json = await response.json();
       if (json.success) {
-        fetchRoutes();
+        authenticatedFetchRoutes();
         setNewRoute({ origin: '', destination: '', pricePerKg: 0, flightDate: '', capacity: 0 });
         setEditingId(null);
       } else {
@@ -1532,7 +1575,7 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
     if (!confirm(t('admin.confirmarEliminar'))) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/routes/${id}`), {
+      const response = await authenticatedFetch(api(`/api/routes/${id}`), {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1544,7 +1587,7 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
         return;
       }
 
-      fetchRoutes();
+      authenticatedFetchRoutes();
     } catch (err) {
       alert(t('admin.erroEliminar'));
     }
@@ -1733,7 +1776,7 @@ function AdminLeadsList() {
     }
   })();
 
-  const fetchLeads = async (cursor?: string | null) => {
+  const authenticatedFetchLeads = async (cursor?: string | null) => {
     if (cursor) {
       setLoadingMore(true);
     } else {
@@ -1755,7 +1798,7 @@ function AdminLeadsList() {
       if (cursor) params.set('cursor', cursor);
       if (stageFilter !== 'ALL') params.set('stage', stageFilter);
 
-      const response = await fetch(api(`/api/admin/leads?${params.toString()}`), {
+      const response = await authenticatedFetch(api(`/api/admin/leads?${params.toString()}`), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1784,16 +1827,16 @@ function AdminLeadsList() {
 
   const loadMore = () => {
     if (!loadingMore && nextCursor) {
-      fetchLeads(nextCursor);
+      authenticatedFetchLeads(nextCursor);
     }
   };
 
-  const fetchPipeline = async () => {
+  const authenticatedFetchPipeline = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(api('/api/admin/leads/pipeline'), {
+      const response = await authenticatedFetch(api('/api/admin/leads/pipeline'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1816,18 +1859,18 @@ function AdminLeadsList() {
   const refreshAll = async () => {
     setLeadsRefreshing(true);
     setError('');
-    await Promise.all([fetchLeads(), fetchPipeline()]);
+    await Promise.all([authenticatedFetchLeads(), authenticatedFetchPipeline()]);
     setLeadsRefreshing(false);
   };
 
   useEffect(() => {
-    fetchLeads();
+    authenticatedFetchLeads();
   }, [stageFilter]);
 
   const markAsRead = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/admin/leads/${id}/read`), {
+      const response = await authenticatedFetch(api(`/api/admin/leads/${id}/read`), {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1839,7 +1882,7 @@ function AdminLeadsList() {
         return;
       }
 
-      fetchLeads();
+      authenticatedFetchLeads();
     } catch (err) {
       alert(t('admin.erroMarcarLida'));
     }
@@ -1849,7 +1892,7 @@ function AdminLeadsList() {
     if (!confirm(t('admin.confirmarEliminarMsg'))) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/admin/leads/${id}`), {
+      const response = await authenticatedFetch(api(`/api/admin/leads/${id}`), {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1861,8 +1904,8 @@ function AdminLeadsList() {
         return;
       }
 
-      fetchLeads();
-      fetchPipeline();
+      authenticatedFetchLeads();
+      authenticatedFetchPipeline();
     } catch (err) {
       alert(t('admin.erroEliminarMsg'));
     }
@@ -1872,7 +1915,7 @@ function AdminLeadsList() {
     try {
       setSaving(s => ({ ...s, [id]: true }));
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/admin/leads/${id}/stage`), {
+      const response = await authenticatedFetch(api(`/api/admin/leads/${id}/stage`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -1888,7 +1931,7 @@ function AdminLeadsList() {
         return;
       }
 
-      await Promise.all([fetchLeads(), fetchPipeline()]);
+      await Promise.all([authenticatedFetchLeads(), authenticatedFetchPipeline()]);
     } catch (err) {
       alert(t('admin.erroEstado'));
     } finally {
@@ -1900,7 +1943,7 @@ function AdminLeadsList() {
     try {
       setSaving(s => ({ ...s, [id]: true }));
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/admin/leads/${id}/assign`), {
+      const response = await authenticatedFetch(api(`/api/admin/leads/${id}/assign`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -1919,7 +1962,7 @@ function AdminLeadsList() {
         return;
       }
 
-      fetchLeads();
+      authenticatedFetchLeads();
     } catch (err) {
       alert(t('admin.erroAtribuir'));
     } finally {
@@ -1939,7 +1982,7 @@ function AdminLeadsList() {
         return;
       }
       const merged = [...current, tag];
-      const response = await fetch(api(`/api/admin/leads/${id}/tags`), {
+      const response = await authenticatedFetch(api(`/api/admin/leads/${id}/tags`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -1956,7 +1999,7 @@ function AdminLeadsList() {
       }
 
       setNewTag(s => ({ ...s, [id]: '' }));
-      fetchLeads();
+      authenticatedFetchLeads();
     } catch (err) {
       alert(t('admin.erroAddEtiqueta'));
     } finally {
@@ -1970,7 +2013,7 @@ function AdminLeadsList() {
     try {
       setSaving(s => ({ ...s, [id]: true }));
       const token = localStorage.getItem('token');
-      const response = await fetch(api(`/api/admin/leads/${id}/notes`), {
+      const response = await authenticatedFetch(api(`/api/admin/leads/${id}/notes`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1987,7 +2030,7 @@ function AdminLeadsList() {
       }
 
       setNewNote(s => ({ ...s, [id]: '' }));
-      fetchLeads();
+      authenticatedFetchLeads();
     } catch (err) {
       alert(t('admin.erroAddNota'));
     } finally {
@@ -2278,17 +2321,17 @@ export default function AdminDashboard() {
       navigate('/');
       return;
     }
-    fetchDashboardData();
+    authenticatedFetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const authenticatedFetchDashboardData = async () => {
     try {
       setRefreshing(true);
       const token = localStorage.getItem('token');
       if (!token) return;
 
       // Buscar estatísticas
-      const statsRes = await fetch(api('/api/admin/stats'), {
+      const statsRes = await authenticatedFetch(api('/api/admin/stats'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -2317,7 +2360,7 @@ export default function AdminDashboard() {
       }
 
       // Buscar tendências
-      const trendsRes = await fetch(api('/api/admin/stats/trends'), {
+      const trendsRes = await authenticatedFetch(api('/api/admin/stats/trends'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (trendsRes.status === 401) {
@@ -2332,7 +2375,7 @@ export default function AdminDashboard() {
       }
 
       // Buscar encomendas recentes (últimas 5)
-      const shipmentsRes = await fetch(api('/api/admin/shipments'), {
+      const shipmentsRes = await authenticatedFetch(api('/api/admin/shipments'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -2391,7 +2434,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (activeTab === 'overview') {
-        fetchDashboardData();
+        authenticatedFetchDashboardData();
       }
     }, 30000);
     return () => clearInterval(interval);
@@ -2430,7 +2473,7 @@ export default function AdminDashboard() {
                 <p className="text-gray-600 mt-1 text-sm sm:text-base">{t('admin.desc')}</p>
               </div>
               <button
-                onClick={fetchDashboardData}
+                onClick={authenticatedFetchDashboardData}
                 disabled={refreshing}
                 className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 hover:bg-gray-100 transition-colors flex items-center gap-2 disabled:opacity-50"
               >

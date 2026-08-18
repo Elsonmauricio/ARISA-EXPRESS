@@ -14,6 +14,8 @@ import quotationRoutes from './api/routes/quotations';
 import adminRoutes from './api/routes/admin';
 import trackingRoutes from './api/routes/tracking';
 import contactRoutes from './api/routes/contact';
+import webhookRoutes from './api/routes/webhook';
+import notifyRoutes from './api/routes/notify';
 
 import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimit';
@@ -54,6 +56,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/routes', routeRoutes);
+app.use('/api/webhook', webhookRoutes);
+app.use('/api', notifyRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

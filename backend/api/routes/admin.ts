@@ -7,6 +7,7 @@ import { authenticate, authorize } from '../../middleware/auth';
 import { validate } from '../../middleware/validation';
 import { auditLog } from '../../middleware/auditLog';
 import { adminCreateShipmentSchema, updateCttSchema, batchStatusUpdateSchema, batchByIdsSchema } from '../../types/validation';
+import { getSmsNotificationService } from '../../services/sms';
 
 const router = Router();
 
@@ -27,8 +28,8 @@ router.patch('/shipments/:id/status', auditLog, AdminController.updateShipmentSt
 router.patch('/shipments/:id/ctt', validate(updateCttSchema), auditLog, AdminController.updateCtt);
 router.patch('/shipments/batch-status-by-ids', validate(batchByIdsSchema), auditLog, AdminController.batchUpdateByIds);
 
-
 router.get('/shipments/:id/whatsapp-link', AdminController.generateWhatsAppLink);
+router.get('/shipments/:id/whatsapp-payment', AdminController.generateWhatsAppPaymentLink);
 router.get('/shipments/:id/fine', AdminController.calculateShipmentFine);
 router.get('/users', AdminController.getAllUsers);
 router.patch('/users/:id/role', auditLog, AdminController.changeUserRole);
@@ -47,5 +48,10 @@ router.get('/export/shipments', ExportController.exportShipments);
 router.get('/export/users', ExportController.exportUsers);
 router.get('/export/leads', ExportController.exportLeads);
 router.get('/backup/full', ExportController.fullBackup);
+
+router.get('/notifications/sms/queue', (req, res) => {
+  const svc = getSmsNotificationService();
+  res.json({ success: true, queueLength: svc.getQueueLength() });
+});
 
 export default router;
