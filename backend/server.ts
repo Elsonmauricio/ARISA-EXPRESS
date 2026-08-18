@@ -26,15 +26,26 @@ const app = express();
 
 // Middleware
 app.use(helmet());
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173' )
+
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://arisaexpress.vercel.app',
+  'https://arisa-backend.vercel.app'
+];
+
+const envOrigins = (process.env.FRONTEND_URL || '')
   .split(';')
   .map((o: string) => o.trim())
   .filter(Boolean);
 
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
+
 app.use(cors({
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.warn(`[CORS] Origin bloqueada: ${origin}`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true
