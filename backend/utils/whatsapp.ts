@@ -12,6 +12,7 @@ export interface WhatsAppMessageData {
   pickupAddress?: string;
   pickupContact?: string;
   pickupSchedule?: string;
+  price?: number;
 }
 
 export interface PickupNotificationData extends WhatsAppMessageData {
@@ -26,6 +27,36 @@ export function isLuandaDestination(destination: string): boolean {
 
 export function getLocationType(destination: string): LocationType {
   return isLuandaDestination(destination) ? 'luanda' : 'lisbon';
+}
+
+function normalize(str: string): string {
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+export function guessLocationType(
+  destination?: string,
+  pickupAddress?: string,
+  pickupContact?: string
+): LocationType {
+  const loc = getLocationType(destination || '');
+  if (loc === 'luanda') return 'luanda';
+
+  const contact = normalize(pickupContact || '');
+  if (contact.includes('+244')) return 'luanda';
+
+  const address = normalize(pickupAddress || '');
+  if (
+    address.includes('luanda') ||
+    address.includes('angola') ||
+    address.includes('morro bento') ||
+    address.includes('hotel agatha') ||
+    address.includes('farmacia elvice') ||
+    address.includes('colegio gab')
+  ) {
+    return 'luanda';
+  }
+
+  return 'lisbon';
 }
 
 export function getPickupImage(location: LocationType): string {
@@ -46,57 +77,77 @@ export function getPickupImage(location: LocationType): string {
     : '/api/assets/images/Lisboa.jpeg';
 }
 
+function buildPickupBody(options: {
+  trackingCode: string;
+  shipmentDate: string;
+  deadline: string;
+  senderName: string;
+  receiverName: string;
+  address: string;
+  contact: string;
+  schedule: string;
+  locationType: LocationType;
+  price?: number;
+}): string {
+  const isLuanda = options.locationType === 'luanda';
+  const angolaFine = (options.price || 0) * 0.1;
+  const fineNotice = isLuanda
+    ? `será cobrada uma taxa de ocupação de espaço de ${angolaFine.toFixed(2)}€ (10% do valor do envio)`
+    : 'será cobrada uma taxa de ocupação de espaço de 5€ por semana';
+
+  return `ARISA EXPRESS - Encomenda Disponível para Levantamento!
+
+Endereço: ${options.address}
+Contacto: ${options.contact}
+Horário: ${options.schedule}
+
+Nº de Encomenda: ${options.trackingCode}
+Data de Envio: ${options.shipmentDate}
+Prazo Limite sem Multa: ${options.deadline} (5 dias úteis)
+
+Remetente: ${options.senderName}
+Destinatário: ${options.receiverName}
+
+Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, ${fineNotice} no ato do levantamento.`;
+}
+
 export function generateWhatsAppMessage(data: WhatsAppMessageData & { imageUrl?: string }): string {
-  const address = data.pickupAddress || 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros';
-  const contact = data.pickupContact || '+351 934 292 082';
-  const schedule = data.pickupSchedule || 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00';
-  const location = isLuandaDestination(data.destination || '') ? 'Luanda' : 'Lisboa';
-  const locationType = getLocationType(data.destination || '');
-  const imageUrl = data.imageUrl || getPickupImage(locationType);
+  const locationType = guessLocationType(data.destination, data.pickupAddress, data.pickupContact);
+  const address = data.pickupAddress || getAddressForLocation(locationType);
+  const contact = data.pickupContact || getContactForLocation(locationType);
+  const schedule = data.pickupSchedule || getScheduleForLocation(locationType);
 
-  return ` ARISA EXPRESS - Encomenda Disponível para Levantamento!
-
-A sua encomenda já se encontra em ${location} disponível para levantamento!
-
-  Endereço: ${address}
-  Contacto: ${contact}
-  Horário: ${schedule}
-
-  N de Encomenda: ${data.trackingCode}
-  Data de Envio: ${data.shipmentDate}
-  Prazo Limite sem Multa: ${data.deadline} (5 dias uteis)
-
-  Remetente: ${data.senderName}
-  Destinatário: ${data.receiverName}
-
-  Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.`;
+  return buildPickupBody({
+    trackingCode: data.trackingCode,
+    shipmentDate: data.shipmentDate,
+    deadline: data.deadline,
+    senderName: data.senderName,
+    receiverName: data.receiverName,
+    address,
+    contact,
+    schedule,
+    locationType,
+    price: data.price
+  });
 }
 
 export function generatePickupMessage(data: PickupNotificationData): string {
   const address = data.pickupAddress || getAddressForLocation(data.location);
   const contact = data.pickupContact || getContactForLocation(data.location);
   const schedule = data.pickupSchedule || getScheduleForLocation(data.location);
-  const imageUrl = getPickupImage(data.location);
 
-  const headers = {
-    lisbon: ' ARISA EXPRESS - Encomenda Disponível para Levantamento!\n\nA sua encomenda chegou a Lisboa e já está disponível para levantamento!',
-    luanda: ' ARISA EXPRESS - Encomenda Disponível para Levantamento!\n\nA sua encomenda chegou a Luanda e já está disponível para levantamento!'
-  };
-
-  return `${headers[data.location]}
-
-  Endereço: ${address}
-  Contacto: ${contact}
-  Horário: ${schedule}
-
-  Nº de Encomenda: ${data.trackingCode}
-  Data de Envio: ${data.shipmentDate}
-  Prazo Limite sem Multa: ${data.deadline} (5 dias úteis)
-
-  Remetente: ${data.senderName}
-  Destinatário: ${data.receiverName}
-
-  Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.`;
+  return buildPickupBody({
+    trackingCode: data.trackingCode,
+    shipmentDate: data.shipmentDate,
+    deadline: data.deadline,
+    senderName: data.senderName,
+    receiverName: data.receiverName,
+    address,
+    contact,
+    schedule,
+    locationType: data.location,
+    price: data.price
+  });
 }
 
 function getAddressForLocation(location: LocationType): string {
@@ -152,6 +203,10 @@ export function formatPhoneToE164(phone: string, defaultCountry: 'br' | 'ao' | '
   const digits = clean.replace(/\D/g, '');
 
   if (digits.length === 0) return null;
+
+  if (digits.startsWith('244') || digits.startsWith('351')) {
+    return '+' + digits;
+  }
 
   switch (defaultCountry) {
     case 'br':
