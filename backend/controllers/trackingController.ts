@@ -2,7 +2,8 @@
 import { Request, Response } from 'express';
 import { db } from '../config/firebase';
 import { logger } from '../utils/logger';
-import { calculateFine, calculateWeeksOverdue, formatDate } from '../utils/businessDays';
+import { calculateFine, calculateLocationFine, calculateWeeksOverdue, formatDate } from '../utils/businessDays';
+import { guessLocationType } from '../utils/whatsapp';
 import { fixEncodingObject } from '../utils/encoding';
 
 function toIsoDate(ts: any): string | null {
@@ -58,8 +59,12 @@ export const TrackingController = {
       if (shipment.pickupDeadline && shipment.status === 'READY_FOR_PICKUP') {
         const deadline = new Date(shipment.pickupDeadline.toDate ? shipment.pickupDeadline.toDate() : shipment.pickupDeadline);
         const now = new Date();
-        const fine = calculateFine(deadline, now);
-        const weeksOverdue = calculateWeeksOverdue(deadline, now);
+        const locationType = guessLocationType(shipment.destination);
+        const isLuanda = locationType === 'luanda';
+        const fine = isLuanda
+          ? calculateLocationFine(shipment.price || 0, shipment.destination || '')
+          : calculateFine(deadline, now);
+        const weeksOverdue = isLuanda ? 0 : calculateWeeksOverdue(deadline, now);
 
         if (fine > 0) {
           fineInfo = {

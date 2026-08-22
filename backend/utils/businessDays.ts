@@ -61,6 +61,15 @@ export function calculateFine(deadline: Date, currentDate: Date): number {
   return weeks * 5.0;
 }
 
+export function calculateLocationFine(price: number, destination: string): number {
+  const isLuanda = (destination || '').toLowerCase().includes('luanda') ||
+                   (destination || '').toLowerCase().includes('angola');
+  if (isLuanda) {
+    return price * 0.1;
+  }
+  return 0;
+}
+
 export function formatDate(date: Date): string {
   return date.toLocaleDateString('pt-PT');
 }

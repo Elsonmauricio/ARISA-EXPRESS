@@ -1,13 +1,9 @@
 // backend/src/controllers/notifyController.ts
 import { Request, Response } from 'express';
 import { db } from '../config/firebase';
-import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../utils/logger';
 import { addBusinessDays, formatDate } from '../utils/businessDays';
-import { generateWhatsAppMessage, getLocationType, getPickupImage } from '../utils/whatsapp';
-// DESATIVADO: WhatsApp Cloud API não configurada
-// import { WhatsAppService } from '../services/whatsappService';
-import { invalidateCache } from '../middleware/cache';
+import { generateWhatsAppMessage, generateWhatsAppLink, guessLocationType } from '../utils/whatsapp';
 
 export const NotifyController = {
   sendPickupNotification: async (req: Request, res: Response) => {
@@ -36,7 +32,7 @@ export const NotifyController = {
       }
 
       const dest = destination || shipment.destination || '';
-      const locationType = getLocationType(dest);
+      const locationType = guessLocationType(dest);
       const readyDate = shipment.readyForPickupAt
         ? new Date(shipment.readyForPickupAt.toDate ? shipment.readyForPickupAt.toDate() : shipment.readyForPickupAt)
         : new Date();
@@ -53,40 +49,21 @@ export const NotifyController = {
         phone: cleanPhone,
         pickupAddress: shipment.pickupAddress || '',
         pickupContact: shipment.pickupContact || '',
-        pickupSchedule: shipment.pickupSchedule || ''
+        pickupSchedule: shipment.pickupSchedule || '',
+        price: shipment.price,
+        destination: dest
       });
 
-      // DESATIVADO: WhatsApp Cloud API não configurada
-      // const whatsappResult = await WhatsAppService.sendPickupNotification({
-      //   phone: cleanPhone,
-      //   trackingCode: shipment.trackingCode,
-      //   shipmentDate: formatDate(readyDate),
-      //   deadline: formatDate(deadline),
-      //   senderName: shipment.senderName || 'N/A',
-      //   receiverName: shipment.receiverName || 'N/A',
-      //   pickupAddress: shipment.pickupAddress || '',
-      //   pickupContact: shipment.pickupContact || '',
-      //   pickupSchedule: shipment.pickupSchedule || '',
-      //   location: locationType,
-      //   destination: dest
-      // });
-
-      // if (whatsappResult.sent && whatsappResult.messageId) {
-      //   await docRef.update({
-      //     whatsapp_message_id: whatsappResult.messageId,
-      //     whatsapp_status: 'sent',
-      //     whatsapp_sent_at: FieldValue.serverTimestamp()
-      //   });
-      //   invalidateCache('admin:stats');
-      // }
+      const link = generateWhatsAppLink(cleanPhone, message, locationType);
 
       logger.info(`Notify WhatsApp: order=${orderCode} (link mode)`);
       res.json({
         success: true,
         messageId: null,
         sent: false,
-        link: null,
-        error: null
+        link,
+        message,
+        error: link ? null : 'Falha ao gerar link'
       });
     } catch (error: any) {
       logger.error('Erro ao enviar notificação WhatsApp:', error.message);

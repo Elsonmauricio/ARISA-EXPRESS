@@ -29,34 +29,8 @@ export function getLocationType(destination: string): LocationType {
   return isLuandaDestination(destination) ? 'luanda' : 'lisbon';
 }
 
-function normalize(str: string): string {
-  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
-export function guessLocationType(
-  destination?: string,
-  pickupAddress?: string,
-  pickupContact?: string
-): LocationType {
-  const loc = getLocationType(destination || '');
-  if (loc === 'luanda') return 'luanda';
-
-  const contact = normalize(pickupContact || '');
-  if (contact.includes('+244')) return 'luanda';
-
-  const address = normalize(pickupAddress || '');
-  if (
-    address.includes('luanda') ||
-    address.includes('angola') ||
-    address.includes('morro bento') ||
-    address.includes('hotel agatha') ||
-    address.includes('farmacia elvice') ||
-    address.includes('colegio gab')
-  ) {
-    return 'luanda';
-  }
-
-  return 'lisbon';
+export function guessLocationType(destination?: string): LocationType {
+  return getLocationType(destination || '');
 }
 
 export function getPickupImage(location: LocationType): string {
@@ -112,7 +86,7 @@ Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este
 }
 
 export function generateWhatsAppMessage(data: WhatsAppMessageData & { imageUrl?: string }): string {
-  const locationType = guessLocationType(data.destination, data.pickupAddress, data.pickupContact);
+  const locationType = guessLocationType(data.destination);
   const address = data.pickupAddress || getAddressForLocation(locationType);
   const contact = data.pickupContact || getContactForLocation(locationType);
   const schedule = data.pickupSchedule || getScheduleForLocation(locationType);

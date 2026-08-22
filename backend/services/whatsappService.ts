@@ -1,7 +1,6 @@
 // backend/src/services/whatsappService.ts
-import { db } from '../config/firebase';
 import { logger } from '../utils/logger';
-import { generateWhatsAppLink, generatePickupMessage, getPickupImage, getLocationType } from '../utils/whatsapp';
+import { generateWhatsAppLink, generatePickupMessage } from '../utils/whatsapp';
 
 type LocationType = 'lisbon' | 'luanda';
 
@@ -17,72 +16,6 @@ interface WhatsAppNotificationData {
   pickupSchedule: string;
   location: LocationType;
   destination: string;
-}
-
-interface TemplateComponent {
-  type: 'header' | 'body' | 'button';
-  sub_type?: 'image' | 'text';
-  parameters?: Array<{
-    type: 'text' | 'image';
-    text?: string;
-    image?: { link: string };
-  }>;
-}
-
-function getTemplateName(destination: string): string {
-  const loc = getLocationType(destination || '');
-  return loc === 'luanda'
-    ? (process.env.WHATSAPP_TEMPLATE_LUANDA || 'encomenda_pronta_luanda')
-    : (process.env.WHATSAPP_TEMPLATE_LISBOA || 'encomenda_pronta_lisboa');
-}
-
-function getImageUrl(destination: string): string {
-  const loc = getLocationType(destination || '');
-  const envKey = loc === 'luanda' ? 'WHATSAPP_IMAGE_URL_LUANDA' : 'WHATSAPP_IMAGE_URL_LISBOA';
-  const fallback = getPickupImage(loc);
-
-  const configured = process.env[envKey];
-  if (configured && !configured.includes('localhost')) {
-    return configured;
-  }
-
-  const backendUrl = process.env.BACKEND_URL || '';
-  if (backendUrl && !backendUrl.includes('localhost')) {
-    return `${backendUrl}/api/assets/images/${loc === 'luanda' ? 'Luanda' : 'Lisboa'}.jpeg`;
-  }
-
-  return fallback;
-}
-
-function buildTemplateComponents(
-  data: WhatsAppNotificationData,
-  destination: string
-): TemplateComponent[] {
-  const components: TemplateComponent[] = [];
-  const imageUrl = getImageUrl(destination);
-
-  components.push({
-    type: 'header',
-    sub_type: 'image',
-    parameters: [{ type: 'image', image: { link: imageUrl } }]
-  });
-
-  components.push({
-    type: 'body',
-    sub_type: 'text',
-    parameters: [
-      { type: 'text', text: data.trackingCode },
-      { type: 'text', text: data.shipmentDate },
-      { type: 'text', text: data.deadline },
-      { type: 'text', text: data.senderName },
-      { type: 'text', text: data.receiverName },
-      { type: 'text', text: data.pickupAddress },
-      { type: 'text', text: data.pickupContact },
-      { type: 'text', text: data.pickupSchedule }
-    ]
-  });
-
-  return components;
 }
 
 export class WhatsAppService {
@@ -102,20 +35,18 @@ export class WhatsAppService {
     }
 
     try {
-      const templateName = getTemplateName(data.destination);
-      const components = buildTemplateComponents(data, data.destination);
       const countryCode = data.location === 'luanda' ? '244' : '351';
       const recipient = cleanPhone.length === 9 ? `${countryCode}${cleanPhone}` : cleanPhone;
+      const messageBody = generatePickupMessage(data);
 
       const payload: Record<string, any> = {
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
         to: recipient,
-        type: 'template',
-        template: {
-          name: templateName,
-          language: { code: 'pt_PT' },
-          components
+        type: 'text',
+        text: {
+          body: messageBody,
+          preview_url: false
         }
       };
 
@@ -141,7 +72,7 @@ export class WhatsAppService {
       }
 
       const messageId = result.messages?.[0]?.id;
-      logger.info(`WhatsApp template sent: template=${templateName} wamid=${messageId} to=${recipient}`);
+      logger.info(`WhatsApp text sent: wamid=${messageId} to=${recipient} location=${data.location}`);
 
       return { success: true, sent: true, messageId };
     } catch (error: any) {
@@ -156,11 +87,7 @@ export class WhatsAppService {
 
   static async initialize(): Promise<void> {
     if (this.isConfigured()) {
-      const templates = [
-        process.env.WHATSAPP_TEMPLATE_LISBOA || 'encomenda_pronta_lisboa',
-        process.env.WHATSAPP_TEMPLATE_LUANDA || 'encomenda_pronta_luanda'
-      ];
-      logger.info(`WhatsApp service configured with templates: ${templates.join(', ')}`);
+      logger.info('WhatsApp service configured (text message mode)');
     } else {
       logger.info('WhatsApp service in manual mode (link generation)');
     }

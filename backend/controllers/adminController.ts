@@ -4,8 +4,8 @@ import { db } from '../config/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
-import { addBusinessDays, calculateFine, formatDate, getBusinessDaysBetween, calculateWeeksOverdue } from '../utils/businessDays';
-import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, getPickupImage, isLuandaDestination, formatPhoneToE164, generateCustomWhatsAppLink } from '../utils/whatsapp';
+import { addBusinessDays, calculateFine, calculateLocationFine, formatDate, getBusinessDaysBetween, calculateWeeksOverdue } from '../utils/businessDays';
+import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, getPickupImage, isLuandaDestination, formatPhoneToE164, generateCustomWhatsAppLink, guessLocationType } from '../utils/whatsapp';
 import { fixEncodingObject } from '../utils/encoding';
 import { LocationType } from '../utils/whatsapp';
 import { getCached, setCache, invalidateCache } from '../middleware/cache';
@@ -378,7 +378,11 @@ export const AdminController = {
         const data = doc.data();
         const now = new Date();
         const deadline = data.pickupDeadline ? new Date(data.pickupDeadline.toDate ? data.pickupDeadline.toDate() : data.pickupDeadline) : null;
-        const fine = deadline ? calculateFine(deadline, now) : 0;
+        const locationType = guessLocationType(data.destination);
+        const isLuanda = locationType === 'luanda';
+        const fine = deadline
+          ? (isLuanda ? calculateLocationFine(data.price || 0, data.destination || '') : calculateFine(deadline, now))
+          : (isLuanda ? calculateLocationFine(data.price || 0, data.destination || '') : 0);
 
         return {
           id: doc.id,
@@ -418,6 +422,8 @@ export const AdminController = {
       const readyDate = shipment.readyForPickupAt ? new Date(shipment.readyForPickupAt.toDate ? shipment.readyForPickupAt.toDate() : shipment.readyForPickupAt) : new Date();
       const deadline = shipment.pickupDeadline ? new Date(shipment.pickupDeadline.toDate ? shipment.pickupDeadline.toDate() : shipment.pickupDeadline) : addBusinessDays(readyDate, 5);
 
+      const locationType = guessLocationType(shipment.destination);
+
       const message = generateWhatsAppMessage({
         trackingCode: shipment.trackingCode,
         shipmentDate: formatDate(readyDate),
@@ -427,16 +433,18 @@ export const AdminController = {
         phone,
         pickupAddress: shipment.pickupAddress,
         pickupContact: shipment.pickupContact,
-        pickupSchedule: shipment.pickupSchedule
+        pickupSchedule: shipment.pickupSchedule,
+        price: shipment.price,
+        destination: shipment.destination
       });
 
       const link = generateWhatsAppLink(
         phone,
         message,
-        getLocationType(shipment.destination || '')
+        locationType
       );
 
-      const imageUrl = getPickupImage(getLocationType(shipment.destination || ''));
+      const imageUrl = getPickupImage(locationType);
       const isLuanda = imageUrl && imageUrl.includes('Luanda.jpeg');
       const imgName = isLuanda ? 'Luanda.jpeg' : 'Lisboa.jpeg';
 
@@ -509,8 +517,12 @@ export const AdminController = {
 
       const deadline = new Date(shipment.pickupDeadline.toDate ? shipment.pickupDeadline.toDate() : shipment.pickupDeadline);
       const now = new Date();
-      const fine = calculateFine(deadline, now);
-      const weeksOverdue = calculateWeeksOverdue(deadline, now);
+      const locationType = guessLocationType(shipment.destination);
+      const isLuanda = locationType === 'luanda';
+      const fine = isLuanda
+        ? calculateLocationFine(shipment.price || 0, shipment.destination || '')
+        : calculateFine(deadline, now);
+      const weeksOverdue = isLuanda ? 0 : calculateWeeksOverdue(deadline, now);
 
       res.json({
         success: true,
@@ -1005,7 +1017,7 @@ export const AdminController = {
         return res.status(400).json({ error: 'Telefone do destinatário não definido' });
       }
 
-      const locationType = getLocationType(shipment.destination || '');
+      const locationType = guessLocationType(shipment.destination);
       const isLuanda = locationType === 'luanda';
 
       const readyDate = shipment.readyForPickupAt
@@ -1029,20 +1041,29 @@ export const AdminController = {
         ? new Date(shipment.pickupDeadline.toDate ? shipment.pickupDeadline.toDate() : shipment.pickupDeadline)
         : addBusinessDays(readyDate, 5);
 
-      const fine = calculateFine(deadline, now);
+      let fine = 0;
+      if (isLuanda) {
+        fine = calculateLocationFine(shipment.price || 0, shipment.destination || '');
+      } else {
+        fine = calculateFine(deadline, now);
+      }
       const total = (shipment.price || 0) + fine;
 
       let paymentInfo = '';
       if (fine > 0) {
-        const weeksOverdue = calculateWeeksOverdue(deadline, now);
-        paymentInfo = `💰 VALOR TOTAL A PAGAR:\n- Multa por atraso: € ${fine.toFixed(2)} (${weeksOverdue} semana(s) após o prazo)\n- Total: € ${total.toFixed(2)}`;
+        if (isLuanda) {
+          paymentInfo = `💰 VALOR TOTAL A PAGAR:\n- Multa por atraso: € ${fine.toFixed(2)} (10% do valor do envio)\n- Total: € ${total.toFixed(2)}`;
+        } else {
+          const weeksOverdue = calculateWeeksOverdue(deadline, now);
+          paymentInfo = `💰 VALOR TOTAL A PAGAR:\n- Multa por atraso: € ${fine.toFixed(2)} (${weeksOverdue} semana(s) após o prazo)\n- Total: € ${total.toFixed(2)}`;
+        }
       } else {
         paymentInfo = `💰 PAGAMENTO NO ATO DO LEVANTAMENTO:\n- Taxa alfandegária: sob consulta`;
       }
 
       const message = `ARISA EXPRESS - Encomenda Disponível para Levantamento!
 
-A sua encomenda chegada a ${isLuanda ? 'Luanda' : 'Lisboa'} e já está disponível para levantamento!
+A sua encomenda chegou a ${isLuanda ? 'Angola' : 'Lisboa'} e já está disponível para levantamento!
 
 📦 Nº de Encomenda: ${shipment.trackingCode}
 📅 Data de Envio: ${formatDate(readyDate)}
