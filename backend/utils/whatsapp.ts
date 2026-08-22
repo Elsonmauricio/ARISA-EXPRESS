@@ -20,6 +20,8 @@ export interface PickupNotificationData extends WhatsAppMessageData {
   destination: string;
 }
 
+// ==================== DETECÇÃO DE DESTINO ====================
+
 export function isLuandaDestination(destination: string): boolean {
   return (destination || '').toLowerCase().includes('luanda') ||
          (destination || '').toLowerCase().includes('angola');
@@ -32,6 +34,8 @@ export function getLocationType(destination: string): LocationType {
 export function guessLocationType(destination?: string): LocationType {
   return getLocationType(destination || '');
 }
+
+// ==================== IMAGEM ====================
 
 export function getPickupImage(location: LocationType): string {
   const backendUrl = process.env.BACKEND_URL || '';
@@ -51,95 +55,109 @@ export function getPickupImage(location: LocationType): string {
     : '/api/assets/images/Lisboa.jpeg';
 }
 
-function buildPickupBody(options: {
+// ==================== ENDEREÇOS ====================
+
+const LUANDA_ADDRESS = 'Morro Bento\nAvenida 21 de Janeiro\nDefronte ao Hotel Ágatha\nNo lado oposto ao Hotel Ágatha\nNa entrada à esquerda da farmácia Elvice, antes do Colégio GAB 2 está a Arisa Express';
+
+const LISBOA_ADDRESS = 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros';
+
+// ==================== CONTACTOS ====================
+
+const LUANDA_CONTACT = '+244 948 440 920';
+const LISBOA_CONTACT = '+351 934 292 082';
+
+// ==================== HORÁRIOS ====================
+
+const LUANDA_SCHEDULE = 'Segunda à sexta-feira\n08:00 – 12:00\n13:00 – 17:00\nEncerrados aos finais de semana e feriados';
+
+const LISBOA_SCHEDULE = 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00';
+
+// ==================== MENSAGENS COMPLETAS ====================
+
+function buildLuandaMessage(data: {
   trackingCode: string;
   shipmentDate: string;
   deadline: string;
   senderName: string;
   receiverName: string;
-  address: string;
-  contact: string;
-  schedule: string;
-  locationType: LocationType;
   price?: number;
 }): string {
-  const isLuanda = options.locationType === 'luanda';
-  const angolaFine = (options.price || 0) * 0.1;
-  const fineNotice = isLuanda
-    ? `será cobrada uma taxa de ocupação de espaço de ${angolaFine.toFixed(2)}€ (10% do valor do envio)`
-    : 'será cobrada uma taxa de ocupação de espaço de 5€ por semana';
+  const fine = (data.price || 0) * 0.1;
 
   return `ARISA EXPRESS - Encomenda Disponível para Levantamento!
 
-Endereço: ${options.address}
-Contacto: ${options.contact}
-Horário: ${options.schedule}
+Endereço: ${LUANDA_ADDRESS}
+Contacto: ${LUANDA_CONTACT}
+Horário: ${LUANDA_SCHEDULE}
 
-Nº de Encomenda: ${options.trackingCode}
-Data de Envio: ${options.shipmentDate}
-Prazo Limite sem Multa: ${options.deadline} (5 dias úteis)
+Nº de Encomenda: ${data.trackingCode}
+Data de Envio: ${data.shipmentDate}
+Prazo Limite sem Multa: ${data.deadline} (5 dias úteis)
 
-Remetente: ${options.senderName}
-Destinatário: ${options.receiverName}
+Remetente: ${data.senderName}
+Destinatário: ${data.receiverName}
 
-Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, ${fineNotice} no ato do levantamento.`;
+Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, será cobrada uma taxa de ocupação de espaço de ${fine.toFixed(2)}€ (10% do valor do envio) no ato do levantamento.`;
 }
+
+function buildLisboaMessage(data: {
+  trackingCode: string;
+  shipmentDate: string;
+  deadline: string;
+  senderName: string;
+  receiverName: string;
+}): string {
+  return `ARISA EXPRESS - Encomenda Disponível para Levantamento!
+
+Endereço: ${LISBOA_ADDRESS}
+Contacto: ${LISBOA_CONTACT}
+Horário: ${LISBOA_SCHEDULE}
+
+Nº de Encomenda: ${data.trackingCode}
+Data de Envio: ${data.shipmentDate}
+Prazo Limite sem Multa: ${data.deadline} (5 dias úteis)
+
+Remetente: ${data.senderName}
+Destinatário: ${data.receiverName}
+
+Aviso: Deve efetuar o levantamento no prazo máximo de 5 dias úteis. Após este período, será cobrada uma taxa de ocupação de espaço de 5€ por semana no ato do levantamento.`;
+}
+
+// ==================== FUNÇÕES PÚBLICAS ====================
 
 export function generateWhatsAppMessage(data: WhatsAppMessageData & { imageUrl?: string }): string {
   const locationType = guessLocationType(data.destination);
-  const address = data.pickupAddress || getAddressForLocation(locationType);
-  const contact = data.pickupContact || getContactForLocation(locationType);
-  const schedule = data.pickupSchedule || getScheduleForLocation(locationType);
-
-  return buildPickupBody({
+  const baseData = {
     trackingCode: data.trackingCode,
     shipmentDate: data.shipmentDate,
     deadline: data.deadline,
     senderName: data.senderName,
     receiverName: data.receiverName,
-    address,
-    contact,
-    schedule,
-    locationType,
     price: data.price
-  });
+  };
+
+  if (locationType === 'luanda') {
+    return buildLuandaMessage(baseData);
+  }
+
+  return buildLisboaMessage(baseData);
 }
 
 export function generatePickupMessage(data: PickupNotificationData): string {
-  const address = data.pickupAddress || getAddressForLocation(data.location);
-  const contact = data.pickupContact || getContactForLocation(data.location);
-  const schedule = data.pickupSchedule || getScheduleForLocation(data.location);
-
-  return buildPickupBody({
+  const baseData = {
     trackingCode: data.trackingCode,
     shipmentDate: data.shipmentDate,
     deadline: data.deadline,
     senderName: data.senderName,
     receiverName: data.receiverName,
-    address,
-    contact,
-    schedule,
-    locationType: data.location,
     price: data.price
-  });
-}
+  };
 
-function getAddressForLocation(location: LocationType): string {
-  if (location === 'luanda') {
-    return 'Morro Bento\nAvenida 21 de Janeiro\nDefronte ao Hotel Ágatha\nNo lado oposto ao Hotel Ágatha\nNa entrada esquerda da farmcia Elvice, antes do Colégio GAB 2 está a Arisa Express';
+  if (data.location === 'luanda') {
+    return buildLuandaMessage(baseData);
   }
-  return 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros';
-}
 
-function getContactForLocation(location: LocationType): string {
-  return location === 'luanda' ? '+244 948 440 920' : '+351 934 292 082';
-}
-
-function getScheduleForLocation(location: LocationType): string {
-  if (location === 'luanda') {
-    return 'Segunda a sexta-feira\n08:00 a 12:00\n13:00 a 17:00\nEncerrados aos finais de semana e feriados';
-  }
-  return 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00';
+  return buildLisboaMessage(baseData);
 }
 
 export function generateWhatsAppLink(phone: string, message: string, location?: LocationType): string | null {
