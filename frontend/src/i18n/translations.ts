@@ -27,7 +27,7 @@ export const translations: Record<Lang, Dict> = {
     'hero.angola': 'Angola',
     'hero.portugal': 'Portugal',
     'hero.title': 'Ligamos {angola} a {portugal} com rapidez e segurança.',
-    'hero.subtitle': 'Soluções de transporte internacional para particulares e empresas  entregas porta-a-porta, rastreamento em tempo real e atendimento dedicado.',
+    'hero.subtitle': 'Soluções de transporte internacional para particulares e empresas,  entregas porta-a-porta, rastreamento em tempo real e atendimento dedicado.',
     'hero.solicitarOrcamento': 'Solicitar Orçamento',
     'hero.acompanharEncomenda': 'Acompanhar Encomenda',
 
@@ -44,7 +44,7 @@ export const translations: Record<Lang, Dict> = {
     // ---- ABOUT ----
     'about.eyebrow': 'Sobre Nós',
     'about.title': 'Logística pensada para conectar dois continentes.',
-    'about.text': 'Somos a ponte de confiança entre Angola e Portugal. Combinamos rede aérea, infraestrutura de armazenagem e tecnologia de rastreamento. Entregar mais do que pacotes, entregamos previsibilidade!',
+    'about.text': 'Somos a ponte de confiança entre Angola e Portugal. Combinamos rede aérea, infraestrutura de armazenagem e tecnologia de rastreamento. Mais do que pacotes, entregamos previsibilidade!',
     'about.missao': 'Missão',
     'about.missaoText': 'Tornar o envio internacional simples, transparente e rápido para pessoas e empresas que cruzam Angola e Portugal.',
     'about.visao': 'Visão',
@@ -699,7 +699,7 @@ export const translations: Record<Lang, Dict> = {
     // ---- ABOUT ----
     'about.eyebrow': 'About Us',
     'about.title': 'Logistics designed to connect two continents.',
-    'about.text': 'We are the trusted bridge between Angola and Portugal. We combine air network, warehousing infrastructure and tracking technology. Deliver more than packages, we deliver predictability!',
+    'about.text': 'We are the trusted bridge between Angola and Portugal. We combine air network, warehousing infrastructure and tracking technology. More than packages, we deliver predictability!',
     'about.missao': 'Mission',
     'about.missaoText': 'Make international shipping simple, transparent and fast for people and businesses crossing Angola and Portugal.',
     'about.visao': 'Vision',

@@ -173,7 +173,7 @@ export function generateWhatsAppLink(phone: string, message: string, location?: 
   return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
 }
 
-export function formatPhoneToE164(phone: string, defaultCountry: 'br' | 'ao' | 'pt' = 'br'): string | null {
+export function formatPhoneToE164(phone: string, defaultCountry: 'ao' | 'pt' = 'ao'): string | null {
   if (!phone || typeof phone !== 'string') return null;
 
   let clean = phone.trim();
@@ -201,8 +201,6 @@ export function formatPhoneToE164(phone: string, defaultCountry: 'br' | 'ao' | '
   }
 
   switch (defaultCountry) {
-    case 'br':
-      return '+55' + digits;
     case 'ao':
       return '+244' + digits;
     case 'pt':
@@ -215,7 +213,7 @@ export function formatPhoneToE164(phone: string, defaultCountry: 'br' | 'ao' | '
 export function generateCustomWhatsAppLink(
   phone: string,
   message: string,
-  defaultCountry: 'br' | 'ao' | 'pt' = 'br'
+  defaultCountry: 'ao' | 'pt' = 'ao'
 ): string | null {
   const formattedPhone = formatPhoneToE164(phone, defaultCountry);
 
@@ -224,7 +222,7 @@ export function generateCustomWhatsAppLink(
   }
 
   const phoneNumber = formattedPhone.replace('+', '');
-  const encodedMessage = encodeURIComponent(message);
-
+  const 
+  encodedMessage = encodeURIComponent(message); 
   return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 }
