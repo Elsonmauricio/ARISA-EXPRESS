@@ -30,6 +30,8 @@ app.use(helmet());
 const defaultOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://www.arisa-express.com',
+  'https://arisa-express.com',
   'https://arisaexpress.vercel.app',
   'https://arisa-backend.vercel.app'
 ];
