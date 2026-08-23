@@ -11,6 +11,7 @@ import Layout from '../components/Layout';
 import { api, authenticatedFetch } from '../lib/api';
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
+import { FaWhatsapp } from 'react-icons/fa';
 
 // ======================== TIPOS ========================
 interface Route {
@@ -372,16 +373,22 @@ function BookingForm({ routes, onBookingSuccess }: { routes: Route[]; onBookingS
                 </div>
                  <div>
                    <label className="block text-sm text-gray-600 mb-1">{t('ship.remetenteTel')}</label>
-                   <input type="tel" name="senderPhone" value={formData.senderPhone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
+                   <div className="relative">
+                     <FaWhatsapp className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500 w-5 h-5" />
+                     <input type="tel" name="senderPhone" value={formData.senderPhone} onChange={handleInputChange} required placeholder={t('ship.whatsappPlaceholder')} className="w-full px-4 py-3 pl-10 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
+                   </div>
                  </div>
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">{t('ship.destinatario')}</label>
                   <input type="text" name="receiverName" value={formData.receiverName} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">{t('ship.destinatarioTel')}</label>
-                  <input type="tel" name="receiverPhone" value={formData.receiverPhone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
-                </div>
+                 <div>
+                   <label className="block text-sm text-gray-600 mb-1">{t('ship.destinatarioTel')}</label>
+                   <div className="relative">
+                     <FaWhatsapp className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500 w-5 h-5" />
+                     <input type="tel" name="receiverPhone" value={formData.receiverPhone} onChange={handleInputChange} required placeholder={t('ship.whatsappPlaceholder')} className="w-full px-4 py-3 pl-10 bg-[#E8D9F5] border border-gray-300 rounded-lg focus:border-gold outline-none text-gray-800" />
+                   </div>
+                 </div>
               </div>
 
               <div className="grid md:grid-cols-3 gap-4">

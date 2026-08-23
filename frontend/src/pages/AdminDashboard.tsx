@@ -23,6 +23,27 @@ function formatDateSafe(value: any, fallback = '—'): string {
   return date.toLocaleDateString('pt-PT');
 }
 
+function getSortableTime(value: any): number {
+  if (!value) return 0;
+  try {
+    if (typeof value === 'object' && value.toDate) {
+      return value.toDate().getTime();
+    }
+    if (typeof value === 'string' || typeof value === 'number') {
+      return new Date(value).getTime();
+    }
+    if (typeof value === 'object') {
+      const seconds = value.seconds ?? value._seconds;
+      const nanoseconds = value.nanoseconds ?? value._nanoseconds ?? 0;
+      if (seconds !== undefined) return seconds * 1000 + nanoseconds / 1e6;
+    }
+    if (value instanceof Date) return value.getTime();
+  } catch {
+    return 0;
+  }
+  return 0;
+}
+
 // ======================== TIPOS ========================
 interface Shipment {
   id: string;
@@ -72,6 +93,7 @@ interface Route {
   available: number;
   status: string;
   status_atual?: string;
+  createdAt?: any;
 }
 
 interface Lead {
@@ -953,13 +975,10 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
 
   const filtered = shipments.filter(s => {
     const matchFilter = filter === 'all' || s.status === filter;
-    const matchSearch = s.trackingCode.toLowerCase().includes(search.toLowerCase()) ||
-                        s.senderName.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = (s.trackingCode || '').toLowerCase().includes(search.toLowerCase()) ||
+                        (s.senderName || '').toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
-
-  if (loading) return <div className="text-center py-8 text-gray-600">{t('admin.aCarregarEncomendas')}</div>;
-  if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
 
   return (
     <div>
@@ -1001,15 +1020,14 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} /> {t('admin.atualizar')}
         </button>
-        <button
-          onClick={() => setBatchModalOpen(true)}
-          className="px-4 py-2 bg-[#4B2170] border border-[#4B2170]/30 rounded-lg text-gray-800 hover:bg-[#7B2FBF] transition-colors flex items-center gap-2">
-          Atualizar Rota
-        </button>
       </div>
 
       <div className="overflow-x-auto px-4 sm:px-0">
         <div className="inline-block min-w-full align-middle">
+          {loading && shipments.length === 0 ? (
+            <div className="text-center py-8 text-gray-600">{t('admin.aCarregarEncomendas')}</div>
+          ) : (
+          <>
           <table className="min-w-full text-sm">
             <thead className="border-b border-gray-300">
               <tr>
@@ -1214,11 +1232,10 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
                 </button>
               </div>
             )}
+          </>
+          )}
           </div>
         </div>
-        {loading && shipments.length === 0 && (
-          <div className="text-center py-8 text-gray-600">{t('admin.aCarregarEncomendas')}</div>
-        )}
         {error && (
           <div className="text-center py-8 text-red-400">{error}</div>
         )}
@@ -1389,8 +1406,8 @@ function AdminUserList() {
 
   return (
     <div className="overflow-x-auto px-4 sm:px-0">
-      <div className="inline-block min-w-full align-middle">
-        <table className="min-w-full text-sm">
+        <div className="inline-block min-w-full align-middle">
+          <table className="min-w-full text-sm">
           <thead className="border-b border-gray-300">
             <tr>
               <th className="text-left py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{t('admin.nome')}</th>
@@ -1495,6 +1512,14 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
   useEffect(() => {
     authenticatedFetchRoutes();
   }, []);
+
+  // Ordenar rotas: mais recentes primeiro (por data de criação), com fallback ao ID
+  const sortedRoutes = [...routes].sort((a, b) => {
+    const timeA = getSortableTime(a.createdAt);
+    const timeB = getSortableTime(b.createdAt);
+    if (timeA !== timeB) return timeB - timeA;
+    return String(b.id).localeCompare(String(a.id));
+  });
 
   const updateRouteStatus = async (id: string, status: string) => {
     try {
@@ -1679,7 +1704,7 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
               </tr>
             </thead>
             <tbody>
-              {routes.map((r) => {
+              {sortedRoutes.map((r) => {
                 const expired = isExpired(r.flightDate);
                 return (
                   <tr key={r.id} className={`border-b border-lilac/10 hover:bg-white transition-colors ${expired ? 'opacity-50' : ''}`}>
@@ -1743,7 +1768,7 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
           </table>
         </div>
       </div>
-      {routes.length === 0 && (
+      {sortedRoutes.length === 0 && (
         <div className="text-center py-8 text-gray-400">{t('admin.nenhumaRota')}</div>
       )}
     </div>

@@ -34,21 +34,23 @@ interface CounterProps {
 
 function Counter({ value, prefix, suffix, delay = 0 }: CounterProps): JSX.Element {
   const ref = useRef<HTMLSpanElement>(null);
-  const [display, setDisplay] = useState(`${prefix}0${suffix}`);
 
   useEffect(() => {
     if (!ref.current) return;
     const node = ref.current;
     const obj = { v: 0 };
 
+    // Atualiza diretamente o texto via DOM, sem estado
+    const updateText = (v: number) => {
+      node.textContent = `${prefix}${Math.floor(v).toLocaleString('pt-PT')}${suffix}`;
+    };
+
     const tween = gsap.to(obj, {
       v: value,
       duration: 2.2,
       delay,
       ease: 'power2.out',
-      onUpdate: () => {
-        setDisplay(`${prefix}${Math.floor(obj.v).toLocaleString('pt-PT')}${suffix}`);
-      },
+      onUpdate: () => updateText(obj.v),
       scrollTrigger: {
         trigger: node,
         start: 'top 85%',
@@ -56,13 +58,16 @@ function Counter({ value, prefix, suffix, delay = 0 }: CounterProps): JSX.Elemen
       },
     });
 
+    // Inicializa com 0
+    updateText(0);
+
     return () => {
       tween.scrollTrigger?.kill();
       tween.kill();
     };
   }, [value, prefix, suffix, delay]);
 
-  return <span ref={ref}>{display}</span>;
+  return <span ref={ref} />;
 }
 
 export default function Stats(): JSX.Element {
@@ -94,7 +99,11 @@ export default function Stats(): JSX.Element {
   }, []);
 
   return (
-    <section id="stats" className="relative py-20 w-full flex justify-center">
+    <section
+      id="stats"
+      className="relative py-20 w-full flex justify-center"
+      aria-label="Estatísticas da empresa" // Acessibilidade
+    >
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#E8D9F5]/0 via-transparent to-[#E8D9F5]/10 z-[1]" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#E8D9F5]/0 via-transparent to-[#E8D9F5]/20 z-[1]" />
       <div className="container mx-auto px-4">
@@ -104,12 +113,15 @@ export default function Stats(): JSX.Element {
         >
           {stats.map((s, i) => (
             <div key={i} className="stat-item">
-              <TelemetryCard
-                tag={s.tag}
-                tagTone={s.tagTone}
-                value={<Counter value={s.value} prefix={s.prefix} suffix={s.suffix} delay={i * 0.08} />}
-                title={s.label}
-              />
+              {/* Envolvemos o TelemetryCard com uma classe de arredondamento, caso ele não tenha */}
+              <div className="rounded-2xl overflow-hidden">
+                <TelemetryCard
+                  tag={s.tag}
+                  tagTone={s.tagTone}
+                  value={<Counter value={s.value} prefix={s.prefix} suffix={s.suffix} delay={i * 0.08} />}
+                  title={s.label}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -117,5 +129,3 @@ export default function Stats(): JSX.Element {
     </section>
   );
 }
-
-
