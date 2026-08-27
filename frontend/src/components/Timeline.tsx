@@ -142,18 +142,18 @@ export default function Timeline({
       </div>
 
       {/* Mobile */}
-      <div className="md:hidden relative pl-10">
-        <div className="absolute left-[1.6rem] top-2 bottom-2 w-px bg-gray-300" />
+      <div className="md:hidden relative">
+        <div className="absolute left-[22px] top-2 bottom-2 w-px bg-gray-300" />
         {steps.map((step, index) => {
           const reached = index <= safeCurrentStep;
           const isCurrent = index === safeCurrentStep;
           const Icon = ICON_MAP[step.icon] || Mailbox;
 
           return (
-            <div key={step.id || index} className="relative pb-8 last:pb-0">
+            <div key={step.id || index} className="relative flex items-start gap-4 pb-8 last:pb-0">
               <motion.div
                 variants={dotVariants}
-                className={`absolute -left-[1.65rem] top-0 w-11 h-11 rounded-full flex items-center justify-center border-2 ${
+                className={`relative z-10 flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center border-2 ${
                   isCurrent
                     ? 'border-[#D4AF37] bg-[#D4AF37]/20 shadow-gold'
                     : reached
@@ -171,7 +171,7 @@ export default function Timeline({
                   />
                 )}
               </motion.div>
-              <motion.div variants={contentVariants} className="ml-4">
+              <motion.div variants={contentVariants} className="flex-1 min-w-0">
                 <div
                   className={`font-semibold text-sm ${
                     isCurrent ? 'text-[#7B2FBF]' : reached ? 'text-[#4B2170]' : 'text-gray-500'
