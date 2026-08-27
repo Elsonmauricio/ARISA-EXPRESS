@@ -359,18 +359,26 @@ const getTimelineStep = (steps: StepData[], status: string): number => {
                  </div>
                </div>
 
-               {result.cttLink && (
-                  <div className="mb-6">
-                    <a
-                      href={result.cttLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-[#4B2170] text-white rounded-lg font-semibold text-sm hover:bg-[#7B2FBF] transition-colors"
-                    >
-                      <ExternalLink className="w-4 h-4" /> {t('track.acompanharCtt')}
-                    </a>
-                 </div>
-               )}
+                {result.cttLink && (
+                   <div className="mb-6">
+                     <a
+                       href={result.cttLink}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="inline-flex items-center gap-2 px-4 py-2 bg-[#4B2170] text-white rounded-lg font-semibold text-sm hover:bg-[#7B2FBF] transition-colors"
+                     >
+                       <ExternalLink className="w-4 h-4" /> {t('track.acompanharCtt')}
+                     </a>
+                     {result.cttCode && (
+                       <div className="mt-2 select-all">
+                         <span className="text-xs text-gray-500 mr-2">{t('track.cttCodigo')}:</span>
+                         <span className="text-sm font-mono font-semibold text-[#4B2170] bg-[#EFE4FA]/50 px-2 py-1 rounded border border-[#4B2170]/20">
+                           {result.cttCode}
+                         </span>
+                       </div>
+                     )}
+                  </div>
+                )}
 
                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-[#EFE4FA]/50 rounded-xl">
                  <div>
