@@ -81,7 +81,8 @@ function AppRoutes() {
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/encomendas" element={<ShipmentsPage />} />
+         <Route path="/encomendas" element={<ShipmentsPage />} />
+         <Route path="/rastrear" element={<Layout><Tracking /></Layout>} />
         <Route path="/login" element={<Login />} />
         <Route path="/registar" element={<Register />} />
         <Route

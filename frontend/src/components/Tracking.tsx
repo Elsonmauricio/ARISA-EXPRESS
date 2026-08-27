@@ -1,9 +1,10 @@
 ﻿// src/components/Tracking.tsx
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, AlertCircle, ExternalLink } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import SectionHeading from './SectionHeading';
 import { GoldButton } from './Button';
 import Timeline, { StepData } from './Timeline';
@@ -69,10 +70,45 @@ function formatDate(dateValue: Date | string | number | undefined | null): strin
 // ======================== COMPONENTE PRINCIPAL ========================
 export default function Tracking() {
   const { t } = useT();
+  const [searchParams] = useSearchParams();
   const [code, setCode] = useState<string>('');
   const [result, setResult] = useState<TrackingData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    const urlCode = searchParams.get('code');
+    if (urlCode) {
+      setCode(urlCode);
+      const form = document.createElement('form');
+      // We can't easily submit the form from here without a ref, so we'll just trigger handleSubmit
+      // But handleSubmit expects an event. Let's create a mock event or refactor.
+      // Simpler: call the API directly here.
+      setLoading(true);
+      setError('');
+      setResult(null);
+      fetch(
+        api(`/api/tracking/${encodeURIComponent(urlCode.toUpperCase())}`)
+      )
+        .then(async response => {
+          if (!response.ok) {
+            throw new Error(t('track.erroStatus', { status: response.status, statusText: response.statusText }));
+          }
+          const json: ApiResponse = await response.json();
+          if (json.success && json.data) {
+            setResult(json.data);
+          } else {
+            setError(json.error || t('track.naoEncontrada'));
+          }
+        })
+        .catch(() => {
+          setError(t('track.erroServidor'));
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [searchParams, t]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

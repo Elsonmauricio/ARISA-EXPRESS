@@ -5,7 +5,7 @@ import { logger } from '../utils/logger';
 interface EmailOptions {
   to: string;
   subject: string;
-  template: 'welcome' | 'shipment-created' | 'shipment-updated' | 'shipment-cancelled' | 'reset-password';
+  template: 'welcome' | 'shipment-created' | 'shipment-updated' | 'shipment-ctt-updated' | 'shipment-cancelled' | 'reset-password';
   data: any;
 }
 
@@ -104,6 +104,21 @@ const templates: Record<EmailOptions['template'], (data: any) => string> = {
       <li><strong>Destino:</strong> ${data.destination}</li>
     </ul>
     <p>Caso tenha dúvidas, entre em contacto connosco através do email <a href="mailto:${process.env.SMTP_FROM}">${process.env.SMTP_FROM}</a>.</p>
+    <br/>
+    <p>Equipa <strong>Arisa Express</strong></p>
+    <p style="color: #7C3AED;">💜 Luanda • Lisboa</p>
+  `,
+
+  'shipment-ctt-updated': (data: any) => `
+    <h1>📦 Atualização CTT - Encomenda ${data.trackingCode}</h1>
+    <p><strong>Olá ${data.name},</strong></p>
+    <p>Informamos que já temos disponível o código de rastreio CTT para a sua encomenda.</p>
+    <h2>📮 Dados de Rastreio CTT</h2>
+    <ul>
+      <li><strong>Código de Rastreio:</strong> ${data.cttCode}</li>
+      <li><strong>Link de Rastreio:</strong> <a href="${data.cttLink}">${data.cttLink}</a></li>
+    </ul>
+    <p>🔗 <a href="${process.env.FRONTEND_URL}/rastrear?code=${data.trackingCode}" style="background: #D4AF37; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Ver Detalhes da Encomenda</a></p>
     <br/>
     <p>Equipa <strong>Arisa Express</strong></p>
     <p style="color: #7C3AED;">💜 Luanda • Lisboa</p>

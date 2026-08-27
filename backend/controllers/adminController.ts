@@ -232,7 +232,39 @@ export const AdminController = {
       const user = (req as any).user;
 
       const trackingCode = body.trackingCode || `AE-${new Date().getFullYear()}-${require('crypto').randomBytes(2).toString('hex').toUpperCase()}`;
-      const route = body.route || `${body.origin} » ${body.destination}`;
+      const route = (body.route || `${body.origin} » ${body.destination}`).toUpperCase();
+      const weightNum = parseFloat(body.weight) || 0;
+
+      let routeId = body.routeId || null;
+      let matchedRouteDoc: any = null;
+
+      if (!routeId && body.origin && body.destination) {
+        const routeQuery = await db.collection('routes')
+          .where('origin', '==', String(body.origin).toUpperCase())
+          .where('destination', '==', String(body.destination).toUpperCase())
+          .where('serviceType', '==', body.serviceType || 'REDIRECT')
+          .limit(1)
+          .get();
+
+        if (!routeQuery.empty) {
+          matchedRouteDoc = routeQuery.docs[0];
+          routeId = matchedRouteDoc.id;
+        }
+      }
+
+      if (matchedRouteDoc && weightNum > 0) {
+        const routeData = matchedRouteDoc.data();
+        const available = (routeData.capacity || 0) - (routeData.reserved || 0);
+        if (available < weightNum) {
+          return res.status(400).json({
+            error: `Capacidade insuficiente na rota. Disponível: ${available} kg`
+          });
+        }
+
+        await db.collection('routes').doc(matchedRouteDoc.id).update({
+          reserved: FieldValue.increment(weightNum)
+        });
+      }
 
       const shipmentData: any = {
         trackingCode,
@@ -240,14 +272,14 @@ export const AdminController = {
         origin: body.origin,
         destination: body.destination,
         route,
-        routeId: body.routeId || null,
+        routeId,
         senderName: body.senderName,
         senderContact: body.senderContact || '',
         senderPhone: body.senderPhone || '',
         receiverName: body.receiverName,
         receiverContact: body.receiverContact || '',
         receiverPhone: body.receiverPhone || '',
-        weight: parseFloat(body.weight) || 0,
+        weight: weightNum,
         category: body.category || '',
         freightValue: body.freightValue ? parseFloat(body.freightValue) : 0,
         price: body.price ? parseFloat(body.price) : 0,
@@ -342,12 +374,33 @@ export const AdminController = {
         return res.status(404).json({ error: 'Encomenda não encontrada' });
       }
 
+      const shipment = doc.data() as any;
       const updateData: any = {};
       if (cttCode !== undefined) updateData.cttCode = cttCode;
       if (cttLink !== undefined) updateData.cttLink = cttLink;
 
       await db.collection('shipments').doc(id).update(updateData);
       invalidateCache('admin:stats');
+
+      const contactEmail = shipment.receiverContact || shipment.senderContact;
+      if (contactEmail && contactEmail.includes('@')) {
+        try {
+          await sendEmail({
+            to: contactEmail,
+            subject: `📦 Atualização CTT - Encomenda ${shipment.trackingCode}`,
+            template: 'shipment-ctt-updated',
+            data: {
+              name: shipment.receiverName || shipment.senderName || 'Cliente',
+              trackingCode: shipment.trackingCode,
+              cttCode: cttCode || shipment.cttCode || '',
+              cttLink: cttLink || shipment.cttLink || ''
+            }
+          });
+        } catch (emailError: any) {
+          logger.error('Erro ao enviar email de notificação CTT:', emailError);
+        }
+      }
+
       res.json({ success: true, message: 'CTT atualizado com sucesso' });
     } catch (error) {
       logger.error('Erro ao atualizar CTT:', error);

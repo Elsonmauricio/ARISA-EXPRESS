@@ -7,6 +7,7 @@ import { invalidateCache } from '../middleware/cache';
 // DESATIVADO: SMS service não configurado
 // import { getSmsNotificationService } from '../services/sms';
 import { formatDate } from '../utils/businessDays';
+import { sendEmail } from '../services/emailService';
 
 export const RouteController = {
   // Listar todas as rotas (para admin)
@@ -224,6 +225,20 @@ export const RouteController = {
         }
       }
 
+      if (shipmentSnapshot.empty) {
+        // Second fallback: try title-case route string for admin-created shipments
+        try {
+          const titleCaseString = `${routeData?.origin || ''} » ${routeData?.destination || ''}`.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+          const stringSnapshot2 = await db.collection('shipments')
+            .where('route', '==', titleCaseString)
+            .get();
+          shippedInStandardFlow = stringSnapshot2.size;
+          shipmentSnapshot = stringSnapshot2;
+        } catch {
+          shipmentSnapshot = { empty: true, docs: [], size: 0 } as any;
+        }
+      }
+
       logger.info(`[RouteStatus] Shipments in standard flow (status_proprio=null): ${shippedInStandardFlow}`);
 
       if (shipmentSnapshot.empty) {
@@ -321,6 +336,32 @@ export const RouteController = {
       logger.info(`[RouteStatus] 📱 ${notifCount} shipments ready for WhatsApp notification`);
       logger.info(`[RouteStatus] 🔗 Affected IDs: ${JSON.stringify(shipmentIds)}`);
       logger.info(`[RouteStatus] === END ===`);
+
+      for (const shipmentId of shipmentIds) {
+        try {
+          const shipmentDoc = await db.collection('shipments').doc(shipmentId).get();
+          const shipment = shipmentDoc.data() as any;
+          if (!shipment) continue;
+
+          const contactEmail = shipment.receiverContact || shipment.senderContact;
+          if (contactEmail && contactEmail.includes('@')) {
+            await sendEmail({
+              to: contactEmail,
+              subject: ` Atualização da Encomenda ${shipment.trackingCode}`,
+              template: 'shipment-updated',
+              data: {
+                name: shipment.receiverName || shipment.senderName || 'Cliente',
+                trackingCode: shipment.trackingCode,
+                status: shipmentStatus,
+                location: routeData?.destination || 'N/A',
+                description: mapResult.description
+              }
+            });
+          }
+        } catch (emailError: any) {
+          logger.error(`[RouteStatus] Erro ao enviar email para encomenda ${shipmentId}:`, emailError);
+        }
+      }
 
       res.json({
         success: true,
