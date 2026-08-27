@@ -61,12 +61,21 @@ export async function authenticatedFetch(input: RequestInfo | URL, init: Request
   let response = await fetch(input, { ...init, headers });
 
   if (response.status === 401) {
+    console.warn('[API] 401 recebido, a tentar refresh...');
+
     if (isRefreshing) {
       await refreshPromise;
       const newToken = localStorage.getItem('token');
       if (newToken) {
         headers.set('Authorization', `Bearer ${newToken}`);
         response = await fetch(input, { ...init, headers });
+      }
+      if (response.status === 401) {
+        console.warn('[API] Retry após refresh também retornou 401, a redirecionar para login...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
       }
       return response;
     }
@@ -84,7 +93,15 @@ export async function authenticatedFetch(input: RequestInfo | URL, init: Request
         headers.set('Authorization', `Bearer ${newToken}`);
         response = await fetch(input, { ...init, headers });
       }
-    } catch {
+      if (response.status === 401) {
+        console.warn('[API] Retry após refresh também retornou 401, a redirecionar para login...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+    } catch (err) {
+      console.warn('[API] Refresh falhou, a redirecionar para login...', err);
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');

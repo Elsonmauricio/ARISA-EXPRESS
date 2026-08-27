@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { db } from '../config/firebase';
+import { logger } from '../utils/logger';
 
 declare global {
   namespace Express {
@@ -14,11 +15,29 @@ declare global {
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) throw new Error();
+    if (!token) {
+      logger.warn('[Auth] Token ausente no header Authorization');
+      throw new Error();
+    }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    if (!process.env.JWT_SECRET) {
+      logger.error('[Auth] JWT_SECRET não está definido no .env');
+      throw new Error();
+    }
+
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    } catch (jwtError: any) {
+      logger.warn(`[Auth] Token JWT inválido: ${jwtError.message}`);
+      throw new Error();
+    }
+
     const userDoc = await db.collection('users').doc(decoded.id).get();
-    if (!userDoc.exists) throw new Error();
+    if (!userDoc.exists) {
+      logger.warn(`[Auth] User doc não encontrado para id=${decoded.id}`);
+      throw new Error();
+    }
 
     req.user = { id: userDoc.id, ...userDoc.data() };
     next();

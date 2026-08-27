@@ -278,7 +278,7 @@ export const AdminController = {
         timestamp: FieldValue.serverTimestamp()
       });
 
-       await AdminController.tryRegisterClient(body, docRef.id, trackingCode);
+      const clientUser = await AdminController.tryRegisterClient(body, docRef.id, trackingCode);
 
       if (body.status === 'READY_FOR_PICKUP') {
         const now = new Date();
@@ -298,6 +298,30 @@ export const AdminController = {
             : 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00'
         });
 
+      }
+
+      const notifyEmail = body.receiverContact || body.senderContact || clientUser?.email;
+      if (notifyEmail && notifyEmail.includes('@')) {
+        try {
+          await sendEmail({
+            to: notifyEmail,
+            subject: ` Encomenda Registada - ${trackingCode}`,
+            template: 'shipment-created',
+            data: {
+              name: body.receiverName || body.senderName || 'Cliente',
+              trackingCode,
+              origin: body.origin,
+              destination: body.destination,
+              senderName: body.senderName,
+              receiverName: body.receiverName,
+              weight: parseFloat(body.weight) || 0,
+              serviceType: body.serviceType || 'REDIRECT',
+              price: parseFloat(body.price) || 0
+            }
+          });
+        } catch (emailError: any) {
+          logger.error('Erro ao enviar email de notificação de encomenda criada:', emailError);
+        }
       }
 
       res.status(201).json({ success: true, data: { id: docRef.id, ...shipmentData } });

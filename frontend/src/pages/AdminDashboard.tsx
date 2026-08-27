@@ -484,11 +484,56 @@ function NewShipmentForm() {
     cttCode: '',
     cttLink: ''
   });
+  const [routes, setRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
+
   const navigate = useNavigate();
   const { t } = useT();
+
+  useEffect(() => {
+    const fetchRoutes = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await authenticatedFetch(api('/api/routes'), {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+          return;
+        }
+        if (response.ok) {
+          const json = await response.json();
+          if (json.success) setRoutes(json.data || []);
+        }
+      } catch { /* silencioso */ }
+    };
+    fetchRoutes();
+  }, []);
+
+  useEffect(() => {
+    if (!routes || routes.length === 0) return;
+    const weightNum = parseFloat(form.weight);
+    if (!weightNum || weightNum <= 0) {
+      setEstimatedPrice(null);
+      return;
+    }
+
+    const origin = String(form.origin || '').trim().toLowerCase();
+    const destination = String(form.destination || '').trim().toLowerCase();
+    const match = routes.find(r => String(r.origin || '').trim().toLowerCase() === origin && String(r.destination || '').trim().toLowerCase() === destination);
+    if (match) {
+      const calculated = Math.round(match.pricePerKg * weightNum * 100) / 100;
+      setEstimatedPrice(calculated);
+      setForm(prev => ({ ...prev, price: String(calculated) }));
+    } else {
+      setEstimatedPrice(null);
+    }
+  }, [form.weight, form.origin, form.destination, routes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -577,12 +622,20 @@ function NewShipmentForm() {
             <input type="text" value={form.senderName} onChange={e => setForm({...form, senderName: e.target.value})} required className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:border-gold outline-none" />
           </div>
           <div>
+            <label className="block text-xs text-gray-600 mb-1">{t('admin.remetenteEmail')}</label>
+            <input type="email" value={form.senderContact} onChange={e => setForm({...form, senderContact: e.target.value})} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
             <label className="block text-xs text-gray-600 mb-1">{t('ship.remetenteTel')}</label>
             <input type="tel" value={form.senderPhone} onChange={e => setForm({...form, senderPhone: e.target.value})} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:border-gold outline-none" />
           </div>
           <div>
             <label className="block text-xs text-gray-600 mb-1">{t('ship.destinatario')}</label>
             <input type="text" value={form.receiverName} onChange={e => setForm({...form, receiverName: e.target.value})} required className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">{t('admin.destinatarioEmail')}</label>
+            <input type="email" value={form.receiverContact} onChange={e => setForm({...form, receiverContact: e.target.value})} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:border-gold outline-none" />
           </div>
           <div>
             <label className="block text-xs text-gray-600 mb-1">{t('ship.destinatarioTel')}</label>
@@ -596,11 +649,10 @@ function NewShipmentForm() {
             <input type="text" value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder={t('admin.categoriaPlaceholder')} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:border-gold outline-none" />
           </div>
           <div>
-            <label className="block text-xs text-gray-600 mb-1">{t('admin.valorFrete')}</label>
-            <input type="number" value={form.freightValue} onChange={e => setForm({...form, freightValue: e.target.value})} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:border-gold outline-none" />
-          </div>
-          <div>
             <label className="block text-xs text-gray-600 mb-1">{t('admin.preco')}</label>
+            {estimatedPrice !== null && (
+              <div className="text-xs text-gold mb-1">Estimado: € {estimatedPrice.toFixed(2)}</div>
+            )}
             <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:border-gold outline-none" />
           </div>
           <div>

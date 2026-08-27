@@ -565,6 +565,8 @@ export const translations: Record<Lang, Dict> = {
     'admin.editarCtt': 'Editar CTT',
     'admin.salvarCtt': 'Salvar',
     'admin.ctt': 'CTT',
+    'admin.remetenteEmail': 'Email do Remetente',
+    'admin.destinatarioEmail': 'Email do Destinatário',
 
     'admin.novaEncomenda': 'Nova Encomenda',
     'admin.categoria': 'Categoria',
@@ -1221,6 +1223,8 @@ export const translations: Record<Lang, Dict> = {
     'admin.editarCtt': 'Edit CTT',
     'admin.salvarCtt': 'Save',
     'admin.ctt': 'CTT',
+    'admin.remetenteEmail': 'Sender Email',
+    'admin.destinatarioEmail': 'Recipient Email',
 
     'admin.novaEncomenda': 'New Shipment',
     'admin.categoria': 'Category',
