@@ -85,27 +85,45 @@ export const ShipmentController = {
         timestamp: FieldValue.serverTimestamp()
       });
 
-      // Enviar email
-      await sendEmail({
-        to: user.email,
-        subject: `✅ Encomenda Registada - ${trackingCode}`,
-        template: 'shipment-created',
-        data: {
-          name: user.name,
-          trackingCode,
-          origin,
-          destination,
-          senderName,
-          senderPhone,
-          receiverName,
-          receiverPhone,
-          weight: weightNum,
-          dimensions: dimensions || {},
-          description: description || 'N/A',
-          serviceType: serviceType.replace('_', ' '),
-          price
+      // Enviar email para remetente e destinatário
+      const recipients = Array.from(
+        new Set(
+          [user.email].filter(
+            (email): email is string => Boolean(email) && email.includes('@')
+          )
+        )
+      );
+
+      if (recipients.length > 0) {
+        try {
+          await Promise.allSettled(
+            recipients.map(to =>
+              sendEmail({
+                to,
+                subject: `✅ Encomenda Registada - ${trackingCode}`,
+                template: 'shipment-created',
+                data: {
+                  name: user.name,
+                  trackingCode,
+                  origin,
+                  destination,
+                  senderName,
+                  senderPhone,
+                  receiverName,
+                  receiverPhone,
+                  weight: weightNum,
+                  dimensions: dimensions || {},
+                  description: description || 'N/A',
+                  serviceType: serviceType.replace('_', ' '),
+                  price
+                }
+              })
+            )
+          );
+        } catch (emailError: any) {
+          logger.error('Erro ao enviar email de notificação de encomenda criada:', emailError);
         }
-      });
+      }
 
       res.status(201).json({ success: true, data: { id: docRef.id, ...shipmentData } });
     } catch (error: any) {
@@ -257,21 +275,35 @@ logger.info(`Encontradas ${shipments.length} encomendas para o utilizador ${user
         });
       }
 
-      // Enviar email de cancelamento
-      const userDoc = await db.collection('users').doc(shipment.userId).get();
-      const shipmentUser = userDoc.data();
-      if (shipmentUser?.email) {
-        await sendEmail({
-          to: shipmentUser.email,
-          subject: `❌ Encomenda Cancelada - ${shipment.trackingCode}`,
-          template: 'shipment-cancelled',
-          data: {
-            name: shipmentUser.name,
-            trackingCode: shipment.trackingCode,
-            origin: shipment.origin,
-            destination: shipment.destination
-          }
-        });
+      // Enviar email de cancelamento para remetente e destinatário
+      const recipients = Array.from(
+        new Set(
+          [shipment.senderContact, shipment.receiverContact].filter(
+            (email): email is string => Boolean(email) && email.includes('@')
+          )
+        )
+      );
+
+      if (recipients.length > 0) {
+        try {
+          await Promise.allSettled(
+            recipients.map(to =>
+              sendEmail({
+                to,
+                subject: `❌ Encomenda Cancelada - ${shipment.trackingCode}`,
+                template: 'shipment-cancelled',
+                data: {
+                  name: shipment.senderName || shipment.receiverName || 'Cliente',
+                  trackingCode: shipment.trackingCode,
+                  origin: shipment.origin,
+                  destination: shipment.destination
+                }
+              })
+            )
+          );
+        } catch (emailError: any) {
+          logger.error('Erro ao enviar email de cancelamento:', emailError);
+        }
       }
 
       res.json({ success: true, message: 'Encomenda cancelada' });

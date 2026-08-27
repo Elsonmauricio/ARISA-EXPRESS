@@ -343,20 +343,31 @@ export const RouteController = {
           const shipment = shipmentDoc.data() as any;
           if (!shipment) continue;
 
-          const contactEmail = shipment.receiverContact || shipment.senderContact;
-          if (contactEmail && contactEmail.includes('@')) {
-            await sendEmail({
-              to: contactEmail,
-              subject: ` Atualização da Encomenda ${shipment.trackingCode}`,
-              template: 'shipment-updated',
-              data: {
-                name: shipment.receiverName || shipment.senderName || 'Cliente',
-                trackingCode: shipment.trackingCode,
-                status: shipmentStatus,
-                location: routeData?.destination || 'N/A',
-                description: mapResult.description
-              }
-            });
+          const recipients = Array.from(
+            new Set(
+              [shipment.receiverContact, shipment.senderContact].filter(
+                (email): email is string => Boolean(email) && email.includes('@')
+              )
+            )
+          );
+
+          if (recipients.length > 0) {
+            await Promise.allSettled(
+              recipients.map(to =>
+                sendEmail({
+                  to,
+                  subject: ` Atualização da Encomenda ${shipment.trackingCode}`,
+                  template: 'shipment-updated',
+                  data: {
+                    name: shipment.receiverName || shipment.senderName || 'Cliente',
+                    trackingCode: shipment.trackingCode,
+                    status: shipmentStatus,
+                    location: routeData?.destination || 'N/A',
+                    description: mapResult.description
+                  }
+                })
+              )
+            );
           }
         } catch (emailError: any) {
           logger.error(`[RouteStatus] Erro ao enviar email para encomenda ${shipmentId}:`, emailError);

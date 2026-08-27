@@ -332,25 +332,36 @@ export const AdminController = {
 
       }
 
-      const notifyEmail = body.receiverContact || body.senderContact || clientUser?.email;
-      if (notifyEmail && notifyEmail.includes('@')) {
+      const recipients = Array.from(
+        new Set(
+          [body.receiverContact, body.senderContact].filter(
+            (email): email is string => Boolean(email) && email.includes('@')
+          )
+        )
+      );
+
+      if (recipients.length > 0) {
         try {
-          await sendEmail({
-            to: notifyEmail,
-            subject: ` Encomenda Registada - ${trackingCode}`,
-            template: 'shipment-created',
-            data: {
-              name: body.receiverName || body.senderName || 'Cliente',
-              trackingCode,
-              origin: body.origin,
-              destination: body.destination,
-              senderName: body.senderName,
-              receiverName: body.receiverName,
-              weight: parseFloat(body.weight) || 0,
-              serviceType: body.serviceType || 'REDIRECT',
-              price: parseFloat(body.price) || 0
-            }
-          });
+          await Promise.allSettled(
+            recipients.map(to =>
+              sendEmail({
+                to,
+                subject: ` Encomenda Registada - ${trackingCode}`,
+                template: 'shipment-created',
+                data: {
+                  name: body.receiverName || body.senderName || 'Cliente',
+                  trackingCode,
+                  origin: body.origin,
+                  destination: body.destination,
+                  senderName: body.senderName,
+                  receiverName: body.receiverName,
+                  weight: parseFloat(body.weight) || 0,
+                  serviceType: body.serviceType || 'REDIRECT',
+                  price: parseFloat(body.price) || 0
+                }
+              })
+            )
+          );
         } catch (emailError: any) {
           logger.error('Erro ao enviar email de notificação de encomenda criada:', emailError);
         }
@@ -382,20 +393,31 @@ export const AdminController = {
       await db.collection('shipments').doc(id).update(updateData);
       invalidateCache('admin:stats');
 
-      const contactEmail = shipment.receiverContact || shipment.senderContact;
-      if (contactEmail && contactEmail.includes('@')) {
+      const recipients = Array.from(
+        new Set(
+          [shipment.receiverContact, shipment.senderContact].filter(
+            (email): email is string => Boolean(email) && email.includes('@')
+          )
+        )
+      );
+
+      if (recipients.length > 0) {
         try {
-          await sendEmail({
-            to: contactEmail,
-            subject: `📦 Atualização CTT - Encomenda ${shipment.trackingCode}`,
-            template: 'shipment-ctt-updated',
-            data: {
-              name: shipment.receiverName || shipment.senderName || 'Cliente',
-              trackingCode: shipment.trackingCode,
-              cttCode: cttCode || shipment.cttCode || '',
-              cttLink: cttLink || shipment.cttLink || ''
-            }
-          });
+          await Promise.allSettled(
+            recipients.map(to =>
+              sendEmail({
+                to,
+                subject: `📦 Atualização CTT - Encomenda ${shipment.trackingCode}`,
+                template: 'shipment-ctt-updated',
+                data: {
+                  name: shipment.receiverName || shipment.senderName || 'Cliente',
+                  trackingCode: shipment.trackingCode,
+                  cttCode: cttCode || shipment.cttCode || '',
+                  cttLink: cttLink || shipment.cttLink || ''
+                }
+              })
+            )
+          );
         } catch (emailError: any) {
           logger.error('Erro ao enviar email de notificação CTT:', emailError);
         }
