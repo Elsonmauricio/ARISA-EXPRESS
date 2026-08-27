@@ -193,7 +193,7 @@ function StatsCards({ stats, trends }: { stats: any; trends: any[] }) {
     { label: t('admin.statCanceladas'), value: stats.cancelledShipments || 0, icon: XCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', trend: trendCounts, trendColor: 'bg-red-500' },
     { label: t('admin.statUsers'), value: stats.totalUsers || 0, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', trend: trendCounts, trendColor: 'bg-indigo-500' },
     { label: t('admin.statMensagens'), value: stats.newLeads || 0, icon: Mail, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200', trend: trendCounts, trendColor: 'bg-cyan-500' },
-    { label: t('admin.statReceita'), value: `€ ${(stats.totalShipments * 150).toFixed(0)}`, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', trend: trendRevenue, trendColor: 'bg-green-500', isCurrency: true },
+    { label: t('admin.statReceita'), value: `€ ${((trends[trends.length - 1]?.revenue) || 0).toFixed(0)}`, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', trend: trendRevenue, trendColor: 'bg-green-500', isCurrency: true },
   ];
 
   return (
