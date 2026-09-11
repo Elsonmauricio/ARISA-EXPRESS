@@ -7,6 +7,7 @@ import { logger } from '../utils/logger';
 dotenv.config();
 
 let serviceAccount: ServiceAccount | undefined;
+let firebaseInitialized = false;
 
 const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
@@ -26,24 +27,40 @@ if (serviceAccountVar) {
       clientEmail,
       privateKey,
       projectId,
-      // Campos obrigatórios que não usamos mas que o tipo exige
       client_id: '',
       private_key_id: ''
     } as ServiceAccount;
   } else {
-    logger.error('❌ [ERRO]: Credenciais do Firebase não encontradas. Defina FIREBASE_SERVICE_ACCOUNT_KEY ou FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY + FIREBASE_PROJECT_ID.');
+    logger.error('❌ [ERRO CRÍTICO]: Credenciais do Firebase não encontradas.');
+    logger.error('   Configure FIREBASE_SERVICE_ACCOUNT_KEY ou FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY + FIREBASE_PROJECT_ID no Vercel Environment Variables.');
   }
 }
 
 const databaseURL = process.env.FIREBASE_DATABASE_URL || (serviceAccount?.projectId ? `https://${serviceAccount.projectId}.firebaseio.com` : undefined);
 
-if (getApps().length === 0 && serviceAccount) {
-  initializeApp({
-    credential: cert(serviceAccount),
-    databaseURL
-  });
-  logger.info(`🔥 Firebase Admin inicializado para o projeto: ${serviceAccount.projectId || 'arisa-express'}`);
+if (serviceAccount && getApps().length === 0) {
+  try {
+    initializeApp({
+      credential: cert(serviceAccount),
+      databaseURL
+    });
+    firebaseInitialized = true;
+    logger.info(`🔥 Firebase Admin inicializado para o projeto: ${serviceAccount.projectId || 'arisa-express'}`);
+  } catch (err) {
+    logger.error('❌ [ERRO] Falha ao inicializar Firebase:', err);
+  }
+} else if (getApps().length > 0) {
+  firebaseInitialized = true;
 }
 
-export const db = getFirestore();
-export const auth = getAuth();
+let db: any;
+let auth: any;
+
+if (firebaseInitialized) {
+  db = getFirestore();
+  auth = getAuth();
+} else {
+  logger.error('⚠️ Firestore e Auth não inicializados — as variáveis de ambiente podem estar ausentes.');
+}
+
+export { db, auth, firebaseInitialized };
