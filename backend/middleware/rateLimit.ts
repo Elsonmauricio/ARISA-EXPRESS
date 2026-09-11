@@ -17,8 +17,10 @@ export const rateLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
+  windowMs: 15 * 60 * 1000,
+  max: isProduction ? 20 : 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
   skipSuccessfulRequests: true,
-  message: 'Muitas tentativas de login, tente novamente em 1 hora'
+  message: 'Muitas tentativas de login, tente novamente mais tarde'
 });
