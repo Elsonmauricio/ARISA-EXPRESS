@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
   Package, Truck, Plane, MapPin, Search,
   AlertCircle, CheckCircle2, Clock, XCircle,
-  Plus, ChevronDown, ExternalLink
+  Plus, ChevronDown, ExternalLink, Upload
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
@@ -34,6 +34,9 @@ interface Shipment {
   weight: number;
   price: number;
   status: string;
+  paymentStatus?: string;
+  paymentProofUrl?: string;
+  paymentProofSubmittedAt?: any;
   createdAt: any;
   senderName: string;
   receiverName: string;
@@ -434,6 +437,9 @@ function ShipmentList() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadSuccess, setUploadSuccess] = useState('');
 
   const authenticatedFetchShipments = async () => {
     try {
@@ -475,6 +481,42 @@ function ShipmentList() {
   useEffect(() => {
     authenticatedFetchShipments();
   }, []);
+
+  const uploadPaymentProof = async (shipmentId: string, file: File) => {
+    setUploadingId(shipmentId);
+    setUploadError('');
+    setUploadSuccess('');
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const formData = new FormData();
+    formData.append('proof', file);
+
+    try {
+      const response = await fetch(api(`/api/shipments/${shipmentId}/payment-proof`), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+
+      const json = await response.json();
+      if (json.success) {
+        setUploadSuccess(t('admin.proofUploadSuccess'));
+        setShipments(prev => prev.map(s =>
+          s.id === shipmentId
+            ? { ...s, paymentProofUrl: json.data.paymentProofUrl, paymentStatus: 'PENDING' }
+            : s
+        ));
+      } else {
+        setUploadError(json.error || t('admin.proofUploadError'));
+      }
+    } catch (err) {
+      setUploadError(t('admin.proofUploadError'));
+    } finally {
+      setUploadingId(null);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -548,28 +590,93 @@ function ShipmentList() {
 
   return (
     <div className="space-y-3">
+      {uploadSuccess && (
+        <div className="flex items-center gap-2 text-green-400 text-sm bg-green-500/10 p-3 rounded-lg">
+          <CheckCircle2 size={16} /> {uploadSuccess}
+        </div>
+      )}
+      {uploadError && (
+        <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 p-3 rounded-lg">
+          <AlertCircle size={16} /> {uploadError}
+        </div>
+      )}
       {shipments.map((s) => (
-        <div key={s.id} className="glass-strong border-gradient p-4 rounded-xl flex flex-wrap justify-between items-center gap-3">
-          <div>
-            <div className="font-mono text-sm text-gold">{s.trackingCode}</div>
-            <div className="text-sm text-gray-700">{s.origin} → {s.destination}</div>
-            {/* Data de criação formatada */}
-            <div className="text-xs text-gray-400">{formatDate(s.createdAt)}</div>
-            {/* Opcional: mostrar data do voo se existir */}
-            {s.flightDate && (
-              <div className="text-xs text-gray-400"> {t('ship.voo', { date: formatDate(s.flightDate) })}</div>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
-              <div className="text-xs text-gray-400">{s.weight} kg</div>
+        <div key={s.id} className="glass-strong border-gradient p-4 rounded-xl">
+          <div className="flex flex-wrap justify-between items-center gap-3">
+            <div>
+              <div className="font-mono text-sm text-gold">{s.trackingCode}</div>
+              <div className="text-sm text-gray-700">{s.origin} → {s.destination}</div>
+              <div className="text-xs text-gray-400">{formatDate(s.createdAt)}</div>
+              {s.flightDate && (
+                <div className="text-xs text-gray-400"> {t('ship.voo', { date: formatDate(s.flightDate) })}</div>
+              )}
+              {s.status === 'READY_FOR_PICKUP' && (
+                <div className="mt-2 flex items-center gap-2 text-xs">
+                  <span className="text-gray-500">
+                    {s.paymentStatus === 'PAID'
+                      ? '✅ ' + t('admin.paymentPaid')
+                      : '⏳ ' + (t('admin.paymentPending') as string)
+                    }
+                  </span>
+                  {s.paymentProofUrl && (
+                    <a
+                      href={s.paymentProofUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gold hover:underline text-xs"
+                    >
+                      {t('admin.proofView')}
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(s.status)}`}>
-              {getStatusIcon(s.status)}
-              {s.status.replace('_', ' ')}
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="font-semibold">€ {s.price?.toFixed(2) || '—'}</div>
+                <div className="text-xs text-gray-400">{s.weight} kg</div>
+              </div>
+              <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(s.status)}`}>
+                {getStatusIcon(s.status)}
+                {s.status.replace('_', ' ')}
+              </div>
             </div>
           </div>
+
+          {s.status === 'READY_FOR_PICKUP' && s.paymentStatus !== 'PAID' && !s.paymentProofUrl && (
+            <div className="mt-3 pt-3 border-t border-gray-300">
+              <label className="block text-xs text-gray-600 mb-1">{t('admin.proofUploadLabel')}</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,application/pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      uploadPaymentProof(s.id, file);
+                    }
+                  }}
+                  disabled={uploadingId === s.id}
+                  className="flex-1 text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gold file:text-[#374151] hover:file:opacity-90 disabled:opacity-50"
+                />
+                {uploadingId === s.id && (
+                  <Upload className="w-4 h-4 text-gold animate-bounce" />
+                )}
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">{t('admin.proofRequired')}</p>
+            </div>
+          )}
+
+          {s.status === 'READY_FOR_PICKUP' && s.paymentStatus !== 'PAID' && s.paymentProofUrl && (
+            <div className="mt-3 pt-3 border-t border-gray-300">
+              <span className="text-xs text-gray-600">{t('admin.proofJaEnviado')}</span>
+              {s.paymentProofSubmittedAt && (
+                <span className="text-xs text-gray-400 ml-2">
+                  {t('ship.voo', { date: formatDate(s.paymentProofSubmittedAt) })}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       ))}
     </div>

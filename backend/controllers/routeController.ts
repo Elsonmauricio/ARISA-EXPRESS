@@ -6,8 +6,9 @@ import { logger } from '../utils/logger';
 import { invalidateCache } from '../middleware/cache';
 // DESATIVADO: SMS service não configurado
 // import { getSmsNotificationService } from '../services/sms';
-import { formatDate } from '../utils/businessDays';
+import { formatDate, addBusinessDays, calculateLocationFine } from '../utils/businessDays';
 import { sendEmail } from '../services/emailService';
+import { guessLocationType, getPickupImage, LocationType } from '../utils/whatsapp';
 
 export const RouteController = {
   // Listar todas as rotas (para admin)
@@ -343,6 +344,9 @@ export const RouteController = {
           const shipment = shipmentDoc.data() as any;
           if (!shipment) continue;
 
+          const locationType = guessLocationType(shipment.destination || '');
+          const imageUrl = getPickupImage(locationType);
+
           const recipients = Array.from(
             new Set(
               [shipment.receiverContact, shipment.senderContact].filter(
@@ -352,22 +356,61 @@ export const RouteController = {
           );
 
           if (recipients.length > 0) {
-            await Promise.allSettled(
-              recipients.map(to =>
-                sendEmail({
-                  to,
-                  subject: ` Atualização da Encomenda ${shipment.trackingCode}`,
-                  template: 'shipment-updated',
-                  data: {
-                    name: shipment.receiverName || shipment.senderName || 'Cliente',
-                    trackingCode: shipment.trackingCode,
-                    status: shipmentStatus,
-                    location: routeData?.destination || 'N/A',
-                    description: mapResult.description
-                  }
-                })
-              )
-            );
+            if (shipmentStatus === 'READY_FOR_PICKUP') {
+              const isLuanda = locationType === 'luanda';
+              const deadlineDate = new Date();
+              const deadline = addBusinessDays(deadlineDate, 5);
+              let paymentInfo = '';
+              if (shipment.paymentStatus === 'PENDING') {
+                paymentInfo = isLuanda
+                  ? '💰 Deve efectuar o pagamento no momento do levantamento. Multa de 10% sobre o valor do envio após 5 dias úteis.'
+                  : '💰 Pague ao levantar a encomenda. Taxa de ocupação de 5€/semana após o prazo.';
+              } else if (shipment.paymentStatus === 'PAID') {
+                paymentInfo = '✅ Pagamento confirmado. Pode levantar a encomenda.';
+              }
+
+              await Promise.allSettled(
+                recipients.map(to =>
+                  sendEmail({
+                    to,
+                    subject: `📦 Encomenda Disponível para Levantamento - ${shipment.trackingCode}`,
+                    template: 'shipment-ready-for-pickup',
+                    data: {
+                      name: shipment.receiverName || shipment.senderName || 'Cliente',
+                      trackingCode: shipment.trackingCode,
+                      destination: shipment.destination,
+                      senderName: shipment.senderName || 'N/A',
+                      receiverName: shipment.receiverName || 'N/A',
+                      pickupAddress: shipment.pickupAddress || '',
+                      pickupContact: shipment.pickupContact || '',
+                      pickupSchedule: shipment.pickupSchedule || '',
+                      readyDate: formatDate(new Date()),
+                      deadline: formatDate(deadline),
+                      fine: isLuanda ? calculateLocationFine(shipment.price || 0, shipment.destination || '') : 0,
+                      imageUrl,
+                      paymentInfo
+                    }
+                  })
+                )
+              );
+            } else {
+              await Promise.allSettled(
+                recipients.map(to =>
+                  sendEmail({
+                    to,
+                    subject: ` Atualização da Encomenda ${shipment.trackingCode}`,
+                    template: 'shipment-updated',
+                    data: {
+                      name: shipment.receiverName || shipment.senderName || 'Cliente',
+                      trackingCode: shipment.trackingCode,
+                      status: shipmentStatus,
+                      location: routeData?.destination || 'N/A',
+                      description: mapResult.description
+                    }
+                  })
+                )
+              );
+            }
           }
         } catch (emailError: any) {
           logger.error(`[RouteStatus] Erro ao enviar email para encomenda ${shipmentId}:`, emailError);

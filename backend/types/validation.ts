@@ -94,3 +94,14 @@ export const changePasswordSchema = z.object({
     newPassword: z.string().min(10).max(128)
   })
 });
+
+export const resetPasswordDirectSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
+    newPassword: z.string().min(6),
+    confirmPassword: z.string().min(6)
+  }).refine(data => data.newPassword === data.confirmPassword, {
+    message: 'As senhas não coincidem',
+    path: ['confirmPassword']
+  })
+});

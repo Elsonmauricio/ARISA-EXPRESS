@@ -4,6 +4,7 @@ import { db } from '../config/firebase';
 import { logger } from '../utils/logger';
 import { addBusinessDays, formatDate } from '../utils/businessDays';
 import { generateWhatsAppMessage, generateWhatsAppLink, guessLocationType } from '../utils/whatsapp';
+import { WhatsAppService } from '../services/whatsappService';
 
 export const NotifyController = {
   sendPickupNotification: async (req: Request, res: Response) => {
@@ -55,6 +56,40 @@ export const NotifyController = {
       });
 
       const link = generateWhatsAppLink(cleanPhone, message, locationType);
+
+      if (WhatsAppService.isConfigured()) {
+        const result = await WhatsAppService.sendPickupNotification({
+          phone: cleanPhone,
+          trackingCode: shipment.trackingCode,
+          shipmentDate: formatDate(readyDate),
+          deadline: formatDate(deadline),
+          senderName: shipment.senderName || 'N/A',
+          receiverName: shipment.receiverName || 'N/A',
+          pickupAddress: shipment.pickupAddress || '',
+          pickupContact: shipment.pickupContact || '',
+          pickupSchedule: shipment.pickupSchedule || '',
+          location: locationType,
+          destination: dest
+        });
+
+        if (result.sent && result.messageId) {
+          await docRef.update({
+            whatsapp_message_id: result.messageId,
+            whatsapp_status: 'sent',
+            whatsapp_updated_at: new Date().toISOString()
+          });
+        }
+
+        logger.info(`Notify WhatsApp: order=${orderCode} (API mode) sent=${result.sent}`);
+        return res.json({
+          success: result.success,
+          messageId: result.messageId || null,
+          sent: result.sent,
+          link: result.link || null,
+          message,
+          error: result.error || null
+        });
+      }
 
       logger.info(`Notify WhatsApp: order=${orderCode} (link mode)`);
       res.json({

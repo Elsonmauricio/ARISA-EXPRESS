@@ -314,3 +314,174 @@ All routes are mounted under `/api/*` in `backend/server.ts`. Verified from the 
 | Variable | Example / Value | Purpose |
 | --- | --- | --- |
 | `VITE_API_URL` | `http://localhost:5001` | Backend API base URL used by the `api()` helper |
+
+## Architecture overview
+
+The project is a monorepo with two independent packages sharing no build step:
+
+- **Backend** — `Express 4` + `TypeScript 5` REST API. Persists data in **Firebase Firestore** through the **Firebase Admin SDK** (server-side, bypasses security rules). Auth uses signed `JWT` access + refresh tokens (refresh tokens stored in a Firestore collection). Validations are performed with `Zod`. Logging via `Winston`, requests via `Morgan`, rate limiting via `express-rate-limit`.
+- **Frontend** — `React 18` SPA built with `Vite 5`, styled with `Tailwind CSS 3`, animated with `Framer Motion` / `GSAP` / `Lenis`, and decorated with `Three.js` (`@react-three/fiber` / `@react-three/drei`). Routing with `React Router 6`. Tests via `Vitest` + `@testing-library/react`. Linting with `ESLint` + `Prettier`.
+
+### Entry points and lifecycle
+
+- **Backend dev**: `backend/dev.ts` (watched by `nodemon`) → `backend/server.ts` (Express app) → `backend/index.ts` (default export).
+- **Backend prod**: `tsc` compiles to `dist/`, then `node dist/server.js`.
+- **Frontend**: `index.html` → `src/main.tsx` → `src/App.tsx` (router).
+
+### Backend folder map
+
+| Folder | Contents | Role |
+| --- | --- | --- |
+| `api/routes/` | `auth, users, shipments, quotations, admin, tracking, contact, routes, webhook, notify` | Express routers per domain |
+| `controllers/` | `auth, user, shipment, quotation, route, lead, contact, notify, paymentProof, tracking, export, admin` | HTTP handlers (validate → business rule → response) |
+| `middleware/` | `auth, validation, errorHandler, rateLimit, auditLog, cache, upload` | Cross-cutting concerns |
+| `services/` | `emailService, pdfService, whatsappService` + `sms/` (Base, Twilio, Mock, GenericHttp, Notification, index, types) | External integrations |
+| `types/` | `index, pricing, validation` | Zod schemas and shared TS types |
+| `utils/` | `logger, encryption, trackingCode, businessDays, phoneValidator, whatsapp, encoding` | Helpers |
+| `config/firebase.ts` | Initialises the Admin SDK from `FIREBASE_SERVICE_ACCOUNT_KEY` + `FIREBASE_DATABASE_URL` | Firebase bootstrap |
+| `scripts/fixEncoding.ts` | One-off text encoding fix script | Maintenance |
+| `interfaces/` | Shared TypeScript interfaces | Types |
+| `public/assets/`, `uploads/` | Static files served at `/api/assets` and `/api/uploads` | Storage |
+
+### Frontend folder map
+
+| Folder | Contents | Role |
+| --- | --- | --- |
+| `lib/api.ts` | `api()`, `authenticatedFetch`, `logout`, `refreshAccessToken` (single-flight) | HTTP client |
+| `lib/utils.ts`, `lib/scroll.ts`, `lib/whatsapp.ts` | `cn`, smooth scroll, WhatsApp link builder | Helpers |
+| `i18n/LanguageContext.tsx` + `i18n/translations.ts` | `pt`/`en` dictionaries, all UI + error keys | Internationalisation |
+| `components/` | `Navbar, Footer, Layout, Hero, Services, About, Tracking, Contact, Gallery, Storytelling, Stats, Timeline, Reveal, Parallax, Seo, Lazy3D, ErrorBoundary, ProtectedRoute, Aero*` + `three/` (Forklift3D, Mailbox3D, Shopping3D, LogisticFlow3D) | UI primitives and sections |
+| `pages/` | `Login, Register, Profile, Settings, Shipments, AdminDashboard, Privacy, Terms` | Route views |
+| `hooks/` | `useLenis, useParallax, use3DIntersection` | Reusable effects |
+| `assets/` | Optimised `.webp` images + originals, logos | Media |
+
+## Cross-cutting procedures (backend)
+
+### Middleware chain (`backend/middleware/`)
+
+- **`auth.ts`** — `authenticate` reads `Authorization: Bearer <token>`, verifies with `JWT_SECRET`, loads the user from the Firestore `users` collection; failure → `401`. `authorize(...roles)` enforces RBAC. `authenticateRefresh` validates a refresh token stored in the `refreshTokens` collection against its expiry.
+- **`validation.ts`** — `validate(schema)` runs `zod.parseAsync({ body: req.body })`; `ZodError` → `400` with `details`; other errors forwarded via `next(err)`.
+- **`errorHandler.ts`** — Terminal middleware. `ValidationError` → `400`, `JsonWebTokenError` → `401`, fallback → `500`. Logs the stack via Winston.
+- **`rateLimit.ts`** — Global `rateLimiter` + `authLimiter` (applied to register/login/forgot-password) + a local limiter on `/contact`.
+- **`auditLog.ts`** — Writes an audit record for sensitive admin actions (shipment creation/updates, batch status, role changes, lead updates, deletes).
+- **`cache.ts`** — Read-side cache.
+- **`upload.ts`** — `multer` configuration for proof-of-payment uploads.
+
+### Domain controllers (`backend/controllers/`)
+
+- **`authController`** — Register, login, refresh, logout, forgot/reset password, `me`.
+- **`userController`** — Profile read/update, change password, notifications list, mark notification as read.
+- **`shipmentController`** — Full CRUD plus `cancel`; generates a tracking code through `utils/trackingCode.ts`.
+- **`quotationController`** — Create, list, detail, approve.
+- **`routeController`** — Public `available` routes, ADMIN/OPERATOR CRUD, ADMIN-only `init` seed.
+- **`leadController`** — Lead pipeline: list, search, pipeline view, mark read, change stage, assign owner, manage tags and notes, delete.
+- **`contactController`** — Persists a lead from the public contact form.
+- **`notifyController`** — Triggers WhatsApp notifications.
+- **`paymentProofController`** — Handles payment proof uploads.
+- **`trackingController`** — Public tracking lookup.
+- **`exportController`** — CSV exports and full backup.
+- **`adminController`** — Aggregates stats, trends, advanced shipment operations, user management.
+
+### Services (`backend/services/`)
+
+- **`emailService.ts`** — Sends transactional email via Nodemailer (SMTP from env).
+- **`pdfService.ts`** — Generates PDFs (labels, proof of payment) with PDFKit.
+- **`whatsappService.ts`** — Builds `wa.me` deep links.
+- **`sms/` (Strategy pattern)**:
+  - `BaseSmsProvider` — Abstract base.
+  - `TwilioSmsProvider` — Twilio implementation.
+  - `MockSmsProvider` — Local mock for development/tests.
+  - `GenericHttpSmsProvider` — Generic HTTP gateway.
+  - `SmsNotificationService` — Orchestrator + queue (visible to admins at `/api/admin/notifications/sms/queue`).
+  - `index.ts` selects the active provider via env.
+
+### Utilities (`backend/utils/`)
+
+- **`logger.ts`** — Winston with `LOG_LEVEL` env, colorised timestamped output.
+- **`encryption.ts`** — Field-level crypto helpers for sensitive data at rest.
+- **`trackingCode.ts`** — Public tracking code generator.
+- **`businessDays.ts`** — Lead time calculation skipping weekends/holidays.
+- **`phoneValidator.ts`** — E.164 normalisation.
+- **`whatsapp.ts`** — Link formatting.
+- **`encoding.ts`** — Text encoding fixes.
+
+## Cross-cutting procedures (frontend)
+
+### HTTP client (`frontend/src/lib/api.ts`)
+
+- `api(path)` — Concatenates `VITE_API_URL` (strips trailing slash). Warns when undefined.
+- `authenticatedFetch(input, init)` — Wraps `fetch`:
+  - Adds `Authorization: Bearer <token>` from `localStorage` when present.
+  - Sets `Content-Type: application/json` automatically when a body exists and no content type is set.
+  - On `401` performs a **single-flight refresh**: an `isRefreshing`/`refreshPromise` guard ensures concurrent requests share a single `POST /api/auth/refresh`. New `token` (and `refreshToken` if returned) are stored; on failure the keys are cleared and the user is redirected to `/login`.
+- `logout()` — Clears `token`, `refreshToken`, and `user` from `localStorage`.
+
+### Route protection
+
+- `components/ProtectedRoute.tsx` — Redirects to `/login` when `token` or `user` is missing/invalid; if `requireAdmin` is set, non-`ADMIN`/non-`OPERATOR` users are redirected to `/`.
+
+### Internationalisation
+
+- `i18n/LanguageContext.tsx` exposes the active language; `i18n/translations.ts` holds the `pt`/`en` dictionaries for every UI string and error key listed in the **Error handling system** section above.
+
+### 3D and motion
+
+- `components/three/*.tsx` — `Forklift3D`, `Mailbox3D`, `Shopping3D`, `LogisticFlow3D` rendered with `@react-three/fiber`; `Lazy3D` defers their mount using `hooks/use3DIntersection` to avoid blocking first paint.
+- `components/Aero*` plus `Reveal`, `ParallaxLayer`, `Timeline`, `RadarGrid`, `TelemetryCard` — visual effects driven by Framer Motion, GSAP, and Lenis smooth scroll (`hooks/useLenis`).
+
+## End-to-end procedures
+
+### Registration and login
+
+1. `LoginPage` / `RegisterPage` submit to `POST /api/auth/login` or `/register` via `authenticatedFetch`.
+2. Backend applies `authLimiter` + `validate(schema)`, hashes the password with `bcryptjs`, creates/loads the user from Firestore, and issues a JWT access + refresh pair (refresh persisted in the `refreshTokens` collection).
+3. Frontend stores `token`, `refreshToken`, and `user` in `localStorage`. Subsequent requests carry `Authorization: Bearer`.
+4. On `401`, `authenticatedFetch` triggers a single-flight refresh to `/api/auth/refresh`. If refresh fails, `logout()` runs and the user is redirected to `/login`.
+
+### Shipment creation
+
+1. `ShipmentsPage` calls `POST /api/shipments` with the payload validated by `createShipmentSchema`.
+2. `shipmentController` generates a tracking code (`utils/trackingCode.ts`), persists the document in `shipments`, then calls `emailService`, `pdfService`, and `whatsappService` to send the confirmation, generate the label, and produce the WhatsApp deep link.
+3. The shipment moves through the status pipeline defined in `types/`.
+
+### Public tracking
+
+`components/Tracking.tsx` → `GET /api/tracking/:code` (no auth) → `trackingController` reads Firestore and returns the event history.
+
+### Admin dashboard
+
+`AdminDashboard` (protected by `ProtectedRoute requireAdmin`):
+
+- **Stats** — Aggregations from Firestore.
+- **Shipments** — Batch status updates (`validate` + `auditLog`), WhatsApp payment/contact links, fine calculation (`/fine`), CTT updates, search, ready-for-pickup queue, admin create.
+- **Leads** — Pipeline with stages, assignment, tags, notes, mark-as-read, delete. All actions are `auditLog`-tracked.
+- **Exports / Backup** — CSV exports and full backup dump.
+- **SMS queue** — Visualises the `SmsNotificationService` queue.
+
+### Contact and lead capture
+
+`components/Contact.tsx` → `POST /api/contact/` (local rate limiter) → creates a document in the `leads` collection, visible in the admin pipeline.
+
+### Webhooks and notifications
+
+- `/api/webhook/webhook` receives events from external integrations.
+- `POST /api/notify-whatsapp` (mounted under `/api`) triggers WhatsApp messages via `whatsappService`.
+
+## Security and resilience summary
+
+- `helmet` for hardened HTTP headers, `cors` with an allowlist (default origins plus `FRONTEND_URL`, semicolon-separated).
+- Global + endpoint-specific rate limiting (`authLimiter`, `/contact` limiter).
+- JWT access + refresh with refresh token persistence and expiry validation.
+- `Zod` validation on every sensitive endpoint.
+- `auditLog` for sensitive admin operations.
+- `bcryptjs` password hashing, `utils/encryption.ts` for sensitive fields at rest.
+- Centralised `errorHandler` with typed mapping (`ValidationError` / `JsonWebTokenError` / generic `500`).
+- `ProtectedRoute` on the frontend and automatic redirect on `401` after a failed refresh.
+
+## Known caveats and improvement opportunities
+
+- The root `package.json` only declares `multer` — likely a leftover artifact and safe to remove.
+- README historically referenced `backend/src/...`; the real layout lives under `backend/api`, `backend/controllers`, `backend/middleware`, `backend/services`, `backend/types`, `backend/utils`.
+- `multer` is listed under `frontend/package.json` dependencies but is not used in the browser bundle — likely a mistake.
+- `firebase.json`, `firestore.rules`, and `firestore.indexes.json` live in `backend/` but the Admin SDK bypasses security rules; verify the rules match any client-side access patterns if a direct client is ever added.
+- A Firebase service-account JSON file is present in `backend/` — confirm it is listed in `.gitignore` before publishing the repository.

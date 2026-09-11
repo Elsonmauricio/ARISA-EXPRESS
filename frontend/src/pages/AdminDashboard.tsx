@@ -6,7 +6,8 @@ import {
   AlertCircle, CheckCircle2, Clock, XCircle,
   Search, Plus, Edit, Trash2, MapPin,
   ChevronDown, ChevronRight, RefreshCw, Mail,
-  Tag, UserPlus, StickyNote, Filter, Send, Download
+  Tag, UserPlus, StickyNote, Filter, Send, Download,
+  CreditCard, FileImage
 } from 'lucide-react';
 import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
@@ -2359,6 +2360,185 @@ function AdminLeadsList() {
   );
 }
 
+// ======================== ADMIN PAYMENT PROOFS ========================
+interface PaymentProofShipment {
+  id: string;
+  trackingCode: string;
+  origin: string;
+  destination: string;
+  weight: number;
+  price: number;
+  status: string;
+  senderName: string;
+  receiverName: string;
+  paymentStatus: string;
+  paymentProofUrl: string;
+  paymentProofSubmittedAt: any;
+  paymentProofSubmittedBy: string;
+  readyForPickupAt: any;
+  pickupDeadline: any;
+  createdAt: any;
+}
+
+function AdminPaymentProofs({ refreshKey }: { refreshKey?: number }) {
+  const { t } = useT();
+  const [shipments, setShipments] = useState<PaymentProofShipment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [proceedMap, setProceedMap] = useState<Record<string, string>>({});
+  const navigate = useNavigate();
+
+  const fetchPayments = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const params = new URLSearchParams();
+      params.set('limit', '50');
+
+      const response = await authenticatedFetch(api(`/api/admin/payments/pending?${params.toString()}`), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
+
+      const json = await response.json();
+      if (json.success) {
+        setShipments(json.data || []);
+      } else {
+        setError(json.error || t('admin.erroConexao'));
+      }
+    } catch (err) {
+      setError(t('admin.erroConexao'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPayments();
+  }, [refreshKey]);
+
+  const verifyPayment = async (id: string) => {
+    const proceed = proceedMap[id] || '';
+    if (!confirm(proceed ? t('admin.pagamentoProceedMsg') as string : t('admin.pagamentoVerificar') as string)) return;
+
+    setVerifyingId(id);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await authenticatedFetch(api(`/api/admin/payments/${id}/verify`), {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          status: proceed || undefined,
+          proceedToNextStatus: Boolean(proceed)
+        })
+      });
+
+      const json = await response.json();
+      if (json.success) {
+        alert(proceed ? t('admin.pagamentoProceedMsg') : t('admin.pagamentoSucesso'));
+        fetchPayments();
+      } else {
+        alert(json.error || t('admin.pagamentoErro'));
+      }
+    } catch (err) {
+      alert(t('admin.pagamentoErro'));
+    } finally {
+      setVerifyingId(null);
+    }
+  };
+
+  if (loading) return <div className="text-center py-8 text-gray-600">{t('admin.aCarregarEncomendas')}</div>;
+  if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold text-sm sm:text-base">{t('admin.pagamentosTitulo')}</h3>
+        <button
+          onClick={fetchPayments}
+          className="px-3 py-1.5 bg-[#E8D9F5] border border-gray-300 rounded-lg text-gold hover:bg-white transition-colors flex items-center gap-1.5 text-xs"
+        >
+          <RefreshCw className="w-3 h-3" /> {t('admin.atualizar')}
+        </button>
+      </div>
+
+      {shipments.length === 0 ? (
+        <div className="text-center py-8 text-gray-400">
+          <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p>{t('admin.pagamentosVazio')}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {shipments.map((s) => (
+            <div key={s.id} className="glass-strong border-gradient p-4 rounded-xl">
+              <div className="flex flex-wrap justify-between items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-sm text-gold">{s.trackingCode}</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-400/20 text-amber-400">
+                      {t('admin.paymentPending')}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-700 mt-1">{s.origin} → {s.destination}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">
+                    {s.senderName} → {s.receiverName} | {s.weight} kg | € {s.price?.toFixed(2) || '0.00'}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {t('admin.pagamentoEnviadoPor')}: {s.paymentProofSubmittedBy || '—'} | {t('admin.pagamentoDataEnvio')}: {formatDateSafe(s.paymentProofSubmittedAt)}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <a
+                    href={s.paymentProofUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1 bg-gold text-[#374151] rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-1"
+                  >
+                    <FileImage className="w-3 h-3" /> {t('admin.proofView')}
+                  </a>
+                  <select
+                    value={proceedMap[s.id] || ''}
+                    onChange={(e) => setProceedMap(prev => ({ ...prev, [s.id]: e.target.value }))}
+                    className="px-2 py-1 bg-[#E8D9F5] border border-gray-300 rounded text-xs text-gold focus:border-gold outline-none min-w-[120px]"
+                  >
+                    <option value="">{t('admin.pagamentoVerificar')}</option>
+                    <option value="IN_TRANSIT">Em Trânsito</option>
+                    <option value="IN_PORTUGAL">Chegou Portugal</option>
+                    <option value="IN_ANGOLA">Chegou Angola</option>
+                    <option value="OUT_FOR_DELIVERY">Saiu Entrega</option>
+                  </select>
+                  <button
+                    onClick={() => verifyPayment(s.id)}
+                    disabled={verifyingId === s.id}
+                    className="px-3 py-1 bg-[#4B2170] text-white rounded-lg text-xs hover:bg-[#7B2FBF] transition-colors disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {verifyingId === s.id ? '...' : t('admin.pagamentoVerificar')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ======================== MAIN DASHBOARD ========================
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -2383,7 +2563,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [shipmentsRefreshKey, setShipmentsRefreshKey] = useState(0);
-  const [activeTab, setActiveTab] = useState<'overview' | 'newShipment' | 'shipments' | 'users' | 'routes' | 'messages'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'newShipment' | 'shipments' | 'users' | 'routes' | 'messages' | 'payments'>('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Verificar permissões
@@ -2528,6 +2708,7 @@ export default function AdminDashboard() {
     { id: 'users', label: t('admin.tabUtilizadores'), icon: Users },
     { id: 'routes', label: t('admin.tabRotas'), icon: MapPin },
     { id: 'messages', label: t('admin.tabMensagens'), icon: Mail },
+    { id: 'payments', label: t('admin.tabPagamentos'), icon: CreditCard },
   ];
 
   const currentTab = tabs.find(t => t.id === activeTab);
@@ -2663,6 +2844,11 @@ export default function AdminDashboard() {
             {activeTab === 'messages' && (
               <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
                 <AdminLeadsList />
+              </div>
+            )}
+            {activeTab === 'payments' && (
+              <div className="glass-strong border-gradient p-4 sm:p-6 rounded-2xl">
+                <AdminPaymentProofs refreshKey={shipmentsRefreshKey} />
               </div>
             )}
           </div>

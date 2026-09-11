@@ -222,7 +222,6 @@ export function generateCustomWhatsAppLink(
   }
 
   const phoneNumber = formattedPhone.replace('+', '');
-  const 
-  encodedMessage = encodeURIComponent(message); 
+  const encodedMessage = encodeURIComponent(message);
   return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 }

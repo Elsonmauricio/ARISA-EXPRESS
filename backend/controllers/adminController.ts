@@ -10,9 +10,69 @@ import { fixEncodingObject } from '../utils/encoding';
 import { LocationType } from '../utils/whatsapp';
 import { getCached, setCache, invalidateCache } from '../middleware/cache';
 // DESATIVADO: WhatsApp Cloud API (sem token/configuração)
-// import { WhatsAppService } from '../services/whatsappService';
+import { WhatsAppService } from '../services/whatsappService';
 // DESATIVADO: SMS service (sem provider configurado)
 // import { getSmsNotificationService } from '../services/sms';
+
+import { addBusinessDays as _addBusinessDays } from '../utils/businessDays';
+import { formatDate as _formatDate } from '../utils/businessDays';
+import { guessLocationType as _guessLocationType, generatePickupMessage as _generatePickupMessage, LocationType as _LocationType } from '../utils/whatsapp';
+
+/**
+ * Dispara em background (fire-and-forget) a notificação WhatsApp via template
+ * oficial da Meta. Não bloqueia a resposta HTTP do controller.
+ */
+function fireWhatsAppPickupNotification(shipment: any, id: string, locationType: 'luanda' | 'lisbon'): void {
+  const phone = shipment.receiverPhone || shipment.senderPhone;
+  if (!phone) {
+    logger.warn(`[WhatsApp] Sem telefone para ${shipment.trackingCode} — notificação ignorada.`);
+    return;
+  }
+
+  const readyDate = new Date();
+  const deadline =
+    shipment.pickupDeadline?.toDate
+      ? shipment.pickupDeadline.toDate()
+      : shipment.pickupDeadline
+        ? new Date(shipment.pickupDeadline)
+        : _addBusinessDays(readyDate, 5);
+
+  // Executa em background; erros são registados pelo próprio serviço.
+  void WhatsAppService.sendPickupTemplate({
+    phone,
+    trackingCode: shipment.trackingCode || '',
+    shipmentDate: _formatDate(readyDate),
+    deadline: _formatDate(deadline),
+    senderName: shipment.senderName || 'N/A',
+    receiverName: shipment.receiverName || 'N/A',
+    pickupAddress: shipment.pickupAddress || '',
+    pickupContact: shipment.pickupContact || '',
+    pickupSchedule: shipment.pickupSchedule || '',
+    location: locationType,
+    destination: shipment.destination || ''
+  })
+    .then(async (result) => {
+      if (result.success && result.sent && result.messageId) {
+        try {
+          await db.collection('shipments').doc(id).update({
+            whatsapp_message_id: result.messageId,
+            whatsapp_status: 'sent',
+            whatsapp_sent_at: FieldValue.serverTimestamp()
+          });
+          invalidateCache('admin:stats');
+        } catch (e: any) {
+          logger.warn(`[WhatsApp] Falha a gravar estado de envio para ${shipment.trackingCode}: ${e.message}`);
+        }
+      } else if (result.simulated) {
+        logger.info(`[WhatsApp] MOCK — template não enviado para ${shipment.trackingCode} (${result.link ?? 'no link'})`);
+      } else if (!result.success) {
+        logger.warn(`[WhatsApp] Falha no envio para ${shipment.trackingCode}: ${result.error}`);
+      }
+    })
+    .catch((err) => {
+      logger.error(`[WhatsApp] Erro inesperado no envio para ${shipment.trackingCode}:`, err);
+    });
+}
 
 // Conclusive statuses that trigger individual status flag
 const CONCLUSIVE_STATUSES = ['PICKED_UP', 'DELIVERED', 'CANCELLED', 'COLLECTED'];
@@ -653,6 +713,8 @@ export const AdminController = {
       const shipment = shipmentDoc.data() as any;
       const trackingCode = shipment.trackingCode;
 
+      let deadline: Date | null = null;
+
       const updateData: any = {
         status,
         currentLocation: location || shipment.destination,
@@ -670,7 +732,7 @@ export const AdminController = {
 
       if (status === 'READY_FOR_PICKUP') {
         const now = new Date();
-        const deadline = addBusinessDays(now, 5);
+        deadline = addBusinessDays(now, 5);
         const isLuanda = String(shipment.destination || '').toLowerCase().includes('luanda') || String(shipment.destination || '').toLowerCase().includes('angola');
 
         updateData.readyForPickupAt = FieldValue.serverTimestamp();
@@ -731,6 +793,16 @@ export const AdminController = {
           //   }
           // });
           // logger.info(`[SMS] Enqueue result for ${shipment.trackingCode}: ${enqueued ? 'queued' : 'skipped (invalid phone)'}`);
+
+          // Dispara em background a notificação via template oficial da Meta.
+          const shipmentWithPickupData = {
+            ...shipment,
+            pickupAddress: updateData.pickupAddress || shipment.pickupAddress || '',
+            pickupContact: updateData.pickupContact || shipment.pickupContact || '',
+            pickupSchedule: updateData.pickupSchedule || shipment.pickupSchedule || ''
+          };
+          const locationType = guessLocationType(shipment.destination || '');
+          fireWhatsAppPickupNotification(shipmentWithPickupData, id, locationType);
         } else {
           logger.warn(`[SMS] Skipped for shipment ${shipment.trackingCode}: no valid phone (receiverPhone=${shipment.receiverPhone || 'null'}, senderPhone=${shipment.senderPhone || 'null'})`);
         }
@@ -741,18 +813,57 @@ export const AdminController = {
         if (userDoc.exists) {
           const user = userDoc.data() as any;
           if (user?.email) {
-            await sendEmail({
-              to: user.email,
-              subject: ` Atualização da Encomenda ${trackingCode}`,
-              template: 'shipment-updated',
-              data: {
-                name: user.name || 'Cliente',
-                trackingCode,
-                status,
-                location: location || shipment.destination,
-                description: description || `Status atualizado para ${status}`
+            const locationType = guessLocationType(shipment.destination || '');
+            const imageUrl = getPickupImage(locationType);
+
+            if (status === 'READY_FOR_PICKUP') {
+              const isLuanda = locationType === 'luanda';
+              let paymentInfo = '';
+
+              if (shipment.paymentStatus === 'PENDING') {
+                paymentInfo = isLuanda
+                  ? '💰 Deve efectuar o pagamento no momento do levantamento. Multa de 10% sobre o valor do envio após 5 dias úteis.'
+                  : '💰 Pague ao levantar a encomenda. Taxa de ocupação de 5€/semana após o prazo.';
+              } else if (shipment.paymentStatus === 'PAID') {
+                paymentInfo = '✅Pagamento confirmado. Pode levantar a encomenda.';
+              } else {
+                paymentInfo = '';
               }
-            });
+
+              await sendEmail({
+                to: user.email,
+                subject: `📦 Encomenda Disponível para Levantamento - ${trackingCode}`,
+                template: 'shipment-ready-for-pickup',
+                data: {
+                  name: user.name || 'Cliente',
+                  trackingCode,
+                  destination: shipment.destination,
+                  senderName: shipment.senderName || 'N/A',
+                  receiverName: shipment.receiverName || 'N/A',
+                  pickupAddress: updateData.pickupAddress || shipment.pickupAddress || '',
+                  pickupContact: updateData.pickupContact || shipment.pickupContact || '',
+                  pickupSchedule: updateData.pickupSchedule || shipment.pickupSchedule || '',
+                  readyDate: formatDate(new Date()),
+                  deadline: formatDate(deadline || new Date()),
+                  fine: isLuanda ? calculateLocationFine(shipment.price || 0, shipment.destination || '') : 0,
+                  imageUrl,
+                  paymentInfo
+                }
+              });
+            } else {
+              await sendEmail({
+                to: user.email,
+                subject: ` Atualização da Encomenda ${trackingCode}`,
+                template: 'shipment-updated',
+                data: {
+                  name: user.name || 'Cliente',
+                  trackingCode,
+                  status,
+                  location: location || shipment.destination,
+                  description: description || `Status atualizado para ${status}`
+                }
+              });
+            }
           }
         }
       }
@@ -836,6 +947,14 @@ export const AdminController = {
             // } else {
             //   logger.warn(`[SMS] Batch skipped for ${s.trackingCode}: invalid phone after cleaning`);
             // }
+
+            // Dispara em background o template oficial da Meta para esta encomenda.
+            const locationType = guessLocationType(s.destination || '');
+            fireWhatsAppPickupNotification(
+              { ...s, pickupAddress: upd.pickupAddress, pickupContact: upd.pickupContact, pickupSchedule: upd.pickupSchedule || '' },
+              doc.id,
+              locationType
+            );
           } else {
             logger.warn(`[SMS] Batch skipped for ${s.trackingCode}: no phone in shipment`);
           }
@@ -907,6 +1026,14 @@ export const AdminController = {
           // } else {
           //   logger.warn(`[SMS] BatchByIds skipped for ${s.trackingCode}: invalid phone after cleaning`);
           // }
+
+          // Dispara em background o template oficial da Meta para esta encomenda.
+          const locationType = guessLocationType(s.destination || '');
+          fireWhatsAppPickupNotification(
+            { ...s, pickupAddress: upd.pickupAddress, pickupContact: upd.pickupContact, pickupSchedule: upd.pickupSchedule || '' },
+            id,
+            locationType
+          );
         }
       }
       await batch.commit();

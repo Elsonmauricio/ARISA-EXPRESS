@@ -284,7 +284,37 @@ export const AuthController = {
 
       res.json({ success: true, message: 'Senha redefinida com sucesso' });
     } catch (error) {
-      logger.error('Erro no resetPassword:', error);
+      res.status(500).json({ error: 'Erro ao redefinir senha' });
+    }
+  },
+
+  resetPasswordDirect: async (req: Request, res: Response) => {
+    try {
+      const { email, newPassword } = req.body;
+
+      if (!email || !newPassword) {
+        return res.status(400).json({ error: 'Email e nova senha são obrigatórios' });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres' });
+      }
+
+      const userSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
+      if (userSnapshot.empty) {
+        return res.status(404).json({ error: 'Utilizador não encontrado' });
+      }
+
+      const userDoc = userSnapshot.docs[0];
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await userDoc.ref.update({
+        password: hashedPassword
+      });
+
+      res.json({ success: true, message: 'Senha redefinida com sucesso' });
+    } catch (error) {
+      logger.error('Erro no resetPasswordDirect:', error);
       res.status(500).json({ error: 'Erro ao redefinir senha' });
     }
   },

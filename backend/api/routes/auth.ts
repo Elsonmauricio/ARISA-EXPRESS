@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { AuthController } from '../../controllers/authController';
 import { validate } from '../../middleware/validation';
 import { authLimiter } from '../../middleware/rateLimit';
-import { registerSchema, loginSchema } from '../../types/validation';
+import { registerSchema, loginSchema, resetPasswordDirectSchema } from '../../types/validation';
 
 const router = Router();
 
@@ -13,6 +13,7 @@ router.post('/refresh', AuthController.refreshToken);
 router.post('/logout', AuthController.logout);
 router.post('/forgot-password', authLimiter, AuthController.forgotPassword);
 router.post('/reset-password', AuthController.resetPassword);
+router.post('/reset-password-direct', authLimiter, validate(resetPasswordDirectSchema), AuthController.resetPasswordDirect);
 router.get('/me', AuthController.getCurrentUser);
 
 export default router;

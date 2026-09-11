@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
 
 import authRoutes from './api/routes/auth';
 import userRoutes from './api/routes/users'; 
@@ -26,6 +27,11 @@ const app = express();
 
 // Middleware
 app.use(helmet());
+
+// Static file serving for pickup images and uploaded proof files
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+app.use('/api/assets', express.static(path.join(__dirname, '..', 'public', 'assets')));
+app.use('/api/uploads', express.static(uploadsDir));
 
 const defaultOrigins = [
   'http://localhost:5173',

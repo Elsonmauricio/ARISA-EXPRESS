@@ -81,6 +81,8 @@ export const ExportController = {
         const statusLabel = statusProprio ? STATUS_LABELS[statusProprio] || statusProprio : STATUS_LABELS[status] || status;
         const dest = data.destination || '';
         const imageUrl = getPickupImage(getLocationType(dest));
+        const readyDate = data.readyForPickupAt ? (data.readyForPickupAt.toDate ? data.readyForPickupAt.toDate() : new Date(data.readyForPickupAt)) : null;
+        const deadline = data.pickupDeadline ? (data.pickupDeadline.toDate ? data.pickupDeadline.toDate() : new Date(data.pickupDeadline)) : null;
         return {
           id: doc.id,
           trackingCode: data.trackingCode || '',
@@ -93,6 +95,9 @@ export const ExportController = {
           peso: data.weight || 0,
           preco: data.price || 0,
           estadoPagamento: PAYMENT_LABELS[data.paymentStatus] || data.paymentStatus || '',
+          comprovativoEnviado: data.paymentProofSubmittedAt ? 'Sim' : 'Não',
+          comprovativoVerificado: data.paymentVerifiedAt ? 'Sim' : 'Não',
+          dataComprovativo: formatDate(data.paymentProofSubmittedAt),
           dataCriacao: formatDate(data.createdAt),
           disponivelLevantamento: formatDate(data.readyForPickupAt),
           prazoLimite: formatDate(data.pickupDeadline),
@@ -100,7 +105,7 @@ export const ExportController = {
         };
       });
 
-      const headers = ['id','codigoRastreio','status','origem','destino','rota','remetente','destinatario','peso','preco','estadoPagamento','dataCriacao','disponivelLevantamento','prazoLimite','imagemLevantamento'];
+      const headers = ['id','codigoRastreio','status','origem','destino','rota','remetente','destinatario','peso','preco','estadoPagamento','comprovativoEnviado','comprovativoVerificado','dataComprovativo','dataCriacao','disponivelLevantamento','prazoLimite','imagemLevantamento'];
       const csv = toCsv(headers, rows);
 
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');

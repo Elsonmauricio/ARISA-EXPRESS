@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { AdminController } from '../../controllers/adminController';
 import { LeadController } from '../../controllers/leadController';
 import { ExportController } from '../../controllers/exportController';
+import { PaymentProofController } from '../../controllers/paymentProofController';
 import { authenticate, authorize } from '../../middleware/auth';
 import { validate } from '../../middleware/validation';
 import { auditLog } from '../../middleware/auditLog';
@@ -53,5 +54,9 @@ router.get('/notifications/sms/queue', (req, res) => {
   const svc = getSmsNotificationService();
   res.json({ success: true, queueLength: svc.getQueueLength() });
 });
+
+// Payment proof report and verification
+router.get('/payments/pending', PaymentProofController.getPendingPayments);
+router.patch('/payments/:id/verify', PaymentProofController.verifyPayment);
 
 export default router;

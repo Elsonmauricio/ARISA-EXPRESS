@@ -5,7 +5,7 @@ import { logger } from '../utils/logger';
 interface EmailOptions {
   to: string;
   subject: string;
-  template: 'welcome' | 'shipment-created' | 'shipment-updated' | 'shipment-ctt-updated' | 'shipment-cancelled' | 'reset-password';
+  template: 'welcome' | 'shipment-created' | 'shipment-updated' | 'shipment-ctt-updated' | 'shipment-cancelled' | 'reset-password' | 'shipment-ready-for-pickup';
   data: any;
 }
 
@@ -47,6 +47,10 @@ const STATUS_LABELS_PT: Record<string, string> = {
 
 function translateStatus(status: string): string {
   return STATUS_LABELS_PT[status] || status.replace('_', ' ');
+}
+
+function formatDatePt(date: Date): string {
+  return date.toLocaleDateString('pt-PT');
 }
 
 const templates: Record<EmailOptions['template'], (data: any) => string> = {
@@ -109,7 +113,7 @@ const templates: Record<EmailOptions['template'], (data: any) => string> = {
     <p style="color: #7C3AED;">💜 Luanda • Lisboa</p>
   `,
 
-  'shipment-ctt-updated': (data: any) => `
+   'shipment-ctt-updated': (data: any) => `
     <h1>📦 Atualização CTT - Encomenda ${data.trackingCode}</h1>
     <p><strong>Olá ${data.name},</strong></p>
     <p>Informamos que já temos disponível o código de rastreio CTT para a sua encomenda.</p>
@@ -123,6 +127,50 @@ const templates: Record<EmailOptions['template'], (data: any) => string> = {
     <p>Equipa <strong>Arisa Express</strong></p>
     <p style="color: #7C3AED;">💜 Luanda • Lisboa</p>
   `,
+
+  'shipment-ready-for-pickup': (data: any) => {
+    const imageUrl = data.imageUrl || '';
+    const isLuanda = (data.destination || '').toLowerCase().includes('luanda') || (data.destination || '').toLowerCase().includes('angola');
+    const locationLabel = isLuanda ? 'Luanda' : 'Lisboa';
+    const fineText = data.fine && data.fine > 0
+      ? `<li style="color: #ef4444;"><strong>Multa por atraso:</strong> € ${data.fine.toFixed(2)}</li>`
+      : '';
+    return `
+    <h1>📦 Encomenda Disponível para Levantamento!</h1>
+    <p><strong>Olá ${data.name},</strong></p>
+    <p>A sua encomenda <strong>${data.trackingCode}</strong> já chegou a <strong>${locationLabel}</strong> e está disponível para levantamento!</p>
+
+    ${imageUrl ? `<div style="text-align: center; margin: 20px 0;">
+      <img src="${imageUrl}" alt="Encomenda disponível para levantamento em ${locationLabel}" style="max-width: 100%; height: auto; border-radius: 12px; border: 3px solid #7C3AED; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+      <p style="color: #7C3AED; font-size: 14px; margin-top: 8px;">📍 ${locationLabel} - Arisa Express</p>
+    </div>` : ''}
+
+    <h2>📍 Local de Levantamento</h2>
+    <ul>
+      <li><strong>Endereço:</strong> ${data.pickupAddress || 'N/A'}</li>
+      <li><strong>Contacto:</strong> ${data.pickupContact || 'N/A'}</li>
+      <li><strong>Horário:</strong> ${data.pickupSchedule || 'N/A'}</li>
+    </ul>
+
+    <h2>📋 Informações Importantes</h2>
+    <ul>
+      <li><strong>Remetente:</strong> ${data.senderName || 'N/A'}</li>
+      <li><strong>Destinatário:</strong> ${data.receiverName || 'N/A'}</li>
+      <li><strong>Data de Disponibilização:</strong> ${data.readyDate || formatDatePt(new Date())}</li>
+      <li><strong>Prazo Limite:</strong> ${data.deadline || 'N/A'} (5 dias úteis)</li>
+      ${fineText}
+    </ul>
+
+    ${data.paymentInfo ? `<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin: 15px 0;">
+      <p style="color: #92400e; font-weight: bold; margin: 0;">${data.paymentInfo}</p>
+    </div>` : ''}
+
+    <p>🔗 <a href="${process.env.FRONTEND_URL}/rastrear?code=${data.trackingCode}" style="background: #D4AF37; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Ver Detalhes da Encomenda</a></p>
+    <br/>
+    <p>Equipa <strong>Arisa Express</strong></p>
+    <p style="color: #7C3AED;">💜 Luanda • Lisboa</p>
+    `;
+  },
 
   'reset-password': (data: any) => `
     <h1>🔐 Recuperação de Senha</h1>
