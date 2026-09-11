@@ -49,3 +49,6 @@ package.json
 **.node-persist**
 **_IGNORE_**
 # end managed
+
+.vercel
+.env*

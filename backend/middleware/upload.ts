@@ -1,11 +1,24 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 
-const uploadDir = path.join(__dirname, '..', 'uploads');
+let uploadDir: string;
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+try {
+  uploadDir = path.join(__dirname, '..', 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch {
+  uploadDir = path.join(os.tmpdir(), 'arisa-uploads');
+  try {
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+  } catch {
+    uploadDir = os.tmpdir();
+  }
 }
 
 const storage = multer.diskStorage({
