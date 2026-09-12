@@ -14,7 +14,7 @@ const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 if (serviceAccountVar) {
   try {
     serviceAccount = JSON.parse(serviceAccountVar);
-  } catch (error) {
+  } catch (_error) {
     logger.error('❌ [ERRO]: A variável FIREBASE_SERVICE_ACCOUNT_KEY não é um JSON válido.');
   }
 } else {

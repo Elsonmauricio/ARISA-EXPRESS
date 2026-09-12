@@ -41,7 +41,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 
     req.user = { id: userDoc.id, ...userDoc.data() };
     next();
-  } catch (error) {
+  } catch (_error) {
     res.status(401).json({ error: 'Por favor, autentique-se' });
   }
 };
@@ -72,7 +72,7 @@ export const authenticateRefresh = async (req: Request, res: Response, next: Nex
     const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as any;
     req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
     next();
-  } catch (error) {
+  } catch (_error) {
     res.status(401).json({ error: 'Refresh token inválido' });
   }
 };
