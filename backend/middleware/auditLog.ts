@@ -43,7 +43,7 @@ export async function auditLog(req: Request, res: Response, next: NextFunction):
         log.changes = computeChanges(req);
       }
 
-      db.collection('auditLogs').add(log).catch((err) => {
+      db.collection('auditLogs').add(log).catch((err: any) => {
         logger.error('Failed to write audit log:', err);
       });
 
