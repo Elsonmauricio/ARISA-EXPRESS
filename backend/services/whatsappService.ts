@@ -230,6 +230,8 @@ export class WhatsAppService {
       { type: 'text', text: data.trackingCode },
       { type: 'text', text: data.shipmentDate },
       { type: 'text', text: data.deadline },
+      { type: 'text', text: data.senderName || '' },
+      { type: 'text', text: data.receiverName || 'Cliente' },
       { type: 'text', text: data.pickupAddress || '' },
       { type: 'text', text: data.pickupContact || '' }
     ];
