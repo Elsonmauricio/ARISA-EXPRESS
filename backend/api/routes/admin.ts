@@ -8,7 +8,6 @@ import { authenticate, authorize } from '../../middleware/auth';
 import { validate } from '../../middleware/validation';
 import { auditLog } from '../../middleware/auditLog';
 import { adminCreateShipmentSchema, updateCttSchema, batchStatusUpdateSchema, batchByIdsSchema } from '../../types/validation';
-import { getSmsNotificationService } from '../../services/sms';
 
 const router = Router();
 
@@ -50,12 +49,6 @@ router.get('/export/users', ExportController.exportUsers);
 router.get('/export/leads', ExportController.exportLeads);
 router.get('/backup/full', ExportController.fullBackup);
 
-router.get('/notifications/sms/queue', (req, res) => {
-  const svc = getSmsNotificationService();
-  res.json({ success: true, queueLength: svc.getQueueLength() });
-});
-
-// Payment proof report and verification
 router.get('/payments/pending', PaymentProofController.getPendingPayments);
 router.patch('/payments/:id/verify', PaymentProofController.verifyPayment);
 
