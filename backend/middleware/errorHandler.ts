@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 
-export const errorHandler = (error: any, req: Request, res: Response, _next: NextFunction) => {
+export const errorHandler = (error: any, req: Request, res: Response, next: NextFunction) => {
   logger.error(error.stack);
   
   if (error.name === 'ValidationError') {

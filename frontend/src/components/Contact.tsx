@@ -195,14 +195,24 @@ export default function Contact() {
 
             <div className="glass-strong border-gradient p-6 text-center rounded-3xl">
               <h3 className="font-bold mb-2">{t('contact.whatsappTitle')}</h3>
-              <a
-                href={whatsappUrl(t('contact.whatsapp'))}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block bg-green-600 text-black w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
-              >
-                {t('contact.whatsapp')}
-              </a>
+              <div className="grid grid-cols-2 gap-3">
+                <a
+                  href={whatsappUrl(t('contact.whatsapp'), '351934292082')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-green-600 text-black w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+                >
+                  {t('contact.whatsappLisboa')}
+                </a>
+                <a
+                  href={whatsappUrl(t('contact.whatsapp'), '244948440920')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-green-600 text-black w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+                >
+                  {t('contact.whatsappLuanda')}
+                </a>
+              </div>
             </div>
           </div>
         </div>

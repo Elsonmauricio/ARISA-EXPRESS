@@ -111,7 +111,9 @@ export const translations: Record<Lang, Dict> = {
     'contact.moradaLisboa2': '2660-328 Santo António Cavaleiros, Portugal',
     'contact.moradas': 'Moradas',
     'contact.whatsappTitle': 'Atendimento via WhatsApp',
-    'contact.whatsapp': 'WhatsApp',
+    'contact.whatsapp': 'Olá! Sou da Arisa Express. Como posso ajudá-lo hoje?',
+    'contact.whatsappLisboa': 'WhatsApp Lisboa',
+    'contact.whatsappLuanda': 'WhatsApp Luanda',
 
     // ---- FOOTER ----
     'footer.quickLinks': 'Quick Links',
@@ -793,7 +795,9 @@ export const translations: Record<Lang, Dict> = {
     'contact.moradaLisboa2': '2660-328 Santo António Cavaleiros, Portugal',
     'contact.moradas': 'Addresses',
     'contact.whatsappTitle': 'WhatsApp Support',
-    'contact.whatsapp': 'WhatsApp',
+    'contact.whatsapp': "Hello! I'm from Arisa Express. How can I help you today?",
+    'contact.whatsappLisboa': 'WhatsApp Lisbon',
+    'contact.whatsappLuanda': 'WhatsApp Luanda',
 
     // ---- FOOTER ----
     'footer.quickLinks': 'Quick Links',

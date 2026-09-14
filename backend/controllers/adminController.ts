@@ -773,27 +773,6 @@ export const AdminController = {
       if (status === 'READY_FOR_PICKUP') {
         const pickupPhone = (shipment.receiverPhone || shipment.senderPhone || '').replace(/\D/g, '');
         if (pickupPhone.length >= 9) {
-          // DESATIVADO: SMS service não configurado
-          // const smsService = getSmsNotificationService();
-          // const readyDate = new Date();
-          // const deadline = addBusinessDays(readyDate, 5);
-          // const enqueued = smsService.enqueuePickupNotification({
-          //   shipmentId: id,
-          //   trackingCode: shipment.trackingCode,
-          //   phone: pickupPhone,
-          //   data: {
-          //     readyDate: formatDate(readyDate),
-          //     deadline: formatDate(deadline),
-          //     senderName: shipment.senderName || 'N/A',
-          //     receiverName: shipment.receiverName || 'N/A',
-          //     pickupAddress: updateData.pickupAddress || '',
-          //     pickupContact: updateData.pickupContact || '',
-          //     pickupSchedule: updateData.pickupSchedule || '',
-          //     destination: shipment.destination || ''
-          //   }
-          // });
-          // logger.info(`[SMS] Enqueue result for ${shipment.trackingCode}: ${enqueued ? 'queued' : 'skipped (invalid phone)'}`);
-
           // Dispara em background a notificação via template oficial da Meta.
           const shipmentWithPickupData = {
             ...shipment,
