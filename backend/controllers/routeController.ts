@@ -9,6 +9,7 @@ import { invalidateCache } from '../middleware/cache';
 import { formatDate, addBusinessDays, calculateLocationFine } from '../utils/businessDays';
 import { sendEmail } from '../services/emailService';
 import { guessLocationType, getPickupImage, LocationType } from '../utils/whatsapp';
+import { fireWhatsAppPickupNotification } from './adminController';
 
 export const RouteController = {
   // Listar todas as rotas (para admin)
@@ -327,6 +328,20 @@ export const RouteController = {
           timestamp: FieldValue.serverTimestamp()
         });
         shipmentIds.push(doc.id);
+
+        if (shipmentStatus === 'READY_FOR_PICKUP') {
+          const pickupPhone = (s.receiverPhone || s.senderPhone || '').replace(/\D/g, '');
+          if (pickupPhone.length >= 9) {
+            const locationType = guessLocationType(routeData?.destination || '');
+            fireWhatsAppPickupNotification(
+              { ...s, pickupAddress: updateData.pickupAddress, pickupContact: updateData.pickupContact, pickupSchedule: '' },
+              doc.id,
+              locationType
+            );
+          } else {
+            logger.warn(`[WhatsApp] Skipped for shipment ${s.trackingCode}: no valid phone (receiverPhone=${s.receiverPhone || 'null'}, senderPhone=${s.senderPhone || 'null'})`);
+          }
+        }
       });
 
       await batch.commit();

@@ -22,7 +22,7 @@ import { guessLocationType as _guessLocationType, generatePickupMessage as _gene
  * Dispara em background (fire-and-forget) a notificação WhatsApp via template
  * oficial da Meta. Não bloqueia a resposta HTTP do controller.
  */
-function fireWhatsAppPickupNotification(shipment: any, id: string, locationType: 'luanda' | 'lisbon'): void {
+export function fireWhatsAppPickupNotification(shipment: any, id: string, locationType: 'luanda' | 'lisbon'): void {
   const phone = shipment.receiverPhone || shipment.senderPhone;
   if (!phone) {
     logger.warn(`[WhatsApp] Sem telefone para ${shipment.trackingCode} — notificação ignorada.`);
