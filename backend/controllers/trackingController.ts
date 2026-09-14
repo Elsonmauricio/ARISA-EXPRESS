@@ -44,7 +44,7 @@ export const TrackingController = {
         .orderBy('timestamp', 'desc')
         .get();
 
-      const trackingUpdates = trackingSnapshot.docs.map(d => {
+      const trackingUpdates = trackingSnapshot.docs.map((d: any) => {
     const data = d.data();
     return {
       id: d.id,

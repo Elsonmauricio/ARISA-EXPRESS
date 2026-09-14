@@ -15,7 +15,7 @@ export const RouteController = {
   getRoutes: async (req: Request, res: Response) => {
     try {
       const snapshot = await db.collection('routes').orderBy('flightDate', 'asc').get();
-      const routes = snapshot.docs.map(doc => {
+      const routes = snapshot.docs.map((doc: any) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -40,7 +40,7 @@ export const RouteController = {
         .orderBy('flightDate', 'asc')
         .get();
 
-      const routes = snapshot.docs.map(doc => {
+      const routes = snapshot.docs.map((doc: any) => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -48,7 +48,7 @@ export const RouteController = {
           flightDate: data.flightDate?.toDate?.()?.toISOString?.() || data.flightDate || null,
           available: Math.max(0, (data.capacity || 0) - (data.reserved || 0))
         };
-      }).filter(r => r.available > 0); // Apenas com capacidade disponível
+      }).filter((r: any) => r.available > 0); // Apenas com capacidade disponível
 
       res.json({ success: true, data: routes });
     } catch (error) {

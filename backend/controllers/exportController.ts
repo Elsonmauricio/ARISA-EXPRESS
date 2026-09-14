@@ -74,7 +74,7 @@ export const ExportController = {
   exportShipments: async (_req: Request, res: Response) => {
     try {
       const snapshot = await db.collection('shipments').orderBy('createdAt', 'desc').get();
-      const rows = snapshot.docs.map(doc => {
+      const rows = snapshot.docs.map((doc: any) => {
         const data = doc.data();
         const status = data.status || '';
         const statusProprio = data.status_proprio || '';
@@ -121,7 +121,7 @@ export const ExportController = {
   exportUsers: async (_req: Request, res: Response) => {
     try {
       const snapshot = await db.collection('users').get();
-      const rows = snapshot.docs.map(doc => {
+      const rows = snapshot.docs.map((doc: any) => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -151,7 +151,7 @@ export const ExportController = {
   exportLeads: async (_req: Request, res: Response) => {
     try {
       const snapshot = await db.collection('leads').orderBy('createdAt', 'desc').get();
-      const rows = snapshot.docs.map(doc => {
+      const rows = snapshot.docs.map((doc: any) => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -190,10 +190,10 @@ export const ExportController = {
 
       const backup = {
         exportedAt: new Date().toISOString(),
-        shipments: shipmentsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
-        users: usersSnap.docs.map(d => ({ id: d.id, ...d.data() })),
-        leads: leadsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
-        routes: routesSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+        shipments: shipmentsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })),
+        users: usersSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })),
+        leads: leadsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })),
+        routes: routesSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }))
       };
 
       res.setHeader('Content-Type', 'application/json; charset=utf-8');

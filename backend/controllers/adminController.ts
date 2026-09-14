@@ -504,7 +504,7 @@ export const AdminController = {
         .orderBy('timestamp', 'desc')
         .get();
 
-      const trackingUpdates = trackingSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      const trackingUpdates = trackingSnapshot.docs.map((d: any) => ({ id: d.id, ...d.data() }));
 
       const statusCalculado = doc.data()?.status_proprio ?? doc.data()?.status ?? null;
       res.json({
@@ -533,7 +533,7 @@ export const AdminController = {
         }
       }
 
-      const shipments = snapshot.docs.map(doc => {
+      const shipments = snapshot.docs.map((doc: any) => {
         const data = doc.data();
         const now = new Date();
         const deadline = data.pickupDeadline ? new Date(data.pickupDeadline.toDate ? data.pickupDeadline.toDate() : data.pickupDeadline) : null;
@@ -1062,7 +1062,7 @@ export const AdminController = {
       }
 
       const snapshot = await query.get();
-      const users = snapshot.docs.map(doc => {
+      const users = snapshot.docs.map((doc: any) => {
         const data = doc.data();
         return { id: doc.id, ...data };
       });
@@ -1135,7 +1135,7 @@ export const AdminController = {
         .orderBy('createdAt', 'desc')
         .get();
 
-      const leads = snapshot.docs.map(doc => ({
+      const leads = snapshot.docs.map((doc: any) => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.() || new Date()
@@ -1207,7 +1207,7 @@ export const AdminController = {
           .get();
         
         let revenue = 0;
-        snapshot.docs.forEach(doc => {
+        snapshot.docs.forEach((doc: any) => {
           const data = doc.data();
           revenue += parseFloat(data.price) || 0;
         });

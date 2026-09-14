@@ -98,7 +98,7 @@ export const LeadController = {
       for (const stage of LEAD_STAGES) counts[stage] = 0;
 
       const snapshot = await db.collection('leads').get();
-      snapshot.docs.forEach(doc => {
+      snapshot.docs.forEach((doc: any) => {
         const stage = doc.data().stage;
         if (stage in counts) counts[stage] += 1;
       });

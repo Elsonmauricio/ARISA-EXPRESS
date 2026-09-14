@@ -38,7 +38,7 @@ export const QuotationController = {
         .orderBy('createdAt', 'desc')
         .get();
       
-      const quotations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const quotations = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
 
       res.json({ success: true, data: quotations });
     } catch (error) {

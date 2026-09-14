@@ -83,7 +83,7 @@ export const UserController = {
       const snapshot = await db.collection('users').doc(userId).collection('notifications')
         .orderBy('createdAt', 'desc')
         .get();
-      const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const notifications = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
       res.json({ success: true, data: fixEncodingObject(notifications) });
     } catch (error) {
       res.status(500).json({ error: 'Erro ao buscar notificações' });
