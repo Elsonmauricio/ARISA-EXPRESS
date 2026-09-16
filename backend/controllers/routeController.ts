@@ -9,7 +9,7 @@ import { invalidateCache } from '../middleware/cache';
 import { formatDate, addBusinessDays, calculateLocationFine } from '../utils/businessDays';
 import { sendEmail } from '../services/emailService';
 import { guessLocationType, getPickupImage, LocationType } from '../utils/whatsapp';
-import { fireWhatsAppPickupNotification } from './adminController';
+import { fireWhatsAppPickupNotification, sendShipmentEmailNotification } from './adminController';
 
 export const RouteController = {
   // Listar todas as rotas (para admin)
@@ -250,6 +250,11 @@ export const RouteController = {
 
       const batch = db.batch();
       let notifCount = 0;
+      const whatsappNotifications: Array<{
+        shipment: any;
+        id: string;
+        locationType: LocationType;
+      }> = [];
       const shipmentIds: string[] = [];
 
             shipmentSnapshot.docs.forEach((doc: any) => {
@@ -333,11 +338,11 @@ export const RouteController = {
           const pickupPhone = (s.receiverPhone || s.senderPhone || '').replace(/\D/g, '');
           if (pickupPhone.length >= 9) {
             const locationType = guessLocationType(routeData?.destination || '');
-            fireWhatsAppPickupNotification(
-              { ...s, pickupAddress: updateData.pickupAddress, pickupContact: updateData.pickupContact, pickupSchedule: '' },
-              doc.id,
+            whatsappNotifications.push({
+              shipment: { ...s, pickupAddress: updateData.pickupAddress, pickupContact: updateData.pickupContact, pickupSchedule: '' },
+              id: doc.id,
               locationType
-            );
+            });
           } else {
             logger.warn(`[WhatsApp] Skipped for shipment ${s.trackingCode}: no valid phone (receiverPhone=${s.receiverPhone || 'null'}, senderPhone=${s.senderPhone || 'null'})`);
           }
@@ -345,6 +350,23 @@ export const RouteController = {
       });
 
       await batch.commit();
+
+      const whatsappResults = await Promise.allSettled(
+        whatsappNotifications.map(notification =>
+          fireWhatsAppPickupNotification(notification.shipment, notification.id, notification.locationType)
+        )
+      );
+      const whatsappSent = whatsappResults.filter(
+        result => result.status === 'fulfilled' && result.value.sent
+      ).length;
+      const whatsappFailed = whatsappResults.filter(
+        result => result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success)
+      ).length;
+
+      if (whatsappFailed > 0) {
+        logger.error(`[RouteStatus] ${whatsappFailed} notificação(ões) WhatsApp falharam`);
+      }
+
       invalidateCache('admin:stats');
       logger.info(`[RouteStatus] === SUMMARY ===`);
       logger.info(`[RouteStatus] Route ${id}: ${oldRouteStatus} → ${status} (shipmentStatus: ${shipmentStatus})`);
@@ -434,7 +456,16 @@ export const RouteController = {
 
       res.json({
         success: true,
-        data: { id, status, shipmentStatus, affectedShipments: shipmentIds.length, shipmentIds, whatsappReady: notifCount }
+        data: {
+          id,
+          status,
+          shipmentStatus,
+          affectedShipments: shipmentIds.length,
+          shipmentIds,
+          whatsappReady: notifCount,
+          whatsappSent,
+          whatsappFailed
+        }
       });
     } catch (error) {
       logger.error('[RouteStatus] ❌ Error updating route status:', error);

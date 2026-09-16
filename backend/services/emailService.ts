@@ -2,7 +2,7 @@
 import nodemailer from 'nodemailer';
 import { logger } from '../utils/logger';
 
-interface EmailOptions {
+export interface EmailOptions {
   to: string;
   subject: string;
   template: 'welcome' | 'shipment-created' | 'shipment-updated' | 'shipment-ctt-updated' | 'shipment-cancelled' | 'reset-password' | 'shipment-ready-for-pickup';
@@ -18,6 +18,23 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS
   }
 });
+
+function getSmtpConfigError(): string | null {
+  const missing = [
+    ['SMTP_HOST', process.env.SMTP_HOST],
+    ['SMTP_PORT', process.env.SMTP_PORT],
+    ['SMTP_USER', process.env.SMTP_USER],
+    ['SMTP_PASS', process.env.SMTP_PASS],
+    ['SMTP_FROM', process.env.SMTP_FROM]
+  ].filter(([, value]) => !value);
+
+  if (missing.length === 0) return null;
+  return `Configuração SMTP incompleta: faltam ${missing.map(([name]) => name).join(', ')}`;
+}
+
+export function isEmailConfigured(): boolean {
+  return getSmtpConfigError() === null;
+}
 
 const SERVICE_TYPE_LABELS_PT: Record<string, string> = {
   REDIRECT: 'Redirecionamento',
@@ -186,6 +203,12 @@ const templates: Record<EmailOptions['template'], (data: any) => string> = {
 };
 
 export const sendEmail = async ({ to, subject, template, data }: EmailOptions): Promise<void> => {
+  const configError = getSmtpConfigError();
+  if (configError) {
+    logger.error(`❌ ${configError}`);
+    throw new Error(configError);
+  }
+
   try {
     const html = templates[template](data);
     

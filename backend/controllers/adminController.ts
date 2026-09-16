@@ -1,48 +1,48 @@
 // backend/src/controllers/adminController.ts
+import { randomBytes } from 'crypto';
 import { Request, Response } from 'express';
 import { db } from '../config/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
-import { sendEmail } from '../services/emailService';
+import { sendEmail, isEmailConfigured } from '../services/emailService';
+import type { EmailOptions } from '../services/emailService';
 import { logger } from '../utils/logger';
 import { addBusinessDays, calculateFine, calculateLocationFine, formatDate, getBusinessDaysBetween, calculateWeeksOverdue } from '../utils/businessDays';
-import { generateWhatsAppLink, generateWhatsAppMessage, getLocationType, getPickupImage, isLuandaDestination, formatPhoneToE164, generateCustomWhatsAppLink, guessLocationType } from '../utils/whatsapp';
+import { generateWhatsAppLink, generateWhatsAppMessage, getPickupImage, isLuandaDestination, formatPhoneToE164, generateCustomWhatsAppLink, guessLocationType } from '../utils/whatsapp';
 import { fixEncodingObject } from '../utils/encoding';
 import { LocationType } from '../utils/whatsapp';
 import { getCached, setCache, invalidateCache } from '../middleware/cache';
-// DESATIVADO: WhatsApp Cloud API (sem token/configuração)
 import { WhatsAppService } from '../services/whatsappService';
-// DESATIVADO: SMS service (sem provider configurado)
-// import { getSmsNotificationService } from '../services/sms';
+import type { SendTemplateMessageResult } from '../services/whatsappService';
 
-import { addBusinessDays as _addBusinessDays } from '../utils/businessDays';
-import { formatDate as _formatDate } from '../utils/businessDays';
-import { guessLocationType as _guessLocationType, generatePickupMessage as _generatePickupMessage, LocationType as _LocationType } from '../utils/whatsapp';
-
-/**
- * Dispara em background (fire-and-forget) a notificação WhatsApp via template
- * oficial da Meta. Não bloqueia a resposta HTTP do controller.
- */
-export function fireWhatsAppPickupNotification(shipment: any, id: string, locationType: 'luanda' | 'lisbon'): void {
+export async function fireWhatsAppPickupNotification(
+  shipment: any,
+  id: string,
+  locationType: 'luanda' | 'lisbon'
+): Promise<SendTemplateMessageResult> {
   const phone = shipment.receiverPhone || shipment.senderPhone;
   if (!phone) {
-    logger.warn(`[WhatsApp] Sem telefone para ${shipment.trackingCode} — notificação ignorada.`);
-    return;
+    const error = `[WhatsApp] Sem telefone para ${shipment.trackingCode || id} — notificação ignorada.`;
+    logger.warn(error);
+    return { success: false, sent: false, error };
   }
 
-  const readyDate = new Date();
+  const readyDate = shipment.readyForPickupAt?.toDate
+    ? shipment.readyForPickupAt.toDate()
+    : shipment.readyForPickupAt
+      ? new Date(shipment.readyForPickupAt)
+      : new Date();
   const deadline =
     shipment.pickupDeadline?.toDate
       ? shipment.pickupDeadline.toDate()
       : shipment.pickupDeadline
         ? new Date(shipment.pickupDeadline)
-        : _addBusinessDays(readyDate, 5);
+        : addBusinessDays(readyDate, 5);
 
-  // Executa em background; erros são registados pelo próprio serviço.
-  void WhatsAppService.sendPickupTemplate({
+  const result = await WhatsAppService.sendPickupTemplate({
     phone,
     trackingCode: shipment.trackingCode || '',
-    shipmentDate: _formatDate(readyDate),
-    deadline: _formatDate(deadline),
+    shipmentDate: formatDate(readyDate),
+    deadline: formatDate(deadline),
     senderName: shipment.senderName || 'N/A',
     receiverName: shipment.receiverName || 'N/A',
     pickupAddress: shipment.pickupAddress || '',
@@ -50,28 +50,128 @@ export function fireWhatsAppPickupNotification(shipment: any, id: string, locati
     pickupSchedule: shipment.pickupSchedule || '',
     location: locationType,
     destination: shipment.destination || ''
-  })
-    .then(async (result) => {
-      if (result.success && result.sent && result.messageId) {
-        try {
-          await db.collection('shipments').doc(id).update({
-            whatsapp_message_id: result.messageId,
-            whatsapp_status: 'sent',
-            whatsapp_sent_at: FieldValue.serverTimestamp()
-          });
-          invalidateCache('admin:stats');
-        } catch (e: any) {
-          logger.warn(`[WhatsApp] Falha a gravar estado de envio para ${shipment.trackingCode}: ${e.message}`);
-        }
-      } else if (result.simulated) {
-        logger.info(`[WhatsApp] MOCK — template não enviado para ${shipment.trackingCode} (${result.link ?? 'no link'})`);
-      } else if (!result.success) {
-        logger.warn(`[WhatsApp] Falha no envio para ${shipment.trackingCode}: ${result.error}`);
+  });
+
+  if (result.success && result.sent && result.messageId) {
+    try {
+      await db.collection('shipments').doc(id).update({
+        whatsapp_message_id: result.messageId,
+        whatsapp_status: 'sent',
+        whatsapp_delivery_status: result.deliveryStatus || 'accepted',
+        whatsapp_message_status: result.messageStatus || 'accepted',
+        whatsapp_recipient_wa_id: result.recipientWaId || null,
+        whatsapp_sent_at: FieldValue.serverTimestamp(),
+        whatsapp_updated_at: new Date().toISOString()
+      });
+      invalidateCache('admin:stats');
+    } catch (e: any) {
+      logger.warn(`[WhatsApp] Falha a gravar estado de envio para ${shipment.trackingCode || id}: ${e.message}`);
+    }
+  } else if (result.simulated) {
+    logger.info(`[WhatsApp] MOCK — template não enviado para ${shipment.trackingCode || id} (${result.link ?? 'no link'})`);
+  } else if (!result.success) {
+    logger.warn(`[WhatsApp] Falha no envio para ${shipment.trackingCode || id}: ${result.error}`);
+  }
+
+  return result;
+}
+
+function isValidEmail(value: unknown): value is string {
+  return typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+async function findUserEmailByPhone(phone: unknown): Promise<string | null> {
+  const raw = typeof phone === 'string' ? phone.trim() : '';
+  const digits = raw.replace(/\D/g, '');
+  if (!raw || digits.length < 9) return null;
+
+  const variants = new Set([raw, digits]);
+  if (!raw.startsWith('+')) variants.add(`+${digits}`);
+  if (digits.startsWith('351') || digits.startsWith('244')) variants.add(`+${digits}`);
+
+  for (const variant of variants) {
+    try {
+      const snapshot = await db.collection('users')
+        .where('phone', '==', variant)
+        .limit(1)
+        .get();
+      if (!snapshot.empty) {
+        const email = snapshot.docs[0].data().email;
+        if (isValidEmail(email)) return String(email).trim();
       }
-    })
-    .catch((err) => {
-      logger.error(`[WhatsApp] Erro inesperado no envio para ${shipment.trackingCode}:`, err);
-    });
+    } catch (error: any) {
+      logger.warn(`[Email] Falha ao pesquisar utilizador por telefone ${variant}: ${error.message}`);
+    }
+  }
+
+  return null;
+}
+
+export async function getShipmentEmailRecipients(shipment: any): Promise<string[]> {
+  const candidates = [
+    shipment.receiverContact,
+    shipment.senderContact,
+    shipment.userEmail,
+    shipment.email
+  ];
+
+  if (shipment.userId) {
+    try {
+      const userDoc = await db.collection('users').doc(String(shipment.userId)).get();
+      if (userDoc.exists) candidates.push(userDoc.data()?.email);
+    } catch (error: any) {
+      logger.warn(`[Email] Falha ao carregar utilizador da encomenda ${shipment.trackingCode || shipment.id}: ${error.message}`);
+    }
+  }
+
+  candidates.push(await findUserEmailByPhone(shipment.receiverPhone));
+  candidates.push(await findUserEmailByPhone(shipment.senderPhone));
+
+  return Array.from(new Set(
+    candidates
+      .map(value => typeof value === 'string' ? value.trim().toLowerCase() : '')
+      .filter(isValidEmail)
+  ));
+}
+
+export interface ShipmentEmailNotificationResult {
+  ready: number;
+  sent: number;
+  failed: number;
+  recipients: string[];
+  configured: boolean;
+  error?: string;
+}
+
+export async function sendShipmentEmailNotification(
+  shipment: any,
+  options: { subject: string; template: EmailOptions['template']; data: any }
+): Promise<ShipmentEmailNotificationResult> {
+  const recipients = await getShipmentEmailRecipients(shipment);
+  const configured = isEmailConfigured();
+
+  if (recipients.length === 0) {
+    logger.warn(`[Email] Sem destinatários para ${shipment.trackingCode || shipment.id}`);
+    return { ready: 0, sent: 0, failed: 0, recipients, configured };
+  }
+
+  if (!configured) {
+    const error = 'Configuração SMTP incompleta; email não enviado';
+    logger.error(`[Email] ${error} para ${shipment.trackingCode || shipment.id}`);
+    return { ready: recipients.length, sent: 0, failed: recipients.length, recipients, configured, error };
+  }
+
+  const results = await Promise.allSettled(
+    recipients.map(to => sendEmail({ to, subject: options.subject, template: options.template, data: options.data }))
+  );
+  const sent = results.filter(result => result.status === 'fulfilled').length;
+  const failed = results.filter(result => result.status === 'rejected').length;
+
+  if (failed > 0) {
+    logger.error(`[Email] ${failed} email(s) falharam para ${shipment.trackingCode || shipment.id}`);
+  }
+
+  return { ready: recipients.length, sent, failed, recipients, configured };
 }
 
 // Conclusive statuses that trigger individual status flag
@@ -291,7 +391,7 @@ export const AdminController = {
       const body = req.body;
       const user = (req as any).user;
 
-      const trackingCode = body.trackingCode || `AE-${new Date().getFullYear()}-${require('crypto').randomBytes(2).toString('hex').toUpperCase()}`;
+      const trackingCode = body.trackingCode || `AE-${new Date().getFullYear()}-${randomBytes(2).toString('hex').toUpperCase()}`;
       const route = (body.route || `${body.origin} » ${body.destination}`).toUpperCase();
       const weightNum = parseFloat(body.weight) || 0;
 
@@ -370,13 +470,12 @@ export const AdminController = {
         timestamp: FieldValue.serverTimestamp()
       });
 
-      const clientUser = await AdminController.tryRegisterClient(body, docRef.id, trackingCode);
+      await AdminController.tryRegisterClient(body, docRef.id, trackingCode);
 
       if (body.status === 'READY_FOR_PICKUP') {
         const now = new Date();
         const deadline = addBusinessDays(now, 5);
         const isLuanda = isLuandaDestination(body.destination || '');
-        const locType: LocationType = isLuanda ? 'luanda' : 'lisbon';
 
         await db.collection('shipments').doc(docRef.id).update({
           readyForPickupAt: FieldValue.serverTimestamp(),
@@ -607,44 +706,62 @@ export const AdminController = {
       const isLuanda = imageUrl && imageUrl.includes('Luanda.jpeg');
       const imgName = isLuanda ? 'Luanda.jpeg' : 'Lisboa.jpeg';
 
-      // DESATIVADO: WhatsApp Cloud API não configurada
-      // const whatsappResult = await WhatsAppService.sendPickupNotification({
-      //   phone,
-      //   trackingCode: shipment.trackingCode,
-      //   shipmentDate: formatDate(readyDate),
-      //   deadline: formatDate(deadline),
-      //   senderName: shipment.senderName || 'N/A',
-      //   receiverName: shipment.receiverName || 'N/A',
-      //   pickupAddress: shipment.pickupAddress || '',
-      //   pickupContact: shipment.pickupContact || '',
-      //   pickupSchedule: shipment.pickupSchedule || '',
-      //   location: getLocationType(shipment.destination || ''),
-      //   destination: shipment.destination || ''
-      // });
-
-      // if (whatsappResult.sent && whatsappResult.messageId) {
-      //   await db.collection('shipments').doc(id).update({
-      //     whatsapp_message_id: whatsappResult.messageId,
-      //     whatsapp_status: 'sent',
-      //     whatsapp_sent_at: FieldValue.serverTimestamp()
-      //   });
-      //   invalidateCache('admin:stats');
-      // }
-
-      logger.info('WhatsApp notification processed for ' + shipment.trackingCode + ' (link mode)');
-      res.json({
-        success: true,
-        data: {
-          message,
-          link,
-          sent: false,
+      let whatsappResult: SendTemplateMessageResult;
+      if (shipment.whatsapp_status === 'sent' && shipment.whatsapp_message_id) {
+        whatsappResult = {
+          success: true,
+          sent: true,
+          messageId: shipment.whatsapp_message_id,
+          link
+        };
+      } else {
+        whatsappResult = await WhatsAppService.sendPickupNotification({
           phone,
           trackingCode: shipment.trackingCode,
-          imageUrl,
-          imageName: imgName,
-          error: null
+          shipmentDate: formatDate(readyDate),
+          deadline: formatDate(deadline),
+          senderName: shipment.senderName || 'N/A',
+          receiverName: shipment.receiverName || 'N/A',
+          pickupAddress: shipment.pickupAddress || '',
+          pickupContact: shipment.pickupContact || '',
+          pickupSchedule: shipment.pickupSchedule || '',
+          location: locationType,
+          destination: shipment.destination || ''
+        });
+
+        if (whatsappResult.sent && whatsappResult.messageId) {
+          try {
+            await doc.ref.update({
+              whatsapp_message_id: whatsappResult.messageId,
+              whatsapp_status: 'sent',
+              whatsapp_sent_at: FieldValue.serverTimestamp(),
+              whatsapp_updated_at: new Date().toISOString()
+            });
+            invalidateCache('admin:stats');
+          } catch (error: any) {
+            logger.warn(`[WhatsApp] Falha a gravar estado de envio para ${shipment.trackingCode}: ${error.message}`);
+          }
         }
-      });
+      }
+
+      const responseData = {
+        message,
+        link: whatsappResult.link || link,
+        sent: Boolean(whatsappResult.sent),
+        messageId: whatsappResult.messageId || null,
+        phone,
+        trackingCode: shipment.trackingCode,
+        imageUrl,
+        imageName: imgName,
+        error: whatsappResult.error || null
+      };
+
+      if (!whatsappResult.success) {
+        return res.status(200).json({ success: false, data: responseData, error: whatsappResult.error || 'Erro ao enviar WhatsApp' });
+      }
+
+      logger.info(`WhatsApp notification processed for ${shipment.trackingCode} (sent=${responseData.sent})`);
+      return res.json({ success: true, data: responseData });
     } catch (error) {
       logger.error('Erro ao gerar notificação WhatsApp:', error);
       res.status(500).json({ error: 'Erro ao gerar notificação' });
@@ -781,7 +898,10 @@ export const AdminController = {
             pickupSchedule: updateData.pickupSchedule || shipment.pickupSchedule || ''
           };
           const locationType = guessLocationType(shipment.destination || '');
-          fireWhatsAppPickupNotification(shipmentWithPickupData, id, locationType);
+          const whatsappResult = await fireWhatsAppPickupNotification(shipmentWithPickupData, id, locationType);
+          logger.info(
+            `[WhatsApp] Resultado do envio para ${shipment.trackingCode || id}: sent=${whatsappResult.sent} success=${whatsappResult.success}`
+          );
         } else {
           logger.warn(`[SMS] Skipped for shipment ${shipment.trackingCode}: no valid phone (receiverPhone=${shipment.receiverPhone || 'null'}, senderPhone=${shipment.senderPhone || 'null'})`);
         }
@@ -869,6 +989,11 @@ export const AdminController = {
       const ids = []
       let notifCount = 0
       let skipped = 0
+      const whatsappNotifications: Array<{
+        shipment: any;
+        id: string;
+        locationType: LocationType;
+      }> = []
       for (const doc of snap.docs) {
         const s = doc.data()
         if (!s) continue
@@ -927,22 +1052,34 @@ export const AdminController = {
             //   logger.warn(`[SMS] Batch skipped for ${s.trackingCode}: invalid phone after cleaning`);
             // }
 
-            // Dispara em background o template oficial da Meta para esta encomenda.
             const locationType = guessLocationType(s.destination || '');
-            fireWhatsAppPickupNotification(
-              { ...s, pickupAddress: upd.pickupAddress, pickupContact: upd.pickupContact, pickupSchedule: upd.pickupSchedule || '' },
-              doc.id,
+            whatsappNotifications.push({
+              shipment: { ...s, pickupAddress: upd.pickupAddress, pickupContact: upd.pickupContact, pickupSchedule: upd.pickupSchedule || '' },
+              id: doc.id,
               locationType
-            );
+            });
           } else {
             logger.warn(`[SMS] Batch skipped for ${s.trackingCode}: no phone in shipment`);
           }
         }
       }
       await batch.commit()
+
+      const whatsappResults = await Promise.allSettled(
+        whatsappNotifications.map(notification =>
+          fireWhatsAppPickupNotification(notification.shipment, notification.id, notification.locationType)
+        )
+      )
+      const whatsappSent = whatsappResults.filter(
+        result => result.status === 'fulfilled' && result.value.sent
+      ).length
+      const whatsappFailed = whatsappResults.filter(
+        result => result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success)
+      ).length
+
       invalidateCache('admin:stats');
-      logger.info(`[BatchStatus] Route "${route}" → ${status} | ${ids.length} updated | ${skipped} skipped (individual) | ${notifCount} whatsapp-ready`)
-      res.json({ success: true, updated: ids.length, skipped: skipped, message: ids.length + " shipments updated", shipmentIds: ids, whatsappReady: notifCount })
+      logger.info(`[BatchStatus] Route "${route}" → ${status} | ${ids.length} updated | ${skipped} skipped (individual) | ${notifCount} whatsapp-ready | ${whatsappSent} whatsapp-sent | ${whatsappFailed} whatsapp-failed`)
+      res.json({ success: true, updated: ids.length, skipped: skipped, message: ids.length + " shipments updated", shipmentIds: ids, whatsappReady: notifCount, whatsappSent, whatsappFailed })
     } catch (error) {
       logger.error("Batch error:", error)
       res.status(500).json({ error: "Batch error" })
@@ -955,6 +1092,11 @@ export const AdminController = {
       const batch = db.batch();
       const updatedIds = [];
       let notifCount = 0;
+      const whatsappNotifications: Array<{
+        shipment: any;
+        id: string;
+        locationType: LocationType;
+      }> = [];
       for (const id of ids) {
         const ref = db.collection("shipments").doc(id);
         const snap = await ref.get();
@@ -1006,18 +1148,30 @@ export const AdminController = {
           //   logger.warn(`[SMS] BatchByIds skipped for ${s.trackingCode}: invalid phone after cleaning`);
           // }
 
-          // Dispara em background o template oficial da Meta para esta encomenda.
           const locationType = guessLocationType(s.destination || '');
-          fireWhatsAppPickupNotification(
-            { ...s, pickupAddress: upd.pickupAddress, pickupContact: upd.pickupContact, pickupSchedule: upd.pickupSchedule || '' },
+          whatsappNotifications.push({
+            shipment: { ...s, pickupAddress: upd.pickupAddress, pickupContact: upd.pickupContact, pickupSchedule: upd.pickupSchedule || '' },
             id,
             locationType
-          );
+          });
         }
       }
       await batch.commit();
+
+      const whatsappResults = await Promise.allSettled(
+        whatsappNotifications.map(notification =>
+          fireWhatsAppPickupNotification(notification.shipment, notification.id, notification.locationType)
+        )
+      );
+      const whatsappSent = whatsappResults.filter(
+        result => result.status === 'fulfilled' && result.value.sent
+      ).length;
+      const whatsappFailed = whatsappResults.filter(
+        result => result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success)
+      ).length;
+
       invalidateCache('admin:stats');
-      res.json({ success: true, updated: updatedIds.length, message: updatedIds.length + " encomendas atualizadas", shipmentIds: updatedIds, whatsappReady: notifCount });
+      res.json({ success: true, updated: updatedIds.length, message: updatedIds.length + " encomendas atualizadas", shipmentIds: updatedIds, whatsappReady: notifCount, whatsappSent, whatsappFailed });
     } catch (error) { logger.error("Batch by IDs error:", error); res.status(500).json({ error: "Batch error" }) }
   },
 
@@ -1079,7 +1233,9 @@ export const AdminController = {
       }
 
       const userDoc = await db.collection('users').doc(id).get();
-      const previousRole = userDoc.exists ? userDoc.data()?.role : null;
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: 'Utilizador não encontrado' });
+      }
 
       await db.collection('users').doc(id).update({ role });
       invalidateCache('admin:stats');

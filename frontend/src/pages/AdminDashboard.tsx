@@ -881,7 +881,10 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
         } else {
           setBatchWhatsappInfo(null)
         }
-        alert(json.message + (json.whatsappReady > 0 ? '. ' + json.whatsappReady + ' encomendas prontas para WhatsApp.' : ''))
+        const whatsappSummary = json.whatsappReady > 0
+          ? `. ${json.whatsappSent ?? 0}/${json.whatsappReady} notificações WhatsApp enviadas` + (json.whatsappFailed ? ` (${json.whatsappFailed} falharam)` : '')
+          : ''
+        alert(json.message + whatsappSummary)
         authenticatedFetchShipments()
         setBatchModalOpen(false)
       } else {
@@ -917,7 +920,10 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
         } else {
           setBatchWhatsappInfo(null)
         }
-        alert(json.message + (json.whatsappReady > 0 ? '. ' + json.whatsappReady + ' encomendas prontas para WhatsApp.' : ''))
+        const whatsappSummary = json.whatsappReady > 0
+          ? `. ${json.whatsappSent ?? 0}/${json.whatsappReady} notificações WhatsApp enviadas` + (json.whatsappFailed ? ` (${json.whatsappFailed} falharam)` : '')
+          : ''
+        alert(json.message + whatsappSummary)
         authenticatedFetchShipments()
         setSelectedShipments([])
         setBatchStatus('')
@@ -940,14 +946,17 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const json = await response.json();
-      if (json.success && json.data?.link) {
+      if (json.data?.link && !json.data.sent) {
         const imageUrl = json.data.imageUrl;
         const isLuanda = imageUrl && imageUrl.includes('Luanda.jpeg');
         const imgName = isLuanda ? 'Luanda.jpeg' : 'Lisboa.jpeg';
-        alert('Link do WhatsApp aberto. Imagem para este envio: ' + imgName + '\nURL da imagem: ' + imageUrl);
+        const notice = json.data.error ? `Erro no envio automático: ${json.data.error}\n\n` : '';
+        alert(notice + 'Link do WhatsApp aberto. Imagem para este envio: ' + imgName + '\nURL da imagem: ' + imageUrl);
         window.open(json.data.link, '_blank');
+      } else if (json.data?.sent) {
+        alert(t('admin.whatsappEnviadoSucesso'));
       } else {
-        alert(json.error || t('admin.erroWhatsapp'));
+        alert(json.error || json.data?.error || t('admin.erroWhatsapp'));
       }
     } catch {
       alert(t('admin.erroWhatsapp'));
@@ -1599,7 +1608,8 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
         // Dispara re-busca de encomendas no AdminShipmentList
         onRouteStatusChange?.();
         if (json.data?.whatsappReady > 0) {
-          alert(json.data.whatsappReady + ' encomendas prontas para WhatsApp.');
+          const whatsappSummary = `${json.data.whatsappSent ?? 0}/${json.data.whatsappReady} notificações WhatsApp enviadas` + (json.data.whatsappFailed ? ` (${json.data.whatsappFailed} falharam)` : '')
+          alert(whatsappSummary);
         }
       } else {
         alert(json.error || t('admin.erroStatusRota'));

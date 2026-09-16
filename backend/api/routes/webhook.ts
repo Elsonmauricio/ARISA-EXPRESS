@@ -16,7 +16,7 @@ interface WebhookError {
 
 interface WebhookStatus {
   id: string;
-  status: 'sent' | 'delivered' | 'read' | 'failed';
+  status: 'sent' | 'delivered' | 'read' | 'played' | 'failed';
   recipient_id: string;
   errors?: WebhookError[];
   timestamp: string;
@@ -66,6 +66,42 @@ router.get('/webhook', (req: Request, res: Response) => {
   return res.status(403).json({ error: 'Token de verificação incorreto.' });
 });
 
+async function updateShipmentStatus(status: WebhookStatus): Promise<void> {
+  logger.info(`[Webhook] wamid=${status.id} status=${status.status} recipient=${status.recipient_id}`);
+
+  const timestamp = Number(status.timestamp);
+  const updateData: Record<string, any> = {
+    whatsapp_status: status.status,
+    whatsapp_updated_at: Number.isFinite(timestamp)
+      ? new Date(timestamp * 1000).toISOString()
+      : new Date().toISOString()
+  };
+
+  if (status.status === 'failed' && status.errors?.length) {
+    const err = status.errors[0];
+    const info = getErrorInfo(err.code);
+    updateData.whatsapp_error_code = err.code;
+    updateData.whatsapp_error_title = info.title;
+    updateData.whatsapp_error_action = info.action;
+    updateData.whatsapp_error_details = JSON.stringify(status.errors);
+    logger.error(`[Webhook:FAILED] wamid=${status.id} code=${err.code} title="${info.title}"`);
+  }
+
+  const snapshot = await db.collection('shipments')
+    .where('whatsapp_message_id', '==', status.id)
+    .limit(1)
+    .get();
+
+  if (snapshot.empty) {
+    logger.warn(`[Webhook] wamid=${status.id} não encontrado em shipments`);
+    return;
+  }
+
+  const docRef = snapshot.docs[0].ref;
+  await docRef.update(updateData);
+  logger.info(`[Webhook] Shipment ${docRef.id} atualizado → whatsapp_status=${status.status}`);
+}
+
 router.post('/webhook', async (req: Request, res: Response) => {
   try {
     const payload = req.body as { object?: string; entry?: WebhookEntry[] };
@@ -74,56 +110,18 @@ router.post('/webhook', async (req: Request, res: Response) => {
       return res.status(200).json({ status: 'ignored' });
     }
 
-    res.status(200).json({ status: 'received' });
-
-    setImmediate(async () => {
-      try {
-        for (const entry of payload.entry || []) {
-          for (const change of entry.changes || []) {
-            const value = change.value;
-
-            if (value.statuses && value.statuses.length > 0) {
-              for (const status of value.statuses) {
-                logger.info(`[Webhook] wamid=${status.id} status=${status.status} recipient=${status.recipient_id}`);
-
-                const updateData: Record<string, any> = {
-                  whatsapp_status: status.status,
-                  whatsapp_updated_at: new Date(parseInt(status.timestamp) * 1000).toISOString()
-                };
-
-                if (status.status === 'failed' && status.errors?.length) {
-                  const err = status.errors[0];
-                  const info = getErrorInfo(err.code);
-                  updateData.whatsapp_error_code = err.code;
-                  updateData.whatsapp_error_title = err.title;
-                  updateData.whatsapp_error_action = info.action;
-                  updateData.whatsapp_error_details = JSON.stringify(status.errors);
-                  logger.error(`[Webhook:FAILED] wamid=${status.id} code=${err.code} title="${err.title}"`);
-                }
-
-                const snapshot = await db.collection('shipments')
-                  .where('whatsapp_message_id', '==', status.id)
-                  .limit(1)
-                  .get();
-
-                if (!snapshot.empty) {
-                  const docRef = snapshot.docs[0].ref;
-                  await docRef.update(updateData);
-                  logger.info(`[Webhook] Shipment ${docRef.id} atualizado → whatsapp_status=${status.status}`);
-                } else {
-                  logger.warn(`[Webhook] wamid=${status.id} não encontrado em shipments`);
-                }
-              }
-            }
-          }
+    for (const entry of payload.entry || []) {
+      for (const change of entry.changes || []) {
+        for (const status of change.value.statuses || []) {
+          await updateShipmentStatus(status);
         }
-      } catch (err) {
-        logger.error('[Webhook] Erro ao processar eventos:', err);
       }
-    });
+    }
+
+    return res.status(200).json({ status: 'received' });
   } catch (err) {
-    logger.error('[Webhook] Erro no handler:', err);
-    res.status(500).json({ error: 'Erro interno' });
+    logger.error('[Webhook] Erro ao processar eventos:', err);
+    return res.status(500).json({ error: 'Erro interno' });
   }
 });
 

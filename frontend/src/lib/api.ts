@@ -10,17 +10,30 @@ export function api(path: string): string {
   return `${API_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
-let isRefreshing = false;
-let refreshPromise: Promise<string> | null = null;
+let refreshPromise: Promise<string | null> | null = null;
+let redirectingToLogin = false;
+let authFailurePending = false;
 
 async function getRefreshToken(): Promise<string | null> {
   return localStorage.getItem('refreshToken');
 }
 
-async function refreshAccessToken(): Promise<string> {
+function clearAuthAndRedirect(): void {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('user');
+
+  if (!redirectingToLogin) {
+    redirectingToLogin = true;
+    authFailurePending = true;
+    window.location.assign('/login');
+  }
+}
+
+async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = await getRefreshToken();
   if (!refreshToken) {
-    throw new Error('No refresh token');
+    throw new Error('Refresh token ausente');
   }
 
   const response = await fetch(api('/api/auth/refresh'), {
@@ -32,7 +45,14 @@ async function refreshAccessToken(): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error('Refresh failed');
+    let message = 'Refresh failed';
+    try {
+      const json = await response.json();
+      message = json.error || message;
+    } catch {
+      message = `Refresh failed (${response.status})`;
+    }
+    throw new Error(`${message} (${response.status})`);
   }
 
   const json = await response.json();
@@ -44,7 +64,7 @@ async function refreshAccessToken(): Promise<string> {
     return json.data.accessToken;
   }
 
-  throw new Error('Invalid refresh response');
+  throw new Error('Resposta de refresh inválida');
 }
 
 export async function authenticatedFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
@@ -58,62 +78,55 @@ export async function authenticatedFetch(input: RequestInfo | URL, init: Request
     headers.set('Content-Type', 'application/json');
   }
 
-  let response = await fetch(input, { ...init, headers });
+  if (authFailurePending) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 
-  if (response.status === 401) {
-    console.warn('[API] 401 recebido, a tentar refresh...');
+  const response = await fetch(input, { ...init, headers });
 
-    if (isRefreshing) {
-      await refreshPromise;
-      const newToken = localStorage.getItem('token');
-      if (newToken) {
-        headers.set('Authorization', `Bearer ${newToken}`);
-        response = await fetch(input, { ...init, headers });
-      }
-      if (response.status === 401) {
-        console.warn('[API] Retry após refresh também retornou 401, a redirecionar para login...');
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-      }
+  if (response.status !== 401) {
+    return response;
+  }
+
+  console.warn('[API] 401 recebido, a tentar refresh...');
+
+  try {
+    if (!refreshPromise) {
+      refreshPromise = refreshAccessToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    const pendingRefresh = refreshPromise;
+    const newToken = await pendingRefresh;
+    if (!newToken) {
+      clearAuthAndRedirect();
       return response;
     }
 
-    isRefreshing = true;
-    refreshPromise = refreshAccessToken().finally(() => {
-      isRefreshing = false;
-      refreshPromise = null;
-    });
+    headers.set('Authorization', `Bearer ${newToken}`);
+    const retryResponse = await fetch(input, { ...init, headers });
 
-    try {
-      await refreshPromise;
-      const newToken = localStorage.getItem('token');
-      if (newToken) {
-        headers.set('Authorization', `Bearer ${newToken}`);
-        response = await fetch(input, { ...init, headers });
-      }
-      if (response.status === 401) {
-        console.warn('[API] Retry após refresh também retornou 401, a redirecionar para login...');
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-      }
-    } catch (err) {
-      console.warn('[API] Refresh falhou, a redirecionar para login...', err);
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    if (retryResponse.status === 401) {
+      console.warn('[API] Retry após refresh também retornou 401, a redirecionar para login...');
+      clearAuthAndRedirect();
     }
-  }
 
-  return response;
+    return retryResponse;
+  } catch (err) {
+    console.warn('[API] Refresh falhou, a redirecionar para login...', err);
+    clearAuthAndRedirect();
+    return response;
+  }
 }
 
 export function logout(): void {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
+  redirectingToLogin = false;
+  authFailurePending = false;
 }

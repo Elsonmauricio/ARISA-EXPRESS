@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../config/firebase';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Transaction } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
 
@@ -139,45 +139,69 @@ export const AuthController = {
     try {
       const refreshToken = req.headers.authorization?.replace('Bearer ', '');
       if (!refreshToken) return res.status(401).json({ error: 'Refresh token não fornecido' });
+      if (!process.env.JWT_SECRET) return res.status(500).json({ error: 'Configuração de autenticação inválida' });
 
-      const tokenDoc = await db.collection('refreshTokens').doc(refreshToken).get();
-      if (!tokenDoc.exists) {
+      let decoded: any;
+      try {
+        decoded = jwt.verify(refreshToken, process.env.JWT_SECRET) as any;
+      } catch (_error) {
+        logger.warn('[Auth] Refresh token JWT inválido');
         return res.status(401).json({ error: 'Refresh token inválido' });
       }
 
-      const tokenData = tokenDoc.data() as any;
-      if (tokenData.expiresAt?.toDate?.() < new Date()) {
-        await tokenDoc.ref.delete();
-        return res.status(401).json({ error: 'Refresh token expirado' });
-      }
+      const tokenRef = db.collection('refreshTokens').doc(refreshToken);
+      let newAccessToken = '';
+      let newRefreshToken = '';
 
-      const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as any;
+      await db.runTransaction(async (transaction: Transaction) => {
+        const tokenDoc: any = await transaction.get(tokenRef);
+        if (!tokenDoc.exists) {
+          const error = new Error('Refresh token inválido') as any;
+          error.status = 401;
+          throw error;
+        }
 
-      const newAccessToken = jwt.sign(
-        { id: decoded.id, email: decoded.email, role: decoded.role },
-        process.env.JWT_SECRET!,
-        { expiresIn: '15m' }
-      );
+        const tokenData = tokenDoc.data() as any;
+        const expiresAt = tokenData.expiresAt?.toDate
+          ? tokenData.expiresAt.toDate()
+          : tokenData.expiresAt
+            ? new Date(tokenData.expiresAt)
+            : null;
 
-      const newRefreshToken = jwt.sign(
-        { id: decoded.id, email: decoded.email, role: decoded.role },
-        process.env.JWT_SECRET!,
-        { expiresIn: '7d' }
-      );
+        if (!expiresAt || expiresAt < new Date() || tokenData.userId !== decoded.id || tokenData.email !== decoded.email || tokenData.role !== decoded.role) {
+          transaction.delete(tokenRef);
+          const error = new Error('Refresh token expirado ou inválido') as any;
+          error.status = 401;
+          throw error;
+        }
 
-      await tokenDoc.ref.delete();
+        newAccessToken = jwt.sign(
+          { id: decoded.id, email: decoded.email, role: decoded.role },
+          process.env.JWT_SECRET!,
+          { expiresIn: '15m' }
+        );
 
-      await db.collection('refreshTokens').doc(newRefreshToken).set({
-        userId: decoded.id,
-        email: decoded.email,
-        role: decoded.role,
-        createdAt: FieldValue.serverTimestamp(),
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        newRefreshToken = jwt.sign(
+          { id: decoded.id, email: decoded.email, role: decoded.role },
+          process.env.JWT_SECRET!,
+          { expiresIn: '7d' }
+        );
+
+        transaction.delete(tokenRef);
+        transaction.set(db.collection('refreshTokens').doc(newRefreshToken), {
+          userId: decoded.id,
+          email: decoded.email,
+          role: decoded.role,
+          createdAt: FieldValue.serverTimestamp(),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        });
       });
 
-      res.json({ success: true, data: { accessToken: newAccessToken, refreshToken: newRefreshToken } });
-    } catch (error) {
-      res.status(401).json({ error: 'Refresh token inválido' });
+      res.setHeader('Cache-Control', 'no-store');
+      return res.json({ success: true, data: { accessToken: newAccessToken, refreshToken: newRefreshToken } });
+    } catch (error: any) {
+      if (!error.status) logger.error('Erro ao renovar token:', error);
+      return res.status(error.status || 401).json({ error: error.message || 'Refresh token inválido' });
     }
   },
 
