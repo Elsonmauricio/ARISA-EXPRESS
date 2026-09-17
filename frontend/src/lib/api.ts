@@ -1,33 +1,31 @@
 const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
 
+if (!API_BASE) {
+  console.warn('[API] VITE_API_URL não definido — a usar caminhos relativos');
+}
+
 export const API_URL = API_BASE;
 
 export function api(path: string): string {
-  if (!API_BASE) {
-    console.warn('VITE_API_URL is not defined. Please set it in your .env file.');
-  }
   if (/^https?:\/\//.test(path)) return path;
+  if (!API_BASE) return path;
   return `${API_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
 let refreshPromise: Promise<string | null> | null = null;
-let redirectingToLogin = false;
-let authFailurePending = false;
+let redirecting = false;
 
 async function getRefreshToken(): Promise<string | null> {
   return localStorage.getItem('refreshToken');
 }
 
 function clearAuthAndRedirect(): void {
+  if (redirecting) return;
+  redirecting = true;
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
-
-  if (!redirectingToLogin) {
-    redirectingToLogin = true;
-    authFailurePending = true;
-    window.location.assign('/login');
-  }
+  window.location.assign('/login');
 }
 
 async function refreshAccessToken(): Promise<string | null> {
@@ -78,13 +76,6 @@ export async function authenticatedFetch(input: RequestInfo | URL, init: Request
     headers.set('Content-Type', 'application/json');
   }
 
-  if (authFailurePending) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
   const response = await fetch(input, { ...init, headers });
 
   if (response.status !== 401) {
@@ -127,6 +118,4 @@ export function logout(): void {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
-  redirectingToLogin = false;
-  authFailurePending = false;
 }

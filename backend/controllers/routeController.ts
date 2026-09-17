@@ -7,9 +7,8 @@ import { invalidateCache } from '../middleware/cache';
 // DESATIVADO: SMS service não configurado
 // import { getSmsNotificationService } from '../services/sms';
 import { formatDate, addBusinessDays, calculateLocationFine } from '../utils/businessDays';
-import { sendEmail } from '../services/emailService';
 import { guessLocationType, getPickupImage, LocationType } from '../utils/whatsapp';
-import { fireWhatsAppPickupNotification, sendShipmentEmailNotification } from './adminController';
+import { fireWhatsAppPickupNotification, sendShipmentEmailNotification, type ShipmentEmailNotificationResult } from './adminController';
 
 export const RouteController = {
   // Listar todas as rotas (para admin)
@@ -362,18 +361,23 @@ export const RouteController = {
       const whatsappFailed = whatsappResults.filter(
         result => result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success)
       ).length;
+      const whatsappAccepted = whatsappResults.filter(
+        result => result.status === 'fulfilled'
+          && result.value.success
+          && result.value.sent
+          && (result.value.deliveryStatus === 'accepted' || result.value.messageStatus === 'accepted')
+      ).length;
 
       if (whatsappFailed > 0) {
         logger.error(`[RouteStatus] ${whatsappFailed} notificação(ões) WhatsApp falharam`);
       }
 
-      invalidateCache('admin:stats');
-      logger.info(`[RouteStatus] === SUMMARY ===`);
-      logger.info(`[RouteStatus] Route ${id}: ${oldRouteStatus} → ${status} (shipmentStatus: ${shipmentStatus})`);
-      logger.info(`[RouteStatus] ✅ ${shipmentIds.length} shipments updated in Firestore`);
-      logger.info(`[RouteStatus] 📱 ${notifCount} shipments ready for WhatsApp notification`);
-      logger.info(`[RouteStatus] 🔗 Affected IDs: ${JSON.stringify(shipmentIds)}`);
-      logger.info(`[RouteStatus] === END ===`);
+      // Email notifications using centralized service (includes user email + contact emails)
+      let emailReady = 0;
+      let emailSent = 0;
+      let emailFailed = 0;
+      let emailConfigured = false;
+      const emailDetails: ShipmentEmailNotificationResult[] = [];
 
       for (const shipmentId of shipmentIds) {
         try {
@@ -383,76 +387,75 @@ export const RouteController = {
 
           const locationType = guessLocationType(shipment.destination || '');
           const imageUrl = getPickupImage(locationType);
+          const isLuanda = locationType === 'luanda';
+          const deadlineDate = new Date();
+          const deadline = addBusinessDays(deadlineDate, 5);
 
-          const recipients = Array.from(
-            new Set(
-              [shipment.receiverContact, shipment.senderContact].filter(
-                (email): email is string => Boolean(email) && email.includes('@')
-              )
-            )
-          );
+          let emailResult: ShipmentEmailNotificationResult;
 
-          if (recipients.length > 0) {
-            if (shipmentStatus === 'READY_FOR_PICKUP') {
-              const isLuanda = locationType === 'luanda';
-              const deadlineDate = new Date();
-              const deadline = addBusinessDays(deadlineDate, 5);
-              let paymentInfo = '';
-              if (shipment.paymentStatus === 'PENDING') {
-                paymentInfo = isLuanda
-                  ? '💰 Deve efectuar o pagamento no momento do levantamento. Multa de 10% sobre o valor do envio após 5 dias úteis.'
-                  : '💰 Pague ao levantar a encomenda. Taxa de ocupação de 5€/semana após o prazo.';
-              } else if (shipment.paymentStatus === 'PAID') {
-                paymentInfo = '✅ Pagamento confirmado. Pode levantar a encomenda.';
-              }
-
-              await Promise.allSettled(
-                recipients.map(to =>
-                  sendEmail({
-                    to,
-                    subject: `📦 Encomenda Disponível para Levantamento - ${shipment.trackingCode}`,
-                    template: 'shipment-ready-for-pickup',
-                    data: {
-                      name: shipment.receiverName || shipment.senderName || 'Cliente',
-                      trackingCode: shipment.trackingCode,
-                      destination: shipment.destination,
-                      senderName: shipment.senderName || 'N/A',
-                      receiverName: shipment.receiverName || 'N/A',
-                      pickupAddress: shipment.pickupAddress || '',
-                      pickupContact: shipment.pickupContact || '',
-                      pickupSchedule: shipment.pickupSchedule || '',
-                      readyDate: formatDate(new Date()),
-                      deadline: formatDate(deadline),
-                      fine: isLuanda ? calculateLocationFine(shipment.price || 0, shipment.destination || '') : 0,
-                      imageUrl,
-                      paymentInfo
-                    }
-                  })
-                )
-              );
-            } else {
-              await Promise.allSettled(
-                recipients.map(to =>
-                  sendEmail({
-                    to,
-                    subject: ` Atualização da Encomenda ${shipment.trackingCode}`,
-                    template: 'shipment-updated',
-                    data: {
-                      name: shipment.receiverName || shipment.senderName || 'Cliente',
-                      trackingCode: shipment.trackingCode,
-                      status: shipmentStatus,
-                      location: routeData?.destination || 'N/A',
-                      description: mapResult.description
-                    }
-                  })
-                )
-              );
+          if (shipmentStatus === 'READY_FOR_PICKUP') {
+            let paymentInfo = '';
+            if (shipment.paymentStatus === 'PENDING') {
+              paymentInfo = isLuanda
+                ? '💰 Deve efectuar o pagamento no momento do levantamento. Multa de 10% sobre o valor do envio após 5 dias úteis.'
+                : '💰 Pague ao levantar a encomenda. Taxa de ocupação de 5€/semana após o prazo.';
+            } else if (shipment.paymentStatus === 'PAID') {
+              paymentInfo = '✅ Pagamento confirmado. Pode levantar a encomenda.';
             }
+
+            emailResult = await sendShipmentEmailNotification(shipment, {
+              subject: `📦 Encomenda Disponível para Levantamento - ${shipment.trackingCode}`,
+              template: 'shipment-ready-for-pickup',
+              data: {
+                name: shipment.receiverName || shipment.senderName || 'Cliente',
+                trackingCode: shipment.trackingCode,
+                destination: shipment.destination,
+                senderName: shipment.senderName || 'N/A',
+                receiverName: shipment.receiverName || 'N/A',
+                pickupAddress: shipment.pickupAddress || '',
+                pickupContact: shipment.pickupContact || '',
+                pickupSchedule: shipment.pickupSchedule || '',
+                readyDate: formatDate(new Date()),
+                deadline: formatDate(deadline),
+                fine: isLuanda ? calculateLocationFine(shipment.price || 0, shipment.destination || '') : 0,
+                imageUrl,
+                paymentInfo
+              }
+            });
+          } else {
+            emailResult = await sendShipmentEmailNotification(shipment, {
+              subject: ` Atualização da Encomenda ${shipment.trackingCode}`,
+              template: 'shipment-updated',
+              data: {
+                name: shipment.receiverName || shipment.senderName || 'Cliente',
+                trackingCode: shipment.trackingCode,
+                status: shipmentStatus,
+                location: routeData?.destination || 'N/A',
+                description: mapResult.description
+              }
+            });
           }
+
+          emailReady += emailResult.ready;
+          emailSent += emailResult.sent;
+          emailFailed += emailResult.failed;
+          emailConfigured = emailConfigured || emailResult.configured;
+          emailDetails.push({ ...emailResult, shipmentId, trackingCode: shipment.trackingCode } as ShipmentEmailNotificationResult & { shipmentId: string; trackingCode: string });
         } catch (emailError: any) {
-          logger.error(`[RouteStatus] Erro ao enviar email para encomenda ${shipmentId}:`, emailError);
+          logger.error(`[RouteStatus] Erro ao processar email para encomenda ${shipmentId}:`, emailError);
+          emailFailed++;
         }
       }
+
+      invalidateCache('admin:stats');
+      logger.info(`[RouteStatus] === SUMMARY ===`);
+      logger.info(`[RouteStatus] Route ${id}: ${oldRouteStatus} → ${status} (shipmentStatus: ${shipmentStatus})`);
+      logger.info(`[RouteStatus] ✅ ${shipmentIds.length} shipments updated in Firestore`);
+      logger.info(`[RouteStatus] 📱 ${notifCount} shipments ready for WhatsApp notification`);
+      logger.info(`[RouteStatus] 📱 WhatsApp: ${whatsappSent} sent, ${whatsappAccepted} accepted, ${whatsappFailed} failed`);
+      logger.info(`[RouteStatus] 📧 Email: ${emailReady} ready, ${emailSent} sent, ${emailFailed} failed, configured=${emailConfigured}`);
+      logger.info(`[RouteStatus] 🔗 Affected IDs: ${JSON.stringify(shipmentIds)}`);
+      logger.info(`[RouteStatus] === END ===`);
 
       res.json({
         success: true,
@@ -464,7 +467,21 @@ export const RouteController = {
           shipmentIds,
           whatsappReady: notifCount,
           whatsappSent,
-          whatsappFailed
+          whatsappAccepted,
+          whatsappFailed,
+          emailReady,
+          emailSent,
+          emailFailed,
+          emailConfigured,
+          notificationDetails: {
+            whatsapp: whatsappResults.map((r, i) => ({
+              shipmentId: whatsappNotifications[i]?.id,
+              trackingCode: whatsappNotifications[i]?.shipment?.trackingCode,
+              status: r.status,
+              ...(r.status === 'fulfilled' ? r.value : { error: r.reason?.message || 'Unknown error' })
+            })),
+            email: emailDetails
+          }
         }
       });
     } catch (error) {

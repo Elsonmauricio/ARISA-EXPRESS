@@ -5,7 +5,7 @@ import {
   generatePickupMessage,
   LocationType
 } from '../utils/whatsapp';
-import { validateE164Phone } from '../utils/phoneValidator';
+import { validateE164Phone, type DefaultCountry } from '../utils/phoneValidator';
 
 /**
  * Tipos públicos do payload "template" da Meta WhatsApp Cloud API.
@@ -35,7 +35,7 @@ export interface TemplateComponent {
 }
 
 export interface SendTemplateMessageInput {
-  /** Destinatário em E.164 (ex: "+351934292082") ou formato local — será normalizado. */
+  /** Destinatário em E.164 (ex: "+351934292082"); números locais ambíguos exigem contexto de país. */
   to: string;
   /** Nome exato do template aprovado no Meta Business Manager. */
   templateName: string;
@@ -53,6 +53,7 @@ export interface SendTemplateMessageResult {
   recipientWaId?: string;
   deliveryStatus?: 'accepted' | 'sent' | 'delivered' | 'read' | 'failed';
   error?: string;
+  errorDetails?: MetaErrorDetails;
   /** Link wa.me gerado como fallback manual. */
   link?: string | null;
   /** Indica se o envio foi apenas simulado (modo dev/MOCK). */
@@ -60,10 +61,24 @@ export interface SendTemplateMessageResult {
   raw?: unknown;
 }
 
+interface MetaErrorResponse {
+  message?: string;
+  type?: string;
+  code?: number | string;
+  fbtrace_id?: string;
+}
+
+export interface MetaErrorDetails {
+  code?: number | string;
+  type?: string;
+  fbtrace_id?: string;
+  httpStatus?: number;
+}
+
 interface MetaMessagesResponse {
-  messages?: { id: string; message_status?: 'accepted' | 'held_for_quality_assessment' | 'paused' }[];
-  contacts?: { input: string; wa_id?: string }[];
-  error?: { message: string; type?: string; code?: number; fbtrace_id?: string };
+  messages?: { id?: string; message_status?: 'accepted' | 'held_for_quality_assessment' | 'paused' }[];
+  contacts?: { input?: string; wa_id?: string }[];
+  error?: MetaErrorResponse;
 }
 
 /**
@@ -85,13 +100,19 @@ export interface WhatsAppNotificationData {
 }
 
 const GRAPH_API_BASE = 'https://graph.facebook.com';
+const MAX_ATTEMPTS = 3;
+const RETRYABLE_META_CODES = new Set([4, 80007, 130429, 131000, 131016, 131045, 131056, 133004, 133009]);
 
 /**
  * Determina se o serviço está em modo real (credenciais Meta presentes)
  * ou em modo dev/MOCK (apenas logging e fallback para link wa.me).
  */
 function isLiveMode(): boolean {
-  return Boolean(process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID);
+  return Boolean(
+    process.env.WHATSAPP_TOKEN?.trim() &&
+    process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() &&
+    process.env.WHATSAPP_API_VERSION?.trim()
+  );
 }
 
 function sanitizeTemplateText(raw: string): string {
@@ -120,27 +141,64 @@ function sanitizeTemplateParameter(parameter: TemplateParameter): TemplateParame
   return { ...parameter, text };
 }
 
-/**
- * Normaliza um número para E.164. Devolve null se não for possível.
- * Faz heurística Portugal (351) e Angola (244) consoante a localização opcional.
- */
-function normalizePhone(rawPhone: string, location?: LocationType): string | null {
-  const e164 = validateE164Phone(rawPhone);
-  if (e164) return e164;
+function normalizeApiVersion(value: string | undefined): string | null {
+  const version = value?.trim().replace(/^\/+|\/+$/g, '');
+  return version || null;
+}
 
+function normalizePhone(rawPhone: string, defaultCountry?: DefaultCountry): string | null {
   const digits = (rawPhone || '').replace(/\D/g, '');
-  if (!digits) return null;
+  const ambiguousLocalNumber = digits.length === 9 || (digits.length === 10 && digits.startsWith('0'));
+  if (!defaultCountry && ambiguousLocalNumber) return null;
+  return validateE164Phone(rawPhone, defaultCountry);
+}
 
-  if (digits.startsWith('351') || digits.startsWith('244')) {
-    return '+' + digits;
+function getDefaultTemplateConfig(location: LocationType): { templateName: string; languageCode: string } {
+  if (location === 'luanda') {
+    return {
+      templateName: process.env.WHATSAPP_READY_TEMPLATE_LUANDA?.trim() || 'shipment_ready_for_pickup_ao',
+      languageCode: process.env.WHATSAPP_READY_TEMPLATE_LANG_LUANDA?.trim() || 'pt_PT'
+    };
   }
+  return {
+    templateName: process.env.WHATSAPP_READY_TEMPLATE_LISBOA?.trim() || 'shipment_ready_for_pickup_pt',
+    languageCode: process.env.WHATSAPP_READY_TEMPLATE_LANG_LISBOA?.trim() || 'pt_PT'
+  };
+}
 
-  if (digits.length === 9) {
-    const cc = location === 'luanda' ? '244' : '351';
-    return `+${cc}${digits}`;
+function extractErrorDetails(error: unknown): MetaErrorDetails {
+  const details: MetaErrorDetails = {};
+  if (typeof error === 'object' && error !== null) {
+    const candidate = error as Record<string, unknown>;
+    if (typeof candidate.code === 'number' || typeof candidate.code === 'string') details.code = candidate.code;
+    if (typeof candidate.type === 'string') details.type = candidate.type;
+    if (typeof candidate.fbtrace_id === 'string') details.fbtrace_id = candidate.fbtrace_id;
   }
+  return details;
+}
 
-  return null;
+function buildMetaErrorDetails(error: MetaErrorResponse | undefined, httpStatus: number): MetaErrorDetails {
+  const details: MetaErrorDetails = { httpStatus };
+  if (typeof error?.code === 'number' || typeof error?.code === 'string') details.code = error.code;
+  if (typeof error?.type === 'string') details.type = error.type;
+  if (typeof error?.fbtrace_id === 'string') details.fbtrace_id = error.fbtrace_id;
+  return details;
+}
+
+function buildFailure(error: string, details?: MetaErrorDetails, raw?: unknown): SendTemplateMessageResult {
+  const result: SendTemplateMessageResult = { success: false, sent: false, error };
+  if (details && Object.keys(details).length > 0) result.errorDetails = details;
+  if (raw !== undefined) result.raw = raw;
+  return result;
+}
+
+function isRetryableMetaCode(code?: number | string): boolean {
+  const numericCode = typeof code === 'number' ? code : Number(code);
+  return Number.isInteger(numericCode) && RETRYABLE_META_CODES.has(numericCode);
+}
+
+function delay(attempt: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, attempt * 1000));
 }
 
 export class WhatsAppService {
@@ -161,44 +219,66 @@ export class WhatsAppService {
       return { success: false, sent: false, error: err };
     }
 
-    const token = process.env.WHATSAPP_TOKEN;
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-    const apiVersion = process.env.WHATSAPP_API_VERSION || 'v19.0';
+    const token = process.env.WHATSAPP_TOKEN?.trim();
+    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
+    const templateName = input.templateName?.trim();
+    const languageCode = input.languageCode?.trim();
+    const missingTemplate = [
+      !templateName ? 'nome' : '',
+      !languageCode ? 'idioma' : ''
+    ].filter((value): value is string => Boolean(value));
 
-    // Modo dev/MOCK — não falhar em ambiente de testes.
     if (!token || !phoneNumberId) {
+      const missing = [
+        !token ? 'WHATSAPP_TOKEN' : '',
+        !phoneNumberId ? 'WHATSAPP_PHONE_NUMBER_ID' : '',
+        ...missingTemplate.map(value => `template ${value}`)
+      ].filter((value): value is string => Boolean(value));
       logger.info(
-        `[WhatsApp][MOCK] Template "${input.templateName}" (${input.languageCode}) → ${recipient} ` +
-          `(defina WHATSAPP_TOKEN e WHATSAPP_PHONE_NUMBER_ID para envio real)`
+        `[WhatsApp][MOCK] Template "${templateName}" (${languageCode}) → ${recipient} ` +
+          `(${missing.join(', ')} ausente)`
       );
       return {
         success: true,
         sent: false,
         simulated: true,
-        link: `https://wa.me/${recipient.replace('+', '')}`
+        error: 'WhatsApp não configurado — link wa.me disponível'
       };
     }
 
-    const url = `${GRAPH_API_BASE}/${apiVersion}/${phoneNumberId}/messages`;
+    const apiVersion = normalizeApiVersion(process.env.WHATSAPP_API_VERSION);
+    if (!apiVersion) {
+      const message = 'WHATSAPP_API_VERSION não configurada';
+      logger.error(`[WhatsApp] ${message}`);
+      return buildFailure(message);
+    }
 
+    if (missingTemplate.length > 0) {
+      const message = 'Nome e idioma do template são obrigatórios';
+      logger.error(`[WhatsApp] ${message}`);
+      return buildFailure(message);
+    }
+
+    const url = `${GRAPH_API_BASE}/${apiVersion}/${phoneNumberId}/messages`;
+    const components = (input.components ?? []).map(component => ({
+      ...component,
+      ...(component.parameters
+        ? { parameters: component.parameters.map(sanitizeTemplateParameter) }
+        : {})
+    }));
     const payload = {
-      messaging_product: 'whatsapp',
-      recipient_type: 'individual',
+      messaging_product: 'whatsapp' as const,
+      recipient_type: 'individual' as const,
       to: recipient.replace('+', ''),
-      type: 'template',
+      type: 'template' as const,
       template: {
-        name: input.templateName,
-        language: { code: input.languageCode },
-        components: (input.components ?? []).map(component => ({
-          ...component,
-          parameters: component.parameters?.map(sanitizeTemplateParameter)
-        }))
+        name: templateName,
+        language: { code: languageCode },
+        components
       }
     };
 
-    let lastError = 'Falha de rede ao enviar template';
-
-    for (let attempt = 1; attempt <= 3; attempt++) {
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -208,53 +288,72 @@ export class WhatsAppService {
           },
           body: JSON.stringify(payload)
         });
+        const parsed = await response.json().catch(() => null);
+        const result = parsed && typeof parsed === 'object'
+          ? parsed as MetaMessagesResponse
+          : null;
+        const metaError = result?.error;
+        const retryable =
+          response.status === 429 ||
+          response.status >= 500 ||
+          isRetryableMetaCode(metaError?.code);
 
-        const result = (await response.json().catch(() => ({}))) as MetaMessagesResponse;
+        if (!result || !response.ok || metaError) {
+          const details = buildMetaErrorDetails(metaError, response.status);
+          const apiMessage = !result
+            ? `Resposta Meta inválida (HTTP ${response.status})`
+            : metaError?.message?.trim() || `Meta API HTTP ${response.status}`;
+          logger.error(
+            `[WhatsApp] Meta API error (template=${templateName} to=${recipient}, httpStatus=${response.status}): ${apiMessage}`,
+            {
+              code: details.code,
+              type: details.type,
+              fbtrace_id: details.fbtrace_id,
+              httpStatus: details.httpStatus
+            }
+          );
 
-        if (!response.ok || result.error) {
-          const apiMessage = result.error?.message || `HTTP ${response.status}`;
-          const retryable = response.status === 429 || response.status >= 500 || result.error?.code === 131056;
-
-          if (!retryable || attempt === 3) {
-            logger.error(
-              `[WhatsApp] Meta API error (template=${input.templateName} to=${recipient}): ${apiMessage}`,
-              { code: result.error?.code, type: result.error?.type, fbtrace_id: result.error?.fbtrace_id }
-            );
-            return { success: false, sent: false, error: apiMessage, raw: result };
+          if (!retryable || attempt === MAX_ATTEMPTS) {
+            return buildFailure(apiMessage, details, result ?? undefined);
           }
 
-          lastError = apiMessage;
           logger.warn(`[WhatsApp] Tentativa ${attempt} falhou para ${recipient}; nova tentativa em ${attempt * 1000}ms`);
         } else {
-          const messageId = result.messages?.[0]?.id;
-          const messageStatus = result.messages?.[0]?.message_status;
-          const recipientWaId = result.contacts?.[0]?.wa_id;
+          const messageData = result?.messages?.[0];
+          const contact = result?.contacts?.[0];
+          const messageId = messageData?.id;
+          const messageStatus = messageData?.message_status;
           logger.info(
-            `[WhatsApp] Template "${input.templateName}" aceite pela Meta: wamid=${messageId} to=${recipient} messageStatus=${messageStatus || 'accepted'}`
+            `[WhatsApp] Template "${templateName}" aceite pela Meta: wamid=${messageId} to=${recipient} messageStatus=${messageStatus || 'unknown'}`
           );
           return {
             success: true,
             sent: true,
             messageId,
-            messageStatus: messageStatus || 'accepted',
-            recipientWaId,
-            deliveryStatus: 'accepted',
+            messageStatus,
+            recipientWaId: contact?.wa_id,
+            deliveryStatus: messageStatus === 'accepted' ? 'accepted' : undefined,
             raw: result
           };
         }
       } catch (error: unknown) {
-        lastError = error instanceof Error ? error.message : String(error);
-        if (attempt === 3) {
-          logger.error(`[WhatsApp] Falha de rede ao enviar template: ${lastError}`);
-          return { success: false, sent: false, error: lastError };
-        }
-        logger.warn(`[WhatsApp] Tentativa ${attempt} falhou para ${recipient}; nova tentativa em ${attempt * 1000}ms`);
+        const details = extractErrorDetails(error);
+        const message = error instanceof Error && error.message ? error.message : String(error);
+        logger.error(
+          `[WhatsApp] Falha de rede ao enviar template para ${recipient}: ${message}`,
+          {
+            code: details.code,
+            type: details.type,
+            fbtrace_id: details.fbtrace_id
+          }
+        );
+        return buildFailure(message, details);
       }
 
-      await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+      await delay(attempt);
     }
 
-    return { success: false, sent: false, error: lastError };
+    return buildFailure('Falha ao enviar template WhatsApp');
   }
 
   /**
@@ -263,19 +362,20 @@ export class WhatsAppService {
    * encomenda. Mantém a interface usada pelos controllers.
    */
   static async sendPickupTemplate(data: WhatsAppNotificationData): Promise<SendTemplateMessageResult> {
-    const location = data.location || 'lisbon';
+    const location = data.location === 'luanda' ? 'luanda' : 'lisbon';
+    const defaultCountry: DefaultCountry = location === 'luanda' ? 'AO' : 'PT';
 
-    const templateName =
-      location === 'luanda'
-        ? process.env.WHATSAPP_READY_TEMPLATE_LUANDA || process.env.WHATSAPP_READY_TEMPLATE || 'encomenda_disponivel_luanda'
-        : process.env.WHATSAPP_READY_TEMPLATE_LISBOA || process.env.WHATSAPP_READY_TEMPLATE || 'encomenda_disponivel_lisboa';
+    const defaults = getDefaultTemplateConfig(location);
+    const templateName = defaults.templateName;
+    const languageCode = defaults.languageCode;
 
-    const languageCode =
-      location === 'luanda'
-        ? process.env.WHATSAPP_READY_TEMPLATE_LANG_LUANDA || process.env.WHATSAPP_READY_TEMPLATE_LANG || 'pt_PT'
-        : process.env.WHATSAPP_READY_TEMPLATE_LANG_LISBOA || process.env.WHATSAPP_READY_TEMPLATE_LANG || 'pt_PT';
+    if (!templateName || !languageCode) {
+      const err = 'Nome e idioma do template são obrigatórios (configuração em falta)';
+      logger.error(`[WhatsApp] ${err}`);
+      return { success: false, sent: false, error: err };
+    }
 
-    const recipient = normalizePhone(data.phone, data.location);
+    const recipient = validateE164Phone(data.phone, defaultCountry);
     if (!recipient) {
       return { success: false, sent: false, error: 'Número de telefone inválido' };
     }
@@ -310,13 +410,19 @@ export class WhatsAppService {
   static async sendPickupNotification(
     data: WhatsAppNotificationData
   ): Promise<SendTemplateMessageResult> {
-    const token = process.env.WHATSAPP_TOKEN;
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const token = process.env.WHATSAPP_TOKEN?.trim();
+    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
 
     if (!token || !phoneNumberId) {
       const link = generateWhatsAppLink(data.phone, generatePickupMessage(data), data.location);
       logger.info('[WhatsApp] link generated (no API token configured)');
-      return { success: true, sent: false, simulated: true, link };
+      return {
+        success: true,
+        sent: false,
+        simulated: true,
+        link,
+        error: 'Credenciais WhatsApp Cloud API não configuradas; mensagem não enviada'
+      };
     }
 
     return this.sendPickupTemplate(data);

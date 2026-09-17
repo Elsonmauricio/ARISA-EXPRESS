@@ -852,6 +852,20 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
       const json = await response.json();
       if (json.success) {
         authenticatedFetchShipments();
+        let summary = '';
+        if (json.whatsappReady > 0) {
+          const accepted = json.whatsappAccepted ?? json.whatsappSent ?? 0;
+          summary += `. WhatsApp: ${accepted}/${json.whatsappReady} aceites pela Meta`;
+          if (json.whatsappFailed) summary += ` (${json.whatsappFailed} falharam)`;
+          if (json.whatsappSkipped) summary += ` (${json.whatsappSkipped} ignorados)`;
+        }
+        if (json.emailReady > 0) {
+          const accepted = json.emailAccepted ?? json.emailSent ?? 0;
+          summary += `. Email: ${accepted}/${json.emailReady} submetidos`;
+          if (json.emailFailed) summary += ` (${json.emailFailed} falharam)`;
+          if (json.emailSkipped) summary += ` (${json.emailSkipped} ignorados)`;
+        }
+        if (summary) alert(json.message + summary);
       }
     } catch (err) {
       alert(t('admin.erroStatus'));
@@ -882,9 +896,12 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
           setBatchWhatsappInfo(null)
         }
         const whatsappSummary = json.whatsappReady > 0
-          ? `. ${json.whatsappSent ?? 0}/${json.whatsappReady} notificações WhatsApp enviadas` + (json.whatsappFailed ? ` (${json.whatsappFailed} falharam)` : '')
+          ? `. WhatsApp: ${json.whatsappAccepted ?? json.whatsappSent ?? 0}/${json.whatsappReady} aceites pela Meta` + (json.whatsappFailed ? ` (${json.whatsappFailed} falharam)` : '') + (json.whatsappSkipped ? ` (${json.whatsappSkipped} ignorados)` : '')
           : ''
-        alert(json.message + whatsappSummary)
+        const emailSummary = json.emailReady > 0
+          ? `. Email: ${json.emailAccepted ?? json.emailSent ?? 0}/${json.emailReady} submetidos` + (json.emailFailed ? ` (${json.emailFailed} falharam)` : '') + (json.emailSkipped ? ` (${json.emailSkipped} ignorados)` : '')
+          : ''
+        alert(json.message + whatsappSummary + emailSummary)
         authenticatedFetchShipments()
         setBatchModalOpen(false)
       } else {
@@ -921,9 +938,12 @@ function AdminShipmentList({ refreshKey }: { refreshKey?: number }) {
           setBatchWhatsappInfo(null)
         }
         const whatsappSummary = json.whatsappReady > 0
-          ? `. ${json.whatsappSent ?? 0}/${json.whatsappReady} notificações WhatsApp enviadas` + (json.whatsappFailed ? ` (${json.whatsappFailed} falharam)` : '')
+          ? `. WhatsApp: ${json.whatsappAccepted ?? json.whatsappSent ?? 0}/${json.whatsappReady} aceites pela Meta` + (json.whatsappFailed ? ` (${json.whatsappFailed} falharam)` : '') + (json.whatsappSkipped ? ` (${json.whatsappSkipped} ignorados)` : '')
           : ''
-        alert(json.message + whatsappSummary)
+        const emailSummary = json.emailReady > 0
+          ? `. Email: ${json.emailAccepted ?? json.emailSent ?? 0}/${json.emailReady} submetidos` + (json.emailFailed ? ` (${json.emailFailed} falharam)` : '') + (json.emailSkipped ? ` (${json.emailSkipped} ignorados)` : '')
+          : ''
+        alert(json.message + whatsappSummary + emailSummary)
         authenticatedFetchShipments()
         setSelectedShipments([])
         setBatchStatus('')
@@ -1608,7 +1628,8 @@ function AdminRouteManager({ onRouteStatusChange }: { onRouteStatusChange?: () =
         // Dispara re-busca de encomendas no AdminShipmentList
         onRouteStatusChange?.();
         if (json.data?.whatsappReady > 0) {
-          const whatsappSummary = `${json.data.whatsappSent ?? 0}/${json.data.whatsappReady} notificações WhatsApp enviadas` + (json.data.whatsappFailed ? ` (${json.data.whatsappFailed} falharam)` : '')
+          const accepted = json.data.whatsappAccepted ?? json.data.whatsappSent ?? 0;
+          const whatsappSummary = `WhatsApp: ${accepted}/${json.data.whatsappReady} aceites pela Meta` + (json.data.whatsappFailed ? ` (${json.data.whatsappFailed} falharam)` : '') + (json.data.whatsappSkipped ? ` (${json.data.whatsappSkipped} ignorados)` : '');
           alert(whatsappSummary);
         }
       } else {
