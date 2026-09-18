@@ -12,17 +12,27 @@ declare global {
   }
 }
 
+class AuthenticationError extends Error {
+  constructor(
+    readonly status: 401 | 403 | 500,
+    message: string
+  ) {
+    super(message);
+    this.name = 'AuthenticationError';
+  }
+}
+
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
       logger.warn('[Auth] Token ausente no header Authorization');
-      throw new Error();
+      throw new AuthenticationError(401, 'Por favor, autentique-se');
     }
 
     if (!process.env.JWT_SECRET) {
       logger.error('[Auth] JWT_SECRET não está definido no .env');
-      throw new Error();
+      throw new AuthenticationError(500, 'Configuração de autenticação inválida');
     }
 
     let decoded: any;
@@ -30,19 +40,24 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     } catch (jwtError: any) {
       logger.warn(`[Auth] Token JWT inválido: ${jwtError.message}`);
-      throw new Error();
+      throw new AuthenticationError(401, 'Por favor, autentique-se');
     }
 
     const userDoc = await db.collection('users').doc(decoded.id).get();
     if (!userDoc.exists) {
       logger.warn(`[Auth] User doc não encontrado para id=${decoded.id}`);
-      throw new Error();
+      throw new AuthenticationError(401, 'Por favor, autentique-se');
     }
 
     req.user = { id: userDoc.id, ...userDoc.data() };
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Por favor, autentique-se' });
+    if (error instanceof AuthenticationError) {
+      return res.status(error.status).json({ error: error.message });
+    }
+
+    logger.error('[Auth] Falha ao validar autenticação:', error);
+    return res.status(500).json({ error: 'Erro ao validar autenticação' });
   }
 };
 

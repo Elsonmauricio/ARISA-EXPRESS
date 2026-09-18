@@ -36,6 +36,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
   const response = await fetch(api('/api/auth/refresh'), {
     method: 'POST',
+    cache: 'no-store',
     headers: {
       'Authorization': `Bearer ${refreshToken}`,
       'Content-Type': 'application/json'

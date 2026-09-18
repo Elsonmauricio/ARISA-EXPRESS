@@ -77,6 +77,14 @@ app.use('/api/webhook', webhookRoutes);
 app.use('/api', notifyRoutes);
 
 // Health check
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'arisa-express-api',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
