@@ -100,8 +100,21 @@ export interface WhatsAppNotificationData {
 }
 
 const GRAPH_API_BASE = 'https://graph.facebook.com';
+const DEFAULT_GRAPH_API_VERSION = 'v21.0';
+const GRAPH_API_VERSION_PATTERN = /^v\d+(?:\.\d+)?$/;
 const MAX_ATTEMPTS = 3;
 const RETRYABLE_META_CODES = new Set([4, 80007, 130429, 131000, 131016, 131045, 131056, 133004, 133009]);
+
+function getGraphApiVersion(): string {
+  const configuredVersion = normalizeApiVersion(process.env.META_GRAPH_API_VERSION);
+  if (configuredVersion) return configuredVersion;
+
+  if (process.env.META_GRAPH_API_VERSION?.trim()) {
+    logger.warn(`[WhatsApp] META_GRAPH_API_VERSION inválida; usando ${DEFAULT_GRAPH_API_VERSION}`);
+  }
+
+  return DEFAULT_GRAPH_API_VERSION;
+}
 
 /**
  * Determina se o serviço está em modo real (credenciais Meta presentes)
@@ -110,8 +123,7 @@ const RETRYABLE_META_CODES = new Set([4, 80007, 130429, 131000, 131016, 131045, 
 function isLiveMode(): boolean {
   return Boolean(
     process.env.WHATSAPP_TOKEN?.trim() &&
-    process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() &&
-    process.env.WHATSAPP_API_VERSION?.trim()
+    process.env.WHATSAPP_PHONE_NUMBER_ID?.trim()
   );
 }
 
@@ -143,7 +155,7 @@ function sanitizeTemplateParameter(parameter: TemplateParameter): TemplateParame
 
 function normalizeApiVersion(value: string | undefined): string | null {
   const version = value?.trim().replace(/^\/+|\/+$/g, '');
-  return version || null;
+  return version && GRAPH_API_VERSION_PATTERN.test(version) ? version : null;
 }
 
 function normalizePhone(rawPhone: string, defaultCountry?: DefaultCountry): string | null {
@@ -246,12 +258,7 @@ export class WhatsAppService {
       };
     }
 
-    const apiVersion = normalizeApiVersion(process.env.WHATSAPP_API_VERSION);
-    if (!apiVersion) {
-      const message = 'WHATSAPP_API_VERSION não configurada';
-      logger.error(`[WhatsApp] ${message}`);
-      return buildFailure(message);
-    }
+    const apiVersion = getGraphApiVersion();
 
     if (missingTemplate.length > 0) {
       const message = 'Nome e idioma do template são obrigatórios';
@@ -288,8 +295,14 @@ export class WhatsAppService {
           },
           body: JSON.stringify(payload)
         });
-        const parsed = await response.json().catch(() => null);
-        const result = parsed && typeof parsed === 'object'
+        const rawBody = await response.text();
+        let parsed: unknown = null;
+        try {
+          parsed = rawBody ? JSON.parse(rawBody) : null;
+        } catch {
+          parsed = rawBody;
+        }
+        const result = typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
           ? parsed as MetaMessagesResponse
           : null;
         const metaError = result?.error;
@@ -309,7 +322,17 @@ export class WhatsAppService {
               code: details.code,
               type: details.type,
               fbtrace_id: details.fbtrace_id,
-              httpStatus: details.httpStatus
+              httpStatus: details.httpStatus,
+              error: metaError
+                ? {
+                    code: metaError.code,
+                    message: metaError.message,
+                    type: metaError.type,
+                    fbtrace_id: metaError.fbtrace_id
+                  }
+                : undefined,
+              rawBody,
+              rawResponse: parsed
             }
           );
 

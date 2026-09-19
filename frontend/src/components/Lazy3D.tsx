@@ -1,5 +1,5 @@
-import React, { Suspense, useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { Suspense, useEffect, useMemo } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { Float, OrbitControls } from '@react-three/drei';
 import { use3DIntersection } from '../hooks/use3DIntersection';
 

@@ -1,5 +1,5 @@
 ﻿import React, { Suspense, useEffect, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Float, Stars, ContactShadows } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
@@ -19,6 +19,32 @@ const DRACO_DECODER_PATH = 'https://www.gstatic.com/draco/versioned/decoders/1.5
 let cachedScene: THREE.Group | null = null;
 let cachedLoader: GLTFLoader | null = null;
 let cachedDracoLoader: DRACOLoader | null = null;
+
+function WebGLContextGuard() {
+  const gl = useThree((state) => state.gl);
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      console.warn('[WebGL] Contexto perdido; a aguardar restauração...');
+    };
+    const handleContextRestored = () => {
+      console.info('[WebGL] Contexto restaurado.');
+      gl.render(gl.scene, gl.camera);
+    };
+
+    canvas.addEventListener('webglcontextlost', handleContextLost as EventListener);
+    canvas.addEventListener('webglcontextrestored', handleContextRestored as EventListener);
+
+    return () => {
+      canvas.removeEventListener('webglcontextlost', handleContextLost as EventListener);
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored as EventListener);
+    };
+  }, [gl]);
+
+  return null;
+}
 
 function Airplane() {
   const group = useRef<THREE.Group>(null);
@@ -109,8 +135,8 @@ function Scene({ isMobile }: { isMobile: boolean }) {
       <pointLight position={[0, 5, 0]} intensity={1.5} color="#c959f9" distance={20} decay={2} />
       <Suspense fallback={null}>
         <Airplane />
-        <Stars radius={90} depth={50} count={isMobile ? 500 : 2500} factor={3} saturation={0.9} fade speed={0.6} />
-        <ContactShadows position={[0, -1.5, 0]} opacity={isMobile ? 0.1 : 0.35} scale={isMobile ? undefined : 10} blur={isMobile ? 5 : 2.5} far={4} color="#ffffff" />
+        <Stars radius={90} depth={50} count={isMobile ? 300 : 1200} factor={3} saturation={0.9} fade speed={0.6} />
+        <ContactShadows position={[0, -1.5, 0]} opacity={isMobile ? 0.1 : 0.35} scale={isMobile ? undefined : 10} blur={isMobile ? 5 : 2.5} far={4} color="#ffffff" resolution={256} frames={2} />
       </Suspense>
     </>
   );

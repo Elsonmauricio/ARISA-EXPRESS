@@ -10,15 +10,12 @@ export function use3DIntersection(options?: IntersectionObserverInit) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-            observer.disconnect();
-          }
-        });
+        const isVisible = entries.some((entry) => entry.isIntersecting);
+        setIsVisible(isVisible);
       },
       {
-        rootMargin: '200px 0px',
+        rootMargin: '100px 0px',
+        threshold: [0, 0.25],
         ...options,
       }
     );

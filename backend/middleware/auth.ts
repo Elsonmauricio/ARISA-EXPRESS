@@ -1,7 +1,7 @@
 // backend/src/middleware/auth.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { db } from '../config/firebase';
+import { db, firebaseInitialized } from '../config/firebase';
 import { logger } from '../utils/logger';
 
 declare global {
