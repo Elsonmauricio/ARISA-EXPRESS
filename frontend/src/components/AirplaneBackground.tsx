@@ -21,7 +21,11 @@ let cachedLoader: GLTFLoader | null = null;
 let cachedDracoLoader: DRACOLoader | null = null;
 
 function WebGLContextGuard() {
-  const gl = useThree((state) => state.gl);
+  const { gl, scene, camera } = useThree((state) => ({
+    gl: state.gl,
+    scene: state.scene,
+    camera: state.camera
+  }));
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -31,7 +35,7 @@ function WebGLContextGuard() {
     };
     const handleContextRestored = () => {
       console.info('[WebGL] Contexto restaurado.');
-      gl.render(gl.scene, gl.camera);
+      gl.render(scene, camera);
     };
 
     canvas.addEventListener('webglcontextlost', handleContextLost as EventListener);
@@ -41,7 +45,7 @@ function WebGLContextGuard() {
       canvas.removeEventListener('webglcontextlost', handleContextLost as EventListener);
       canvas.removeEventListener('webglcontextrestored', handleContextRestored as EventListener);
     };
-  }, [gl]);
+  }, [gl, scene, camera]);
 
   return null;
 }
@@ -129,6 +133,7 @@ function Scene({ isMobile }: { isMobile: boolean }) {
   return (
     <>
       <color attach="background" args={['#dab4fc']} />
+      <WebGLContextGuard />
       <ambientLight intensity={1.2} />
       <directionalLight position={[5, 10, 5]} intensity={2.0} color="#df62f3" />
       <directionalLight position={[-5, 5, -5]} intensity={1.0} color="#fcf414" />
