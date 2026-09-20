@@ -55,7 +55,7 @@ export const translations: Record<Lang, Dict> = {
     'services.1.title': 'Transporte de Mercadorias',
     'services.1.desc': 'Envio e receção de mercadorias entre Angola e Portugal com gestão completa da cadeia logística, acompanhamento em tempo real.',
     'services.2.title': 'Redirecionamento de Encomendas',
-    'services.2.desc': 'Receba as suas compras online num endereço seguro e nós tratamos do reencaminhamento para Angola, Portugal ou outro paises da Europa, com toda a documentação tratada.',
+    'services.2.desc': 'Receba as suas compras online num endereço seguro e nós tratamos do reencaminhamento para Angola, Portugal ou outros paises da Europa, com toda a documentação tratada.',
     'services.3.title': 'Personal Shopping',
     'services.3.desc': 'Compras personalizadas ao seu pedido em lojas de Angola ou Portugal. Negociamos, adquirimos e entregamos os produtos por si, sem complicações.',
     'services.saberMais': 'Saber mais no WhatsApp',
