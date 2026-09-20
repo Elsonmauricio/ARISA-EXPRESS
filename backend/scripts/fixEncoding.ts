@@ -1,4 +1,3 @@
-import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 import { fixEncodingObject } from '../utils/encoding';
 

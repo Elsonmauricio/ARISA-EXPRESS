@@ -100,7 +100,7 @@ export interface WhatsAppNotificationData {
 }
 
 const GRAPH_API_BASE = 'https://graph.facebook.com';
-const DEFAULT_GRAPH_API_VERSION = 'v21.0';
+const DEFAULT_GRAPH_API_VERSION = 'v26.0';
 const GRAPH_API_VERSION_PATTERN = /^v\d+(?:\.\d+)?$/;
 const MAX_ATTEMPTS = 3;
 const RETRYABLE_META_CODES = new Set([4, 80007, 130429, 131000, 131016, 131045, 131056, 133004, 133009]);

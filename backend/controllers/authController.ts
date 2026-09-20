@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../config/firebase';
-import { FieldValue, Transaction } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
 
@@ -67,7 +67,7 @@ export const AuthController = {
           data: { name }
         });
       } catch (emailError) {
-        logger.error('Erro ao enviar email de boas-vindas:', emailError);
+        logger.error('Error ao enviar email de boas-vindas:', emailError);
       }
 
       res.status(201).json({
@@ -79,8 +79,8 @@ export const AuthController = {
         }
       });
     } catch (error) {
-      logger.error('Erro no registo:', error);
-      res.status(500).json({ error: 'Erro ao registar utilizador' });
+      logger.error('Error no registo:', error);
+      res.status(500).json({ error: 'Error ao registar utilizador' });
     }
   },
   
@@ -130,8 +130,8 @@ export const AuthController = {
         }
       });
     } catch (error) {
-      logger.error('Erro no login:', error);
-      res.status(500).json({ error: 'Erro ao fazer login' });
+      logger.error('Error no login:', error);
+      res.status(500).json({ error: 'Error ao fazer login' });
     }
   },
 
@@ -139,69 +139,45 @@ export const AuthController = {
     try {
       const refreshToken = req.headers.authorization?.replace('Bearer ', '');
       if (!refreshToken) return res.status(401).json({ error: 'Refresh token não fornecido' });
-      if (!process.env.JWT_SECRET) return res.status(500).json({ error: 'Configuração de autenticação inválida' });
 
-      let decoded: any;
-      try {
-        decoded = jwt.verify(refreshToken, process.env.JWT_SECRET) as any;
-      } catch (_error) {
-        logger.warn('[Auth] Refresh token JWT inválido');
+      const tokenDoc = await db.collection('refreshTokens').doc(refreshToken).get();
+      if (!tokenDoc.exists) {
         return res.status(401).json({ error: 'Refresh token inválido' });
       }
 
-      const tokenRef = db.collection('refreshTokens').doc(refreshToken);
-      let newAccessToken = '';
-      let newRefreshToken = '';
+      const tokenData = tokenDoc.data() as any;
+      if (tokenData.expiresAt?.toDate?.() < new Date()) {
+        await tokenDoc.ref.delete();
+        return res.status(401).json({ error: 'Refresh token expirado' });
+      }
 
-      await db.runTransaction(async (transaction: Transaction) => {
-        const tokenDoc: any = await transaction.get(tokenRef);
-        if (!tokenDoc.exists) {
-          const error = new Error('Refresh token inválido') as any;
-          error.status = 401;
-          throw error;
-        }
+      const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as any;
 
-        const tokenData = tokenDoc.data() as any;
-        const expiresAt = tokenData.expiresAt?.toDate
-          ? tokenData.expiresAt.toDate()
-          : tokenData.expiresAt
-            ? new Date(tokenData.expiresAt)
-            : null;
+      const newAccessToken = jwt.sign(
+        { id: decoded.id, email: decoded.email, role: decoded.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: '15m' }
+      );
 
-        if (!expiresAt || expiresAt < new Date() || tokenData.userId !== decoded.id || tokenData.email !== decoded.email || tokenData.role !== decoded.role) {
-          transaction.delete(tokenRef);
-          const error = new Error('Refresh token expirado ou inválido') as any;
-          error.status = 401;
-          throw error;
-        }
+      const newRefreshToken = jwt.sign(
+        { id: decoded.id, email: decoded.email, role: decoded.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: '7d' }
+      );
 
-        newAccessToken = jwt.sign(
-          { id: decoded.id, email: decoded.email, role: decoded.role },
-          process.env.JWT_SECRET!,
-          { expiresIn: '15m' }
-        );
+      await tokenDoc.ref.delete();
 
-        newRefreshToken = jwt.sign(
-          { id: decoded.id, email: decoded.email, role: decoded.role },
-          process.env.JWT_SECRET!,
-          { expiresIn: '7d' }
-        );
-
-        transaction.delete(tokenRef);
-        transaction.set(db.collection('refreshTokens').doc(newRefreshToken), {
-          userId: decoded.id,
-          email: decoded.email,
-          role: decoded.role,
-          createdAt: FieldValue.serverTimestamp(),
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        });
+      await db.collection('refreshTokens').doc(newRefreshToken).set({
+        userId: decoded.id,
+        email: decoded.email,
+        role: decoded.role,
+        createdAt: FieldValue.serverTimestamp(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       });
 
-      res.setHeader('Cache-Control', 'no-store');
-      return res.json({ success: true, data: { accessToken: newAccessToken, refreshToken: newRefreshToken } });
-    } catch (error: any) {
-      if (!error.status) logger.error('Erro ao renovar token:', error);
-      return res.status(error.status || 401).json({ error: error.message || 'Refresh token inválido' });
+      res.json({ success: true, data: { accessToken: newAccessToken, refreshToken: newRefreshToken } });
+    } catch (error) {
+      res.status(401).json({ error: 'Refresh token inválido' });
     }
   },
 
@@ -257,13 +233,13 @@ export const AuthController = {
           }
         });
       } catch (emailError) {
-        logger.error('Erro ao enviar email de recuperação:', emailError);
+        logger.error('Error ao enviar email de recuperação:', emailError);
       }
 
       res.json({ success: true, message: 'Se o email existir, enviaremos instruções' });
     } catch (error) {
-      logger.error('Erro no forgotPassword:', error);
-      res.status(500).json({ error: 'Erro ao processar solicitação' });
+      logger.error('Error no forgotPassword:', error);
+      res.status(500).json({ error: 'Error ao processar solicitação' });
     }
   },
 
@@ -308,7 +284,7 @@ export const AuthController = {
 
       res.json({ success: true, message: 'Senha redefinida com sucesso' });
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao redefinir senha' });
+      res.status(500).json({ error: 'Error ao redefinir senha' });
     }
   },
 
@@ -338,8 +314,8 @@ export const AuthController = {
 
       res.json({ success: true, message: 'Senha redefinida com sucesso' });
     } catch (error) {
-      logger.error('Erro no resetPasswordDirect:', error);
-      res.status(500).json({ error: 'Erro ao redefinir senha' });
+      logger.error('Error no resetPasswordDirect:', error);
+      res.status(500).json({ error: 'Error ao redefinir senha' });
     }
   },
   
