@@ -13,6 +13,7 @@ import Layout from '../components/Layout';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
 import { api, authenticatedFetch, logout } from '../lib/api';
+import { canAccessAdmin, normalizeRole } from '../lib/roleUtils';
 import { openWhatsAppLink } from '../lib/whatsapp';
 
 // ======================== UTILITÁRIOS ========================
@@ -1508,8 +1509,8 @@ function AdminUserList() {
                 <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm hidden lg:table-cell">{u.company || '—'}</td>
                 <td className="py-3 px-2 sm:px-4">
                   <span className={`px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
-                    u.role === 'ADMIN' ? 'text-gold bg-gold/10' :
-                    u.role === 'OPERATOR' ? 'text-lilac-400 bg-lilac-400/10' :
+                    normalizeRole(u.role) === 'ADMIN' ? 'text-gold bg-gold/10' :
+                    normalizeRole(u.role) === 'OPERATOR' ? 'text-lilac-400 bg-lilac-400/10' :
                     'text-gray-600 bg-white'
                   }`}>
                     {u.role}
@@ -2425,7 +2426,11 @@ export default function AdminDashboard() {
       return;
     }
     const user = JSON.parse(userStr);
-    if (user.role !== 'ADMIN' && user.role !== 'OPERATOR') {
+    const normalizedRole = normalizeRole(user.role);
+    if (normalizedRole !== user.role) {
+      localStorage.setItem("user", JSON.stringify({ ...user, role: normalizedRole }));
+    }
+    if (!canAccessAdmin(normalizedRole)) {
       navigate('/');
       return;
     }
@@ -2702,3 +2707,12 @@ export default function AdminDashboard() {
     </Layout>
   );
 }
+
+
+
+
+
+
+
+
+

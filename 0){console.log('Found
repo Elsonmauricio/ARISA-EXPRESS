@@ -1,0 +1,1 @@
+const fs=require('fs');const p='C:/Users/maels/Documents/Freelancer/Arisa_Express/frontend/src/pages/AdminDashboard.tsx';let c=fs.readFileSync(p,'utf8');const idx=c.indexOf('Verificar permiss');if(idx at:',idx);console.log(JSON.stringify(c.substring(idx,idx+500)));}else{console.log('Not found');}

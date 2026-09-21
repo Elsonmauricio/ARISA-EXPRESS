@@ -22,6 +22,13 @@ class AuthenticationError extends Error {
   }
 }
 
+export const normalizeRole = (role: unknown): string => String(role ?? '').trim().toUpperCase();
+
+export const canAccessAdmin = (role: unknown): boolean => {
+  const normalizedRole = normalizeRole(role);
+  return normalizedRole === 'ADMIN' || normalizedRole === 'OPERATOR';
+};
+
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -49,7 +56,8 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       throw new AuthenticationError(401, 'Por favor, autentique-se');
     }
 
-    req.user = { id: userDoc.id, ...userDoc.data() };
+    const userData = userDoc.data() || {};
+    req.user = { id: userDoc.id, ...userData, role: normalizeRole(userData.role) };
     next();
   } catch (error) {
     if (error instanceof AuthenticationError) {
@@ -63,7 +71,9 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 
 export const authorize = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    const userRole = normalizeRole(req.user?.role);
+    const allowedRoles = roles.map(normalizeRole);
+    if (!userRole || !allowedRoles.includes(userRole)) {
       return res.status(403).json({ error: 'Acesso negado' });
     }
     next();
@@ -85,7 +95,7 @@ export const authenticateRefresh = async (req: Request, res: Response, next: Nex
     }
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as any;
-    req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
+    req.user = { id: decoded.id, email: decoded.email, role: normalizeRole(decoded.role) };
     next();
   } catch (error) {
     res.status(401).json({ error: 'Refresh token inválido' });

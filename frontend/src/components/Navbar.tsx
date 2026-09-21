@@ -1,4 +1,4 @@
-﻿// src/components/Navbar.tsx
+// src/components/Navbar.tsx
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronDown, User, Settings, LogOut, Package, Search } from 'lucide-react';
@@ -8,6 +8,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { scrollToAnchor } from '../lib/scroll';
 import { useT } from '../i18n/LanguageContext';
 import { api } from '../lib/api';
+import { canAccessAdmin, normalizeRole } from '../lib/roleUtils';
 
 interface User {
   id: string;
@@ -52,19 +53,25 @@ export default function Navbar() {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUser({ ...parsed, role: normalizeRole(parsed.role) });
+      } catch {
+        setUser(null);
+      }
     } else {
-      // Tentar buscar da API se houver token mas nÃ£o user (fallback)
+      // Tentar buscar da API se houver token mas n�o user (fallback)
       const token = localStorage.getItem('token');
       if (token) {
         fetch(api('/api/auth/me'), {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: 'Bearer ' + token }
         })
           .then(res => res.json())
           .then(data => {
             if (data.success) {
-              setUser(data.data);
-              localStorage.setItem('user', JSON.stringify(data.data));
+              const normalizedUser = { ...data.data, role: normalizeRole(data.data.role) };
+              setUser(normalizedUser);
+              localStorage.setItem('user', JSON.stringify(normalizedUser));
             }
           })
           .catch(() => {});
@@ -109,7 +116,7 @@ export default function Navbar() {
   };
 
   // Link para admin (apenas para ADMIN ou OPERATOR)
-  const adminLink = user && (user.role === 'ADMIN' || user.role === 'OPERATOR') ? (
+  const adminLink = user && canAccessAdmin(user.role) ? (
     <Link
       to="/admin"
       onClick={() => { setDropdowns({ ...dropdowns, profile: false }); setOpen(false); }}
@@ -131,20 +138,16 @@ export default function Navbar() {
       initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className={`fixed top-7 left-0 right-0 z-[9999] transition-all duration-500 max-w-full ${
-        scrolled ? 'py-3' : 'py-5'
-      }`}
+      className="fixed top-7 left-0 right-0 z-[9999] transition-all duration-500 max-w-full"
       style={{ zIndex: 9999, isolation: 'isolate' }}
     >
-      <div className={`container mx-auto flex items-center justify-between rounded-2xl px-5 md:px-7 py-3 transition-all duration-500 ${
-        scrolled ? 'glass-strong' : 'bg-transparent'
-      }`}>
+      <div className="container mx-auto flex items-center justify-between rounded-2xl px-5 md:px-7 py-3 transition-all duration-500 ">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <img
             src={ARISAEXPRESStLogo}
              alt={t('nav.logoAlt')}
-              className="h-10 sm:h-14 md:h-16 lg:h-20 w-auto max-w-[70vw] sm:max-w-[50vw] drop-shadow-[0_0_14px_rgba(168,85,247,0.5)] brightness-110 group-hover:brightness-125 transition-all duration-300" width={80} height={80}
+               className="h-10 sm:h-14 md:h-16 lg:h-20 w-auto max-w-[70vw] sm:max-w-[50vw] drop-shadow-[0_0_14px_rgba(168,85,247,0.5)] brightness-110 group-hover:brightness-125 transition-all duration-300" width={80} height={80}
           />
         </Link>
 
@@ -157,31 +160,31 @@ export default function Navbar() {
               className="flex items-center gap-1 text-sm text-gray-700 hover:text-gold transition-colors group"
             >
               {t('nav.marca')}
-              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.brand ? 'rotate-180' : ''}`} />
+              <ChevronDown className="w-4 h-4 transition-transform duration-200 " />
             </button>
             <AnimatePresence>
                   {dropdowns.brand && (
                  <motion.div
-                   initial={{ opacity: 0, y: -10 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   exit={{ opacity: 0, y: -10 }}
-                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-gray-300"
-                   style={{ zIndex: 9999 }}
-                 >
-                  {BRAND_LINKS.map((link) => (
-                    <a
-                      key={link.href}
-                      href={link.href}
-                      onClick={(e) => { e.preventDefault(); goToSection(link.href); setDropdowns({ brand: false, shipments: false, profile: false }); }}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:text-gold hover:bg-white rounded-lg transition-colors"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-gray-300"
+                    style={{ zIndex: 9999 }}
+                  >
+                   {BRAND_LINKS.map((link) => (
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        onClick={(e) => { e.preventDefault(); goToSection(link.href); setDropdowns({ brand: false, shipments: false, profile: false }); }}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:text-gold hover:bg-white rounded-lg transition-colors"
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+           </div>
 
           {/* Dropdown: Encomendas */}
           <div className="relative">
@@ -190,31 +193,31 @@ export default function Navbar() {
               className="flex items-center gap-1 text-sm text-gray-700 hover:text-gold transition-colors group"
             >
               {t('nav.encomendas')}
-              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.shipments ? 'rotate-180' : ''}`} />
+              <ChevronDown className="w-4 h-4 transition-transform duration-200 " />
             </button>
             <AnimatePresence>
                   {dropdowns.shipments && (
                  <motion.div
-                   initial={{ opacity: 0, y: -10 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   exit={{ opacity: 0, y: -10 }}
-                   className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-gray-300"
-                   style={{ zIndex: 9999 }}
-                 >
-                  {SHIPMENT_LINKS.map((link) => (
-                    <Link
-                      key={link.href}
-                      to={link.href}
-                      onClick={() => setDropdowns({ ...dropdowns, shipments: false })}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:text-gold hover:bg-white rounded-lg transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute left-0 mt-2 glass-strong rounded-xl p-2 min-w-[180px] max-w-[80vw] border border-gray-300"
+                    style={{ zIndex: 9999 }}
+                  >
+                   {SHIPMENT_LINKS.map((link) => (
+                      <Link
+                        key={link.href}
+                        to={link.href}
+                        onClick={() => setDropdowns({ ...dropdowns, shipments: false })}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:text-gold hover:bg-white rounded-lg transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+           </div>
 
           {/* Dropdown: Perfil */}
           {user ? (
@@ -226,38 +229,38 @@ export default function Navbar() {
                 <span className="w-8 h-8 rounded-full bg-lilac/20 flex items-center justify-center text-gold font-semibold">
                   {user.name?.charAt(0).toUpperCase() || 'U'}
                 </span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdowns.profile ? 'rotate-180' : ''}`} />
+                <ChevronDown className="w-4 h-4 transition-transform duration-200 " />
               </button>
               <AnimatePresence>
                   {dropdowns.profile && (
                  <motion.div
-                   initial={{ opacity: 0, y: -10 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   exit={{ opacity: 0, y: -10 }}
-                   className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] max-w-[80vw] border border-gray-300"
-                   style={{ zIndex: 9999 }}
-                 >
-                    {adminLink && (
-                      <>
-                        {adminLink}
-                        <div className="border-t border-gray-300 my-2" />
-                      </>
-                    )}
-                    {profileLinks.map((link) => (
-                      <button
-                        key={link.label}
-                        onClick={() => handleProfileAction(link)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-gold hover:bg-white rounded-lg transition-colors"
-                      >
-                        {link.icon}
-                        {link.label}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ) : (
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute right-0 mt-2 glass-strong rounded-xl p-2 min-w-[200px] max-w-[80vw] border border-gray-300"
+                    style={{ zIndex: 9999 }}
+                  >
+                     {adminLink && (
+                        <>
+                          {adminLink}
+                          <div className="border-t border-gray-300 my-2" />
+                        </>
+                      )}
+                      {profileLinks.map((link) => (
+                        <button
+                          key={link.label}
+                          onClick={() => handleProfileAction(link)}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-gold hover:bg-white rounded-lg transition-colors"
+                        >
+                          {link.icon}
+                          {link.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+             </div>
+           ) : (
             <div className="flex items-center gap-2">
               <Link to="/login" className="text-sm text-gray-700 hover:text-gold transition-colors">
                 {t('nav.entrar')}
@@ -266,7 +269,7 @@ export default function Navbar() {
                 {t('nav.criarConta')}
               </GoldButton>
             </div>
-          )}
+           )}
         </nav>
 
         {/* Mobile menu button */}
@@ -316,17 +319,17 @@ export default function Navbar() {
                   </>
                 )}
                  <Link to="/perfil" onClick={() => setOpen(false)} className="text-gray-700 hover:text-gold transition-colors">
-                   {t('nav.perfil')}
-                 </Link>
-                 <Link to="/definicoes" onClick={() => setOpen(false)} className="text-gray-700 hover:text-gold transition-colors">
-                   {t('nav.definicoes')}
-                 </Link>
-                 <button
-                   onClick={() => { handleLogout(); setOpen(false); }}
-                   className="text-red-400 hover:text-red-300 text-left"
-                 >
-                   {t('nav.sair')}
-                 </button>
+                    {t('nav.perfil')}
+                  </Link>
+                  <Link to="/definicoes" onClick={() => setOpen(false)} className="text-gray-700 hover:text-gold transition-colors">
+                    {t('nav.definicoes')}
+                  </Link>
+                  <button
+                    onClick={() => { handleLogout(); setOpen(false); }}
+                    className="text-red-400 hover:text-red-300 text-left"
+                  >
+                    {t('nav.sair')}
+                  </button>
               </>
             ) : (
               <>
@@ -344,5 +347,3 @@ export default function Navbar() {
     </motion.header>
   );
 }
-
-
