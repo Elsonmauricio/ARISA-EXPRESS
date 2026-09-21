@@ -96,7 +96,19 @@ export const AuthController = {
       const userDoc = userSnapshot.docs[0];
       const user = { id: userDoc.id, ...userDoc.data() } as any;
 
-      const validPassword = await bcrypt.compare(password, user.password);
+      if (typeof user.password !== 'string' || !user.password) {
+        logger.warn(`[Auth] Utilizador ${user.email || userDoc.id} não possui senha`);
+        return res.status(401).json({ error: 'Credenciais inválidas' });
+      }
+
+      let validPassword = false;
+      try {
+        validPassword = await bcrypt.compare(password, user.password);
+      } catch {
+        logger.warn('[Auth] Falha ao validar hash de senha:', { userId: userDoc.id });
+        return res.status(401).json({ error: 'Credenciais inválidas' });
+      }
+
       if (!validPassword) {
         return res.status(401).json({ error: 'Credenciais inválidas' });
       }

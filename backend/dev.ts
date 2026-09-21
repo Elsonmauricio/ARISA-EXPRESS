@@ -1,6 +1,8 @@
 import app from './server';
 import { db } from './config/firebase';
 
+require('ts-node').register({ transpileOnly: true });
+
 process.on('uncaughtException', (err: any) => {
   console.error('⚠️ Uncaught Exception:', err.message);
 });

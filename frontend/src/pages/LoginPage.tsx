@@ -35,7 +35,7 @@ export default function Login() {
         const response = await fetch(api('/api/auth/reset-password-direct'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, newPassword: password })
+          body: JSON.stringify({ email, newPassword: password, confirmPassword: password })
         });
         const json = await response.json();
 
