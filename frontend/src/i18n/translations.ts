@@ -295,7 +295,7 @@ export const translations: Record<Lang, Dict> = {
     'ship.tabelaTitulo': '📊 Tabela de Preços',
     'ship.tabelaSub': 'Valores em Euro (€) e Kwanza (KZ)  sujeitos a alteração.',
     'ship.tabelaNota': '* Valores em KZ sob consulta para itens não listados.',
-    'ship.itemsBase': '📦 Items Base',
+    'ship.itemsBase': '📦 Itens Base',
     'ship.item': 'Item',
     'ship.euro': 'Euro (€)',
     'ship.kwanza': 'Kwanza (KZ)',
