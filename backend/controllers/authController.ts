@@ -10,6 +10,15 @@ import { normalizeRole } from '../middleware/auth';
 
 const normalizeEmail = (email: unknown): string => String(email ?? '').trim().toLowerCase();
 
+async function findUsersByEmail(email: unknown): Promise<any[]> {
+  const normalizedEmail = normalizeEmail(email);
+  const exactSnapshot = await db.collection('users').where('email', '==', normalizedEmail).get();
+  if (!exactSnapshot.empty) return exactSnapshot.docs;
+
+  const snapshot = await db.collection('users').get();
+  return snapshot.docs.filter((doc: any) => normalizeEmail(doc.data()?.email) === normalizedEmail);
+}
+
 export const AuthController = {
   register: async (req: Request, res: Response) => {
     try {
@@ -24,8 +33,8 @@ export const AuthController = {
         return res.status(400).json({ error: 'As senhas não coincidem' });
       }
 
-      const userSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
-      if (!userSnapshot.empty) {
+      const existingUsers = await findUsersByEmail(email);
+      if (existingUsers.length > 0) {
         return res.status(400).json({ error: 'Email já registado' });
       }
 
@@ -93,14 +102,14 @@ export const AuthController = {
       const { password } = req.body;
       const email = normalizeEmail(req.body.email);
 
-      const userSnapshot = await db.collection('users').where('email', '==', email).get();
-      if (userSnapshot.empty) {
+      const userDocs = await findUsersByEmail(email);
+      if (userDocs.length === 0) {
         return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
       let userDoc: FirebaseFirestore.QueryDocumentSnapshot | undefined;
       let user: any;
-      for (const candidate of userSnapshot.docs) {
+      for (const candidate of userDocs) {
         const candidateData = candidate.data() as any;
         if (typeof candidateData.password !== 'string' || !candidateData.password) continue;
         try {
@@ -220,12 +229,12 @@ export const AuthController = {
         return res.status(400).json({ error: 'Email é obrigatório' });
       }
 
-      const userSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
-      if (userSnapshot.empty) {
+      const userDocs = await findUsersByEmail(email);
+      if (userDocs.length === 0) {
         return res.json({ success: true, message: 'Se o email existir, enviaremos instruções' });
       }
 
-      const userDoc = userSnapshot.docs[0];
+      const userDoc = userDocs[0];
       const resetToken = jwt.sign(
         { id: userDoc.id, email },
         process.env.JWT_SECRET!,
@@ -319,12 +328,12 @@ export const AuthController = {
         return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres' });
       }
 
-      const userSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
-      if (userSnapshot.empty) {
+      const userDocs = await findUsersByEmail(email);
+      if (userDocs.length === 0) {
         return res.status(404).json({ error: 'Utilizador não encontrado' });
       }
 
-      const userDoc = userSnapshot.docs[0];
+      const userDoc = userDocs[0];
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       await userDoc.ref.update({
