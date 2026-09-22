@@ -1,4 +1,4 @@
-// src/components/Navbar.tsx
+ï»¿// src/components/Navbar.tsx
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronDown, User, Settings, LogOut, Package, Search } from 'lucide-react';
@@ -7,7 +7,7 @@ import ARISAEXPRESStLogo from '../assets/logo-Arisa-express-opt.webp';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { scrollToAnchor } from '../lib/scroll';
 import { useT } from '../i18n/LanguageContext';
-import { api } from '../lib/api';
+import { api, authenticatedFetch, AUTH_CHANGE_EVENT, logout, notifyAuthChange } from '../lib/api';
 import { canAccessAdmin, normalizeRole } from '../lib/roleUtils';
 
 interface User {
@@ -24,6 +24,7 @@ export default function Navbar() {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [authVersion, setAuthVersion] = useState(0);
   const [user, setUser] = useState<User | null>(null);
   const [dropdowns, setDropdowns] = useState({
     brand: false,
@@ -51,33 +52,58 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
+    const onAuthChange = () => setAuthVersion((version) => version + 1);
+    window.addEventListener(AUTH_CHANGE_EVENT, onAuthChange);
+    return () => window.removeEventListener(AUTH_CHANGE_EVENT, onAuthChange);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
+
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        setUser({ ...parsed, role: normalizeRole(parsed.role) });
+        const cachedUser = { ...parsed, role: normalizeRole(parsed.role) };
+        setUser(cachedUser);
+        localStorage.setItem('user', JSON.stringify(cachedUser));
       } catch {
         setUser(null);
       }
-    } else {
-      // Tentar buscar da API se houver token mas não user (fallback)
-      const token = localStorage.getItem('token');
-      if (token) {
-        fetch(api('/api/auth/me'), {
-          headers: { Authorization: 'Bearer ' + token }
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-              const normalizedUser = { ...data.data, role: normalizeRole(data.data.role) };
-              setUser(normalizedUser);
-              localStorage.setItem('user', JSON.stringify(normalizedUser));
-            }
-          })
-          .catch(() => {});
-      }
     }
-  }, []);
+
+    if (!token) {
+      setUser(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    authenticatedFetch(api('/api/auth/me'))
+      .then(async (res) => {
+        if (res.status === 401) {
+          logout();
+          if (!cancelled) setUser(null);
+          return null;
+        }
+        if (!res.ok) throw new Error(`me status ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled || !data?.success || !data.data) return;
+        const normalizedUser = { ...data.data, role: normalizeRole(data.data.role) };
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
+        if (!cancelled) setUser(normalizedUser);
+      })
+      .catch(() => {
+        // Keep the cached user available during a temporary network failure.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authVersion]);
 
   const toggleDropdown = (name: 'brand' | 'shipments' | 'profile') => {
     setDropdowns((prev) => ({
@@ -103,6 +129,7 @@ export default function Navbar() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    notifyAuthChange();
     navigate('/');
   };
 
@@ -218,6 +245,16 @@ export default function Navbar() {
                 )}
               </AnimatePresence>
            </div>
+
+          {user && canAccessAdmin(user.role) && (
+            <Link
+              to="/admin"
+              onClick={() => setOpen(false)}
+              className="text-sm text-gray-700 hover:text-gold transition-colors"
+            >
+              {t('nav.dashboardAdmin')}
+            </Link>
+          )}
 
           {/* Dropdown: Perfil */}
           {user ? (

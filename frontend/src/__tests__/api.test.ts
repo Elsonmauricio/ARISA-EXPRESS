@@ -149,7 +149,8 @@ describe('api', () => {
     } else {
       const url = api('/api/test');
       expect(url).not.toContain('undefined');
-      expect(url).toContain(base);
+      expect(url).not.toContain(',');
+      expect(url).toContain('/api/test');
     }
   });
 });

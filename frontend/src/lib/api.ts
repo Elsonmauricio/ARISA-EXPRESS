@@ -1,7 +1,33 @@
-const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+const repairApiUrl = (value: string) =>
+  value.replace(/^https\/\//, 'https://').replace(/^http\/\//, 'http://').trim();
+const configuredApiBase = import.meta.env.VITE_API_URL?.trim();
+const apiCandidates: string[] = configuredApiBase
+  ? configuredApiBase.split(',').map(repairApiUrl).filter(Boolean)
+  : [];
+const isLocalUrl = (value: string) =>
+  /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/.*)?$/.test(value);
+const selectedApiBase =
+  apiCandidates.length > 1
+    ? apiCandidates.find((value) =>
+        import.meta.env.DEV ? isLocalUrl(value) : !isLocalUrl(value)
+      ) ?? apiCandidates[0]
+    : apiCandidates[0];
+const API_BASE = selectedApiBase?.replace(/\/+$/, '');
+
+if (apiCandidates.length > 1) {
+  console.warn('[API] VITE_API_URL contém múltiplos URLs; foi selecionado o URL compatível com o ambiente atual.');
+}
 
 if (!API_BASE) {
   console.warn('[API] VITE_API_URL não definido — a usar caminhos relativos');
+}
+
+export const AUTH_CHANGE_EVENT = 'arisa-auth-change';
+
+export function notifyAuthChange(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+  }
 }
 
 export const API_URL = API_BASE;
@@ -25,6 +51,7 @@ function clearAuthAndRedirect(): void {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
+  notifyAuthChange();
   window.location.assign('/login');
 }
 

@@ -69,7 +69,11 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
         if (cancelled) return;
         // /me unavailable (offline, 5xx, ...): fall back to the normalized
         // cached role so case variants still resolve when offline.
-        setAuthorized(canAccessAdmin(parsedUser?.role));
+        const normalizedRole = normalizeRole(parsedUser?.role);
+        if (parsedUser && normalizedRole) {
+          localStorage.setItem("user", JSON.stringify({ ...parsedUser, role: normalizedRole }));
+        }
+        setAuthorized(canAccessAdmin(normalizedRole));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

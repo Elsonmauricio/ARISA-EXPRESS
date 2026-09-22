@@ -6,6 +6,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail, isEmailConfigured } from '../services/emailService';
 import type { EmailOptions } from '../services/emailService';
 import { logger } from '../utils/logger';
+import { normalizeRole } from '../middleware/auth';
 import { addBusinessDays, calculateFine, calculateLocationFine, formatDate, getBusinessDaysBetween, calculateWeeksOverdue } from '../utils/businessDays';
 import { generateWhatsAppLink, generateWhatsAppMessage, getPickupImage, isLuandaDestination, formatPhoneToE164, generateCustomWhatsAppLink, guessLocationType } from '../utils/whatsapp';
 import { fixEncodingObject } from '../utils/encoding';
@@ -1322,7 +1323,9 @@ export const AdminController = {
       const { id } = req.params;
       const { role } = req.body;
 
-      if (!['ADMIN', 'OPERATOR', 'CLIENT'].includes(role)) {
+      const normalizedRole = normalizeRole(role);
+
+      if (!['ADMIN', 'OPERATOR', 'CLIENT'].includes(normalizedRole)) {
         return res.status(400).json({ error: 'Role inválida' });
       }
 
@@ -1331,7 +1334,7 @@ export const AdminController = {
         return res.status(404).json({ error: 'Utilizador não encontrado' });
       }
 
-      await db.collection('users').doc(id).update({ role });
+      await db.collection('users').doc(id).update({ role: normalizedRole });
       invalidateCache('admin:stats');
       res.json({ success: true, message: 'Permissões atualizadas' });
     } catch (error) {

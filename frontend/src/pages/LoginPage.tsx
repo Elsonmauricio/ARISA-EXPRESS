@@ -6,7 +6,8 @@ import { GoldButton } from '../components/Button';
 import Layout from '../components/Layout';
 import { Link, useNavigate } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
-import { api, authenticatedFetch, logout } from '../lib/api';
+import { api, authenticatedFetch, logout, notifyAuthChange } from '../lib/api';
+import { normalizeRole } from '../lib/roleUtils';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -57,7 +58,9 @@ export default function Login() {
         if (json.success) {
           localStorage.setItem('token', json.data.accessToken);
           localStorage.setItem('refreshToken', json.data.refreshToken);
-          localStorage.setItem('user', JSON.stringify(json.data.user));
+          const user = { ...json.data.user, role: normalizeRole(json.data.user?.role) };
+          localStorage.setItem('user', JSON.stringify(user));
+          notifyAuthChange();
           navigate('/');
         } else {
           setError(json.error || t('login.credenciaisInvalidas'));

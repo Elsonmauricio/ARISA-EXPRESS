@@ -6,11 +6,15 @@ import { db } from '../config/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { sendEmail } from '../services/emailService';
 import { logger } from '../utils/logger';
+import { normalizeRole } from '../middleware/auth';
+
+const normalizeEmail = (email: unknown): string => String(email ?? '').trim().toLowerCase();
 
 export const AuthController = {
   register: async (req: Request, res: Response) => {
     try {
-      const { email, password, confirmPassword, name, phone, company } = req.body;
+      const { password, confirmPassword, name, phone, company } = req.body;
+      const email = normalizeEmail(req.body.email);
 
       if (!password || password.length < 6) {
         return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' });
@@ -86,41 +90,43 @@ export const AuthController = {
   
   login: async (req: Request, res: Response) => {
     try {
-      const { email, password } = req.body;
+      const { password } = req.body;
+      const email = normalizeEmail(req.body.email);
 
-      const userSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
+      const userSnapshot = await db.collection('users').where('email', '==', email).get();
       if (userSnapshot.empty) {
         return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
-      const userDoc = userSnapshot.docs[0];
-      const user = { id: userDoc.id, ...userDoc.data() } as any;
+      let userDoc: FirebaseFirestore.QueryDocumentSnapshot | undefined;
+      let user: any;
+      for (const candidate of userSnapshot.docs) {
+        const candidateData = candidate.data() as any;
+        if (typeof candidateData.password !== 'string' || !candidateData.password) continue;
+        try {
+          if (await bcrypt.compare(password, candidateData.password)) {
+            userDoc = candidate;
+            user = { id: candidate.id, ...candidateData };
+            break;
+          }
+        } catch {
+          logger.warn('[Auth] Falha ao validar hash de senha:', { userId: candidate.id });
+        }
+      }
 
-      if (typeof user.password !== 'string' || !user.password) {
-        logger.warn(`[Auth] Utilizador ${user.email || userDoc.id} não possui senha`);
+      if (!userDoc || !user) {
         return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
-      let validPassword = false;
-      try {
-        validPassword = await bcrypt.compare(password, user.password);
-      } catch {
-        logger.warn('[Auth] Falha ao validar hash de senha:', { userId: userDoc.id });
-        return res.status(401).json({ error: 'Credenciais inválidas' });
-      }
-
-      if (!validPassword) {
-        return res.status(401).json({ error: 'Credenciais inválidas' });
-      }
-
+      const role = normalizeRole(user.role);
       const accessToken = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
+        { id: user.id, email: user.email, role },
         process.env.JWT_SECRET!,
         { expiresIn: '15m' }
       );
 
       const refreshToken = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
+        { id: user.id, email: user.email, role },
         process.env.JWT_SECRET!,
         { expiresIn: '7d' }
       );
@@ -128,7 +134,7 @@ export const AuthController = {
       await db.collection('refreshTokens').doc(refreshToken).set({
         userId: user.id,
         email: user.email,
-        role: user.role,
+        role,
         createdAt: FieldValue.serverTimestamp(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       });
@@ -136,7 +142,7 @@ export const AuthController = {
       res.json({
         success: true,
         data: {
-          user: { id: user.id, email: user.email, name: user.name, role: user.role },
+          user: { id: user.id, email: user.email, name: user.name, role },
           accessToken,
           refreshToken
         }
@@ -164,15 +170,16 @@ export const AuthController = {
       }
 
       const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as any;
+      const role = normalizeRole(decoded.role);
 
       const newAccessToken = jwt.sign(
-        { id: decoded.id, email: decoded.email, role: decoded.role },
+        { id: decoded.id, email: decoded.email, role },
         process.env.JWT_SECRET!,
         { expiresIn: '15m' }
       );
 
       const newRefreshToken = jwt.sign(
-        { id: decoded.id, email: decoded.email, role: decoded.role },
+        { id: decoded.id, email: decoded.email, role },
         process.env.JWT_SECRET!,
         { expiresIn: '7d' }
       );
@@ -182,7 +189,7 @@ export const AuthController = {
       await db.collection('refreshTokens').doc(newRefreshToken).set({
         userId: decoded.id,
         email: decoded.email,
-        role: decoded.role,
+        role,
         createdAt: FieldValue.serverTimestamp(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       });
@@ -341,7 +348,8 @@ export const AuthController = {
       if (!userDoc.exists) return res.status(404).json({ error: 'Utilizador não encontrado' });
       
       const { password, ...userData } = userDoc.data() as any;
-      res.json({ success: true, data: { id: userDoc.id, ...userData } });
+      const role = normalizeRole(userData.role);
+      res.json({ success: true, data: { id: userDoc.id, ...userData, role } });
     } catch (error) {
       res.status(401).json({ error: 'Token inválido' });
     }
