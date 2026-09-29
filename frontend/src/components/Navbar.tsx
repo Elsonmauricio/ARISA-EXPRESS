@@ -246,7 +246,7 @@ export default function Navbar() {
               </AnimatePresence>
            </div>
 
-          {user && canAccessAdmin(user.role) && (
+          {/* {user && canAccessAdmin(user.role) && (
             <Link
               to="/admin"
               onClick={() => setOpen(false)}
@@ -254,7 +254,7 @@ export default function Navbar() {
             >
               {t('nav.dashboardAdmin')}
             </Link>
-          )}
+          )} */}
 
           {/* Dropdown: Perfil */}
           {user ? (

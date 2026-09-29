@@ -57,7 +57,7 @@ export function getPickupImage(location: LocationType): string {
 
 // ==================== ENDEREÇOS ====================
 
-const LUANDA_ADDRESS = 'Morro Bento\nAvenida 21 de Janeiro\nDefronte ao Hotel Ágatha\nNo lado oposto ao Hotel Ágatha\nNa entrada à esquerda da farmácia Elvice, antes do Colégio GAB 2 está a Arisa Express';
+const LUANDA_ADDRESS = 'Morro Bento Avenida 21 de Janeiro Defronte ao Hotel Ágatha, No lado oposto ao Hotel Ágatha Na entrada à esquerda da farmácia Elvice, antes do Colégio GAB 2 está a Arisa Express';
 
 const LISBOA_ADDRESS = 'Centro Comercial Flamingos, Loja 47, Avenida Salgado Zenha 2, 2660-328 Santo António dos Cavaleiros';
 
@@ -68,7 +68,7 @@ const LISBOA_CONTACT = '+351 934 292 082';
 
 // ==================== HORÁRIOS ====================
 
-const LUANDA_SCHEDULE = 'Segunda à sexta-feira\n08:00 – 12:00\n13:00 – 17:00\nEncerrados aos finais de semana e feriados';
+const LUANDA_SCHEDULE = 'Segunda à sexta-feira: 08:00 – 12:00\n13:00 – 17:00\nEncerrados aos finais de semana e feriados';
 
 const LISBOA_SCHEDULE = 'Segunda a Sexta: 09:00 - 13:00 | 14:00 - 18:00';
 

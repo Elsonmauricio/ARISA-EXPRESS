@@ -65,8 +65,8 @@ export default function StorySection({ chapters, visual, onProgress, className =
           if (!inner) return;
           const at = i / chapters.length;
           const out = (i + 1) / chapters.length;
-          tl.fromTo(inner, { opacity: 0, y: 40, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.18 }, at)
-            .to(inner, { opacity: 0, y: -40, filter: 'blur(6px)', duration: 0.18 }, out - 0.16);
+          tl.fromTo(inner, { opacity: 0, y: 24, filter: 'blur(3px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.14 }, at)
+            .to(inner, { opacity: 0, y: -24, filter: 'blur(3px)', duration: 0.14 }, out - 0.14);
         });
 
         ScrollTrigger.create({
@@ -122,7 +122,10 @@ export default function StorySection({ chapters, visual, onProgress, className =
               className={`absolute w-[min(36rem,92vw)] px-6 flex flex-col ${posCls}`}
               style={{ top: '50%', transform: align === 'center' ? 'translate(-50%, -50%)' : 'translateY(-50%)' }}
             >
-              <div className="story-inner" style={{ opacity: i === 0 ? 1 : 0 }}>
+              <div
+                className="story-inner transition-opacity duration-300"
+                style={{ opacity: i === 0 ? 1 : 0 }}
+              >
                 <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-black leading-[1.05]">
                   <span className="text-gradient-lilac">{ch.title}</span>
                 </h2>
