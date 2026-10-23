@@ -50,9 +50,10 @@ export const adminCreateShipmentSchema = z.object({
     receiverName: z.string().min(2),
     receiverContact: z.string().optional(),
     receiverPhone: z.string().optional(),
-    weight: z.number().positive(),
+    weight: z.number().nonnegative().optional(),
     category: z.string().optional(),
     freightValue: z.number().nonnegative().optional(),
+    paidAmount: z.number().nonnegative().optional(),
     price: z.number().nonnegative().optional(),
     paymentStatus: z.enum(['PAID', 'PENDING']).optional(),
     serviceType: z.enum(['REDIRECT', 'COURIER', 'PERSONAL_SHOPPER', 'BUSINESS']).optional(),
@@ -67,6 +68,42 @@ export const updateCttSchema = z.object({
   body: z.object({
     cttCode: z.string().optional(),
     cttLink: z.string().url().optional().or(z.literal(''))
+  })
+});
+
+// Atualização por cliente: apenas campos seguros, em strictObject
+// para rejeitar qualquer tentativa de enviar price/paidAmount ou outros campos não autorizados.
+export const clientUpdateShipmentSchema = z.object({
+  body: z.strictObject({
+    description: z.string().max(500).optional(),
+    senderName: z.string().min(2).max(100).optional(),
+    senderPhone: z.string().max(30).optional(),
+    receiverName: z.string().min(2).max(100).optional(),
+    receiverPhone: z.string().max(30).optional(),
+    weight: z.number().nonnegative().optional(),
+    length: z.number().nonnegative().optional(),
+    width: z.number().nonnegative().optional(),
+    height: z.number().nonnegative().optional(),
+    serviceType: z.enum(['REDIRECT', 'COURIER', 'PERSONAL_SHOPPER', 'BUSINESS']).optional()
+  })
+});
+
+// Atualização por admin: permite editar paidAmount (Valor Pago) e weight, com auditLog.
+export const adminUpdateShipmentSchema = z.object({
+  body: z.strictObject({
+    weight: z.number().nonnegative().optional(),
+    paidAmount: z.number().nonnegative().optional(),
+    price: z.number().nonnegative().optional(),
+    paymentStatus: z.enum(['PAID', 'PENDING']).optional(),
+    description: z.string().max(500).optional(),
+    senderName: z.string().min(2).max(100).optional(),
+    senderPhone: z.string().max(30).optional(),
+    receiverName: z.string().min(2).max(100).optional(),
+    receiverPhone: z.string().max(30).optional(),
+    length: z.number().nonnegative().optional(),
+    width: z.number().nonnegative().optional(),
+    height: z.number().nonnegative().optional(),
+    serviceType: z.enum(['REDIRECT', 'COURIER', 'PERSONAL_SHOPPER', 'BUSINESS']).optional()
   })
 });
 

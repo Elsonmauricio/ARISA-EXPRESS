@@ -6,7 +6,7 @@ import { ExportController } from '../../controllers/exportController';
 import { authenticate, authorize } from '../../middleware/auth';
 import { validate } from '../../middleware/validation';
 import { auditLog } from '../../middleware/auditLog';
-import { adminCreateShipmentSchema, updateCttSchema, batchStatusUpdateSchema, batchByIdsSchema } from '../../types/validation';
+import { adminCreateShipmentSchema, adminUpdateShipmentSchema, updateCttSchema, batchStatusUpdateSchema, batchByIdsSchema } from '../../types/validation';
 
 const router = Router();
 
@@ -23,6 +23,7 @@ router.patch('/shipments/batch-status', validate(batchStatusUpdateSchema), audit
 router.get('/shipments/ready-for-pickup', AdminController.getReadyForPickup);
 router.get('/shipments/:id', AdminController.getShipmentDetails);
 router.post('/shipments', validate(adminCreateShipmentSchema), auditLog, AdminController.createShipment);
+router.patch('/shipments/:id', validate(adminUpdateShipmentSchema), auditLog, AdminController.updateShipment);
 router.patch('/shipments/:id/status', auditLog, AdminController.updateShipmentStatus);
 router.patch('/shipments/:id/ctt', validate(updateCttSchema), auditLog, AdminController.updateCtt);
 router.patch('/shipments/batch-status-by-ids', validate(batchByIdsSchema), auditLog, AdminController.batchUpdateByIds);

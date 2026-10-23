@@ -210,11 +210,10 @@ logger.info(`Encontradas ${shipments.length} encomendas para o utilizador ${user
         return res.status(403).json({ error: 'Acesso negado' });
       }
 
+      // Campos seguros para o cliente: sem price/paidAmount (valores financeiros são admin-only).
       const allowedFields = [
-        'status', 'trackingCode', 'origin', 'destination', 'weight',
-        'price', 'serviceType', 'flightDate', 'description',
-        'senderName', 'senderPhone', 'recipientName', 'recipientPhone',
-        'length', 'width', 'height'
+        'description', 'senderName', 'senderPhone', 'receiverName', 'receiverPhone',
+        'weight', 'length', 'width', 'height', 'serviceType'
       ];
       const filteredUpdates: any = {};
       for (const key of allowedFields) {
@@ -224,6 +223,11 @@ logger.info(`Encontradas ${shipments.length} encomendas para o utilizador ${user
       }
       if ('weight' in filteredUpdates) {
         filteredUpdates.weight = parseFloat(filteredUpdates.weight);
+      }
+      if (['length', 'width', 'height'].some(k => k in filteredUpdates)) {
+        for (const k of ['length', 'width', 'height']) {
+          if (k in filteredUpdates) filteredUpdates[k] = parseFloat(filteredUpdates[k]);
+        }
       }
 
       await db.collection('shipments').doc(id).update(filteredUpdates);

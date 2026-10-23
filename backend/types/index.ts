@@ -19,6 +19,7 @@ export interface Shipment {
   route?: string;
   weight: number;
   price?: number;
+  paidAmount?: number;
   freightValue?: number;
   category?: string;
   paymentStatus?: 'PAID' | 'PENDING';

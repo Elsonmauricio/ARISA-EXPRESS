@@ -394,7 +394,12 @@ export const AdminController = {
 
       const trackingCode = body.trackingCode || `AE-${new Date().getFullYear()}-${randomBytes(2).toString('hex').toUpperCase()}`;
       const route = (body.route || `${body.origin} » ${body.destination}`).toUpperCase();
-      const weightNum = parseFloat(body.weight) || 0;
+      const weightNum = parseFloat(body.weight);
+
+      const paidAmountRaw = body.paidAmount ?? body.price;
+      const paidAmountNum = paidAmountRaw === undefined || paidAmountRaw === null || paidAmountRaw === ''
+        ? 0
+        : parseFloat(paidAmountRaw) || 0;
 
       let routeId = body.routeId || null;
       let matchedRouteDoc: any = null;
@@ -413,17 +418,21 @@ export const AdminController = {
         }
       }
 
-      if (matchedRouteDoc && weightNum > 0) {
+      // Reserva mínima de capacidade: se o peso não for conhecido (0/null), assume 1 slot.
+      const isWeightKnown = !isNaN(weightNum) && weightNum > 0;
+      const capacityToReserve = isWeightKnown ? weightNum : 1;
+
+      if (matchedRouteDoc) {
         const routeData = matchedRouteDoc.data();
         const available = (routeData.capacity || 0) - (routeData.reserved || 0);
-        if (available < weightNum) {
+        if (available < capacityToReserve) {
           return res.status(400).json({
             error: `Capacidade insuficiente na rota. Disponível: ${available} kg`
           });
         }
 
         await db.collection('routes').doc(matchedRouteDoc.id).update({
-          reserved: FieldValue.increment(weightNum)
+          reserved: FieldValue.increment(capacityToReserve)
         });
       }
 
@@ -440,11 +449,12 @@ export const AdminController = {
         receiverName: body.receiverName,
         receiverContact: body.receiverContact || '',
         receiverPhone: body.receiverPhone || '',
-        weight: weightNum,
+        weight: isWeightKnown ? weightNum : 0,
         category: body.category || '',
         freightValue: body.freightValue ? parseFloat(body.freightValue) : 0,
-        price: body.price ? parseFloat(body.price) : 0,
-        paymentStatus: body.paymentStatus || 'PENDING',
+        paidAmount: paidAmountNum,
+        price: paidAmountNum,
+        paymentStatus: body.paymentStatus || (paidAmountNum > 0 ? 'PAID' : 'PENDING'),
         description: body.description || '',
         serviceType: body.serviceType || 'REDIRECT',
         cttCode: body.cttCode || '',
@@ -517,7 +527,7 @@ export const AdminController = {
                   receiverName: body.receiverName,
                   weight: parseFloat(body.weight) || 0,
                   serviceType: body.serviceType || 'REDIRECT',
-                  price: parseFloat(body.price) || 0
+                  price: paidAmountNum
                 }
               })
             )
@@ -587,6 +597,61 @@ export const AdminController = {
     } catch (error) {
       logger.error('Erro ao atualizar CTT:', error);
       res.status(500).json({ error: 'Erro ao atualizar CTT' });
+    }
+  },
+
+  // Atualização por ADMIN: permite editar paidAmount (Valor Pago) e weight.
+  // Protegido com authorize('ADMIN') + auditLog na rota.
+  updateShipment: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const body = req.body;
+
+      const doc = await db.collection('shipments').doc(id).get();
+      if (!doc.exists) {
+        return res.status(404).json({ error: 'Encomenda não encontrada' });
+      }
+
+      const existing = doc.data() as any;
+      const updateData: any = {};
+
+      if (body.weight !== undefined) {
+        updateData.weight = parseFloat(body.weight) || 0;
+      }
+      if (body.paidAmount !== undefined) {
+        const paidAmountNum = parseFloat(body.paidAmount) || 0;
+        updateData.paidAmount = paidAmountNum;
+        updateData.price = paidAmountNum;
+        if (body.paymentStatus === undefined) {
+          updateData.paymentStatus = paidAmountNum > 0 ? 'PAID' : 'PENDING';
+        }
+      }
+      if (body.price !== undefined) {
+        updateData.price = parseFloat(body.price) || 0;
+      }
+      if (body.paymentStatus !== undefined) {
+        updateData.paymentStatus = body.paymentStatus;
+      }
+      if (body.description !== undefined) updateData.description = body.description;
+      if (body.senderName !== undefined) updateData.senderName = body.senderName;
+      if (body.senderPhone !== undefined) updateData.senderPhone = body.senderPhone;
+      if (body.receiverName !== undefined) updateData.receiverName = body.receiverName;
+      if (body.receiverPhone !== undefined) updateData.receiverPhone = body.receiverPhone;
+      if (body.length !== undefined) updateData.length = parseFloat(body.length) || 0;
+      if (body.width !== undefined) updateData.width = parseFloat(body.width) || 0;
+      if (body.height !== undefined) updateData.height = parseFloat(body.height) || 0;
+      if (body.serviceType !== undefined) updateData.serviceType = body.serviceType;
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: 'Nenhum campo válido para atualizar' });
+      }
+
+      await db.collection('shipments').doc(id).update(updateData);
+      invalidateCache('admin:stats');
+      res.json({ success: true, message: 'Encomenda atualizada' });
+    } catch (error: any) {
+      logger.error('Erro ao atualizar encomenda (admin):', error);
+      res.status(500).json({ error: 'Erro ao atualizar encomenda' });
     }
   },
 
