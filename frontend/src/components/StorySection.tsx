@@ -123,7 +123,7 @@ export default function StorySection({ chapters, visual, onProgress, className =
               style={{ top: '50%', transform: align === 'center' ? 'translate(-50%, -50%)' : 'translateY(-50%)' }}
             >
               <div
-                className="story-inner transition-opacity duration-300"
+                className="story-inner rounded-2xl border border-white/70 bg-white/75 px-5 py-4 shadow-[0_12px_36px_rgba(75,33,112,0.18)]  sm:px-7 sm:py-5"
                 style={{ opacity: i === 0 ? 1 : 0 }}
               >
                 <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-black leading-[1.05]">

@@ -42,7 +42,7 @@ frontend.zip
 *-firebase-adminsdk-*.json
 *.json.key
 package-lock.json
-package.json
+
 
 # managed
 **.data.json
