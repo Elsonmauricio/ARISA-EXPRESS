@@ -197,7 +197,7 @@ export default function Contact() {
               <h3 className="font-bold mb-2">{t('contact.whatsappTitle')}</h3>
               <div className="grid grid-cols-2 gap-3">
                 <a
-                  href="https://wa.me/351934292082?text=Ol%C3%A1!%20Preciso%20de%20atendimento%20para%20a%20unidade%20de%20Lisboa."
+                  href="https://wa.me/351934292082?text=Ol%C3%A1%20Arisa%20Express%20PT!%20Venho%20pelo%20site%20da%20empresa%20e%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20o%20servi%C3%A7o."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block bg-green-600 text-black w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
@@ -205,7 +205,7 @@ export default function Contact() {
                   {t('contact.whatsappLisboa')}
                 </a>
                 <a
-                  href="https://wa.me/244948440920?text=Ol%C3%A1!%20Preciso%20de%20atendimento%20para%20a%20unidade%20de%20Luanda."
+                  href="https://wa.me/244948440920?text=Ol%C3%A1%20Arisa%20Express%20AO!%20Venho%20pelo%20site%20da%20empresa%20e%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20o%20servi%C3%A7o."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block bg-green-600 text-black w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
