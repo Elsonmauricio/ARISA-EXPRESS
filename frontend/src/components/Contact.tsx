@@ -197,7 +197,7 @@ export default function Contact() {
               <h3 className="font-bold mb-2">{t('contact.whatsappTitle')}</h3>
               <div className="grid grid-cols-2 gap-3">
                 <a
-                  href={whatsappUrl(t('contact.whatsapp'), '351934292082')}
+                  href="https://wa.me/351934292082?text=Ol%C3%A1!%20Preciso%20de%20atendimento%20para%20a%20unidade%20de%20Lisboa."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block bg-green-600 text-black w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
@@ -205,7 +205,7 @@ export default function Contact() {
                   {t('contact.whatsappLisboa')}
                 </a>
                 <a
-                  href={whatsappUrl(t('contact.whatsapp'), '244948440920')}
+                  href="https://wa.me/244948440920?text=Ol%C3%A1!%20Preciso%20de%20atendimento%20para%20a%20unidade%20de%20Luanda."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block bg-green-600 text-black w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
